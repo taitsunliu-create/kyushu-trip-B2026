@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -46,6 +47,35 @@
         }
 
         /* Header - Modified for Side-by-Side Layout */
+        /* [新增] 右上角重新整理按鈕樣式 */
+        /* [修改] 重整按鈕：縮小並跟隨文字 */
+        .btn-app-refresh {
+            position: relative; /* 改為相對定位，跟隨文字流 */
+            display: inline-flex; /* 讓它像文字一樣排列 */
+            vertical-align: middle; /* 垂直置中對齊文字 */
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 2px; /* 縮小點擊範圍的留白 */
+            margin-left: 2px; /* 與標題文字保持一點距離 */
+            margin-bottom: 4px; /* 微調垂直位置 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-app-refresh:active, .btn-app-refresh:hover {
+            color: white;
+            transform: rotate(180deg);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        /* [修改] 圖示縮小約 60% (原 20px -> 12px) */
+        .btn-app-refresh svg {
+            width: 12px;
+            height: 12px;
+            stroke-width: 3; /* 因為變小了，線條加粗一點點才清楚 */
+        }
+
         header {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
             color: var(--white);
@@ -56,6 +86,8 @@
         }
         
         .header-content {
+            position: relative; /* 確保 z-index 生效 */
+            z-index: 10;        /* 關鍵修正！讓文字與按鈕在最上層 */
             display: flex;
             flex-direction: row; 
             justify-content: space-between;
@@ -239,7 +271,217 @@
         .calc-input { width: 60%; padding: 10px; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 1.2rem; text-align: right; outline: none; }
         .calc-input:focus { border-color: #F59E0B; }
         .calc-label { font-weight: 600; color: #4B5563; }
+/* [新增] 計算機專用樣式 (Calculator Style) */
+        .calc-display {
+            background: #F3F4F6;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: right;
+            margin-bottom: 15px;
+            border: 2px solid #E5E7EB;
+        }
+        .calc-expr {
+            font-size: 0.9rem;
+            color: #6B7280;
+            min-height: 1.2em;
+            margin-bottom: 5px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .calc-main {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1F2937;
+            line-height: 1.2;
+        }
+        .calc-sub {
+            font-size: 1rem;
+            color: #059669; 
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        .calc-keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px; /* 稍微增加間距讓陰影更清楚 */
+        }
+        
+        /* 按鈕基礎樣式 - 優化陰影與質感 */
+        .calc-btn {
+            background: white;
+            border: 1px solid #F3F4F6; /* 極淡的邊框 */
+            border-radius: 14px;       /* 更圓潤 */
+            padding: 15px 0;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            
+            /* [修改] 更自然的柔和浮起陰影 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03), 0 2px 4px rgba(0,0,0,0.04);
+            transition: all 0.1s ease;
+            user-select: none;
+            
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 按下時的凹陷感 */
+        .calc-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            background: #F9FAFB;
+        }
 
+        /* 功能鍵顏色 */
+        .calc-btn.op { 
+            color: #2563EB; 
+            background: #EFF6FF; 
+            font-weight: 600;
+        }
+        .calc-btn.ac { 
+            color: #DC2626; 
+            background: #FEF2F2; 
+            font-weight: 600;
+        }
+
+        /* [修改] 等號按鍵 - 直式排列 (放在 + 號下方) */
+        .calc-btn.eq { 
+            background: #2563EB; 
+            color: white; 
+            grid-row: span 2;  /* 垂直跨兩行 */
+            grid-column: 4;    /* 固定在第4欄 */
+            border: none;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); /* 藍色光暈 */
+            font-size: 1.5rem;
+        }
+        .calc-btn.eq:active {
+            background: #1D4ED8;
+            transform: scale(0.96);
+        }
+
+        /* [修改] 0號按鍵 - 橫跨兩欄 */
+        .calc-btn.zero {
+            grid-column: span 2; /* 水平跨兩欄 */
+            text-align: left;
+            padding-left: 25px;  /* 數字稍微靠左一點比較像真計算機 */
+            justify-content: flex-start;
+        }
+
+        /* [修改] 右上角關閉 X 按鈕樣式 - 無底色並調整位置 */
+        .btn-modal-close-x {
+            position: absolute;
+            top: 5px;            /* [修改] 數值越小越往上 */
+            right: 5px;          /* [修改] 數值越小越往右 */
+            width: 32px;
+            height: 32px;
+            background: transparent; /* [修改] 變為透明背景 */
+            color: #9CA3AF;       /* [微調] 稍微調淡一點的灰色，比較不搶眼 */
+            border: none;
+            font-size: 1.8rem;    /* [微調] 加大字體，讓無底色的 X 更清晰 */
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        
+        /* [修改] 滑鼠移入和按下時給予輕微的回饋 */
+        .btn-modal-close-x:hover {
+            color: #4B5563; /* 滑入時變深灰色 */
+        }
+        .btn-modal-close-x:active {
+            background: rgba(0, 0, 0, 0.05); /* 按下時出現淡淡的圓形背景 */
+            border-radius: 50%;
+            transform: scale(0.9);
+            color: #1F2937;
+        }
+        /* [新增] 筆記區升級 - 支援圖文混排與放大 */
+        .note-editable-box {
+            width: 100%;
+            height: 250px;
+            padding: 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            overflow-y: auto;
+            background: #F9FAFB;
+            outline: none;
+            text-align: left;
+            white-space: pre-wrap; /* 保留換行 */
+        }
+        .note-editable-box:focus { border-color: var(--primary); background: white; }
+        
+        /* 筆記內的圖片樣式 */
+        .note-editable-box img {
+            max-width: 90%;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: block;
+            border: 2px solid #E5E7EB;
+            cursor: zoom-in; /* [關鍵] 讓滑鼠移過去變成放大鏡，提示可點擊 */
+        }
+
+        /* 筆記工具列 */
+        .note-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .btn-note-tool {
+            background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+        }
+        /* [新增] 動態日夜背景特效 */
+        header {
+            /* 預設(白天): 原本的明亮藍色漸層 */
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            transition: background 1.5s ease; /* 顏色切換時有呼吸感 */
+            overflow: hidden; /* 防止星星超出範圍 */
+            position: relative; /* 確保特效層定位正確 */
+        }
+
+        /* 晚上的背景: 深邃的午夜藍 */
+        header.is-night {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        }
+
+        /* 星星層 (預設隱藏) */
+        .header-bg-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 確保不擋住按鈕點擊 */
+            z-index: 0; /* 在內容之下 */
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            
+            /* 利用 CSS 徑向漸層畫出星星 */
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+        }
+
+        /* 晚上時顯示星星 */
+        header.is-night .header-bg-effect {
+            opacity: 0.8; 
+        }
+
+        /* 確保原本的標題內容浮在星星之上 */
+        .header-content {
+            position: relative;
+            z-index: 2; 
+        }
 /* --- 插入結束 --- */
 
         .float-note-btn:active { transform: scale(0.95); }
@@ -269,6 +511,26 @@
             user-select: none;
         }
         .float-share-btn:active { transform: scale(0.95); }
+        /* --- 請在此處插入代碼 Start --- */
+        .share-cancel-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px; height: 24px;
+            background: #9CA3AF; color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .share-cancel-badge:active { transform: scale(0.9); background: #6B7280; }
+        /* --- 請在此處插入代碼 End --- */
+        .float-share-btn svg { width: 20px; height: 20px; stroke-width: 2.5; }
         .float-share-btn svg { width: 20px; height: 20px; stroke-width: 2.5; }
         
 .header-title-area .badge-trip::before {
@@ -638,9 +900,10 @@
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v2'%3E%3C/path%3E%3Cpath d='m4.93 4.93 1.41 1.41'%3E%3C/path%3E%3Cpath d='M20 12h2'%3E%3C/path%3E%3Cpath d='m19.07 4.93-1.41 1.41'%3E%3C/path%3E%3Cpath d='M15.947 12.65a4 4 0 0 0-5.925-4.128'%3E%3C/path%3E%3Cpath d='M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z'%3E%3C/path%3E%3C/svg%3E");
 }
 
+/* [修改] Header 天氣圖示：使用新的雙重平行 V 型雪花 */
 .weather-icon.snow {
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 10H4a7 7 0 1 1 7-7v.5'%3E%3C/path%3E%3Cpath d='M10 14a6 6 0 0 0-6-6'%3E%3C/path%3E%3Cline x1='12' y1='16' x2='12' y2='22'%3E%3C/line%3E%3Cline x1='12' y1='22' x2='9' y2='19'%3E%3C/line%3E%3Cline x1='12' y1='22' x2='15' y2='19'%3E%3C/line%3E%3Cline x1='18.5' y1='12' x2='22' y2='12'%3E%3C/line%3E%3Cline x1='22' y1='12' x2='19.5' y2='9.5'%3E%3C/line%3E%3Cline x1='22' y1='12' x2='19.5' y2='14.5'%3E%3C/line%3E%3Cline x1='5' y1='18.5' x2='2' y2='18.5'%3E%3C/line%3E%3Cline x1='2' y1='18.5' x2='4.5' y2='21'%3E%3C/line%3E%3Cline x1='2' y1='18.5' x2='4.5' y2='16'%3E%3C/line%3E%3Cline x1='17.5' y1='18.5' x2='20.5' y2='21'%3E%3C/line%3E%3Cline x1='17.5' y1='18.5' x2='20.5' y2='16'%3E%3C/line%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 10H4a7 7 0 1 1 7-7v.5'%3E%3C/path%3E%3Cpath d='M10 14a6 6 0 0 0-6-6'%3E%3C/path%3E%3Cline x1='12' y1='16' x2='12' y2='22'%3E%3C/line%3E%3Cline x1='12' y1='22' x2='9' y2='19'%3E%3C/line%3E%3Cline x1='12' y1='22' x2='15' y2='19'%3E%3C/line%3E%3Cline x1='18.5' y1='12' x2='22' y2='12'%3E%3C/line%3E%3Cline x1='22' y1='12' x2='19.5' y2='9.5'%3E%3C/line%3E%3Cline x1='22' y1='12' x2='19.5' y2='14.5'%3E%3C/line%3E%3Cline x1='5' y1='18.5' x2='2' y2='18.5'%3E%3C/line%3E%3Cline x1='2' y1='18.5' x2='4.5' y2='21'%3E%3C/line%3E%3Cline x1='2' y1='18.5' x2='4.5' y2='16'%3E%3C/line%3E%3Cline x1='17.5' y1='18.5' x2='20.5' y2='21'%3E%3C/line%3E%3Cline x1='17.5' y1='18.5' x2='20.5' y2='16'%3E%3C/line%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3C!-- 六角冰核 --%3E%3Cpath d='M12 9 L14.6 10.5 L14.6 13.5 L12 15 L9.4 13.5 L9.4 10.5 Z'/%3E%3C!-- 主幹貫穿 --%3E%3Cpath d='M12 9 V1 M12 15 V23 M14.6 10.5 L21.5 6.5 M14.6 13.5 L21.5 17.5 M9.4 13.5 L2.5 17.5 M9.4 10.5 L2.5 6.5'/%3E%3C!-- 雙重 V 型 --%3E%3Cpath d='M9.5 5.5 L12 7.5 L14.5 5.5 M9.5 2 L12 4 L14.5 2'/%3E%3Cpath d='M9.5 18.5 L12 16.5 L14.5 18.5 M9.5 22 L12 20 L14.5 22'/%3E%3Cpath d='M16.4 6.6 L15.9 9.75 L18.9 10.9 M19.4 4.8 L18.9 8 L21.9 9.2'/%3E%3Cpath d='M18.9 13.1 L15.9 14.25 L16.4 17.4 M21.9 14.8 L18.9 16 L19.4 19.2'/%3E%3Cpath d='M7.6 17.4 L8.1 14.25 L5.1 13.1 M4.6 19.2 L5.1 16 L2.1 14.8'/%3E%3Cpath d='M5.1 10.9 L8.1 9.75 L7.6 6.6 M2.1 9.2 L5.1 8 L4.6 4.8'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3C!-- 六角冰核 --%3E%3Cpath d='M12 9 L14.6 10.5 L14.6 13.5 L12 15 L9.4 13.5 L9.4 10.5 Z'/%3E%3C!-- 主幹貫穿 --%3E%3Cpath d='M12 9 V1 M12 15 V23 M14.6 10.5 L21.5 6.5 M14.6 13.5 L21.5 17.5 M9.4 13.5 L2.5 17.5 M9.4 10.5 L2.5 6.5'/%3E%3C!-- 雙重 V 型 --%3E%3Cpath d='M9.5 5.5 L12 7.5 L14.5 5.5 M9.5 2 L12 4 L14.5 2'/%3E%3Cpath d='M9.5 18.5 L12 16.5 L14.5 18.5 M9.5 22 L12 20 L14.5 22'/%3E%3Cpath d='M16.4 6.6 L15.9 9.75 L18.9 10.9 M19.4 4.8 L18.9 8 L21.9 9.2'/%3E%3Cpath d='M18.9 13.1 L15.9 14.25 L16.4 17.4 M21.9 14.8 L18.9 16 L19.4 19.2'/%3E%3Cpath d='M7.6 17.4 L8.1 14.25 L5.1 13.1 M4.6 19.2 L5.1 16 L2.1 14.8'/%3E%3Cpath d='M5.1 10.9 L8.1 9.75 L7.6 6.6 M2.1 9.2 L5.1 8 L4.6 4.8'/%3E%3C/svg%3E");
 }
 
 .weather-icon.rain {
@@ -803,11 +1066,18 @@
             display: none; justify-content: center; align-items: center;
             backdrop-filter: blur(3px);
             animation: fadeIn 0.2s;
+            cursor: pointer; /* [新增] 這行是關鍵！讓手機知道背景可點擊 */
         }
         .modal-box {
-            background: white; width: 90%; max-width: 320px;
+            /* [修改] 改為偏白毛玻璃質感 */
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px); /* 支援 iOS Safari */
+            border: 1px solid rgba(255, 255, 255, 0.6); /* 玻璃邊緣反光感 */
+            
+            width: 90%; max-width: 320px;
             border-radius: 16px; padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15); /* 加深陰影增加層次 */
             text-align: center;
             transform: scale(0.95);
             animation: popIn 0.2s forwards;
@@ -1350,6 +1620,646 @@
     letter-spacing: 1px;
 }
 /* --- [新增] 住宿頁面優化樣式 End --- */
+/* --- [新增] 詳細天氣 Modal 樣式 --- */
+/* 請確認並修改 .weather-detail-scroll 的內容 */
+.weather-detail-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    
+    /* 👇 這是原本就有的，確保 iOS 滑動順暢 */
+    -webkit-overflow-scrolling: touch; 
+    
+    /* 👇 [新增] 限制捲動行為，防止連鎖反應帶動父層 */
+    overscroll-behavior-x: contain; 
+    
+    /* 👇 [新增] 讓滑鼠游標變更，提示可抓取 */
+    cursor: grab;
+}
+/* --- [修改] Modal 頭部按鈕群組樣式 (對齊與防衝突) --- */
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 按鈕之間的間距 */
+}
+
+/* 統一定義重整與關閉按鈕的大小與外觀 */
+/* 統一定義重整與關閉按鈕 (透明背景版) */
+.btn-header-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    
+    background-color: transparent; /* 背景透明 */
+    
+    border: none;
+    color: #4B5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    
+    /* 強制設定 */
+    position: static !important; 
+    margin: 0 !important;
+}
+
+.btn-header-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+}
+/* --- [修改] Modal 頭部按鈕群組樣式 (對齊與防衝突) --- */
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 按鈕之間的間距 */
+}
+
+
+.btn-header-icon:active {
+    background-color: #E5E7EB;
+    transform: scale(0.92);
+}
+
+.btn-header-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
+}
+
+/* 確保 Modal 內部捲動時不觸發底層翻頁 (CSS 輔助) */
+#weather-detail-modal .modal-box {
+    overscroll-behavior: contain; /* 防止捲動鍊溢出 */
+}
+
+/* (同時建議在下方加入這行，隱藏醜醜的捲軸但保留功能) */
+.weather-detail-scroll::-webkit-scrollbar {
+    display: none; 
+}
+/* [修改] 小時預報排版：時間 -> Icon -> 狀態 -> 氣溫 */
+.wd-hour-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px; /* 稍微加寬以容納文字 */
+    font-size: 0.85rem;
+    color: #4B5563;
+    gap: 4px; /* 元素間距 */
+    padding: 5px 0;
+}
+.wd-hour-time { 
+    font-size: 0.85rem; 
+    opacity: 0.9; 
+    font-weight: 500;
+}
+.wd-hour-icon svg { 
+    width: 28px; /* Icon稍微放大 */
+    height: 28px; 
+}
+/* [新增] 天氣狀態文字 (如: 降雪, 多雲) */
+.wd-hour-desc {
+    font-size: 0.75rem;
+    color: #6B7280;
+    font-weight: 500;
+    white-space: nowrap; /* 不換行 */
+}
+.wd-hour-temp { 
+    font-weight: 700; 
+    color: #1F2937; 
+    font-size: 1.1rem; /* 氣溫放大 */
+}
+/* 隱藏原本的降雨機率 */
+.wd-hour-pop { display: none; }
+/* --- [修改] 未來預報列表優化 (垂直日期 + 固定圖示寬度) --- */
+.wd-daily-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0; /* 增加間距讓手指好點 */
+    border-bottom: 1px dashed #eee;
+    font-size: 0.95rem;
+}
+
+/* 1. 日期欄位：改為垂直排列 (今天在上，日期在下) */
+.wd-day-name { 
+    width: 60px; 
+    font-weight: 600; 
+    color: #374151;
+    display: flex;
+    flex-direction: column; /* 關鍵：讓文字換行排列 */
+    justify-content: center;
+    line-height: 1.2;
+}
+.wd-day-name span {
+    font-size: 0.75rem; 
+    color: #999; 
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+/* 2. 圖示欄位：強制固定大小，防止被擠扁 */
+.wd-day-icon { 
+    width: 48px; 
+    height: 32px; 
+    text-align: center; 
+    flex-shrink: 0; /* [關鍵修正] 禁止瀏覽器壓縮此區塊 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.wd-day-icon svg {
+    width: 32px;
+    height: 32px;
+    /* 移除預設顏色，改由 SVG 內部的漸層控制 */
+}
+
+/* 3. 降雨機率：移除水滴圖示，只留數字，改為靠左 */
+.wd-day-pop { 
+    width: 45px; 
+    font-size: 0.8rem; 
+    color: #60A5FA; /* 淺藍色 */
+    font-weight: 600; 
+    text-align: left; 
+    margin-left: 6px;
+}
+
+/* 4. 氣溫：改為 Flex 佈局 + 固定寬度，解決對齊問題 */
+        .wd-day-temp { 
+            flex: 1; 
+            display: flex;             /* [修改] 啟用 Flexbox */
+            justify-content: flex-end; /* [修改] 整體靠右 */
+            gap: 10px;                 /* [修改] 低溫與高溫之間的固定間距 */
+            font-family: monospace; 
+            font-weight: 600; 
+        }
+        
+        /* [新增] 設定固定寬度讓數字垂直對齊成兩列 */
+        .wd-temp-low, .wd-temp-high {
+            display: inline-block;
+            width: 36px;       /* [關鍵] 強制固定寬度，創造隱形欄位 */
+            text-align: right; /* [關鍵] 數字在欄位內靠右對齊 */
+        }
+
+        .wd-temp-low { color: #9CA3AF; } /* 低溫維持淺灰 */
+        
+        /* [修改] 高溫 - 改用較柔和的深灰色 (#4B5563)，避免與低溫對比過強 */
+        .wd-temp-high { 
+            display: inline-block;
+            width: 36px;
+            text-align: right;
+            color: #4B5563; /* 原本是 #1F2937 (太深)，現在改淡一點 */
+        }
+        /* [新增] 即時天氣儀表板樣式 */
+        .cw-container {
+            margin-bottom: 20px;
+            text-align: left;
+            padding: 0 5px;
+        }
+
+        /* 上半部：大溫度與狀態 */
+        .cw-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .cw-temp-big {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #1F2937;
+            letter-spacing: -2px;
+        }
+        .cw-info-col {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .cw-condition {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+        .cw-hl-temp {
+            font-size: 0.9rem;
+            color: #6B7280;
+            font-family: monospace;
+        }
+
+        /* 下半部：四格資訊卡 (仿 iOS 風格) */
+        .cw-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .cw-card {
+            background: rgba(0, 0, 0, 0.03); /* [還原] 背景改回極淡灰色，配合灰色文字 */
+            border-radius: 12px;
+            padding: 10px 5px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70px;
+        }
+        .cw-icon {
+            width: 18px;
+            height: 18px;
+            color: #666; /* [修改] 圖示顏色改為 #666 (與日出標籤一致) */
+            margin-bottom: 4px;
+        }
+        .cw-label {
+            font-size: 0.75rem;
+            color: #666; /* [關鍵修改] 標籤顏色改為 #666 (與「日出」文字顏色完全一致) */
+            margin-bottom: 2px;
+        }
+        .cw-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #333; /* [修改] 數值顏色改為 #333 (與日出「時間」顏色一致) */
+        }
+        /* [修改] 詳細天氣資訊卡 (優化配色與水平佈局) */
+        /* [修改] 詳細天氣資訊卡 (優化配色與水平佈局) */
+        .astro-box {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+            /* [修改] 背景改為極淡灰色 (與上方體感資訊欄一致)，移除偏白的突兀感 */
+            background: rgba(0, 0, 0, 0.03); 
+            padding: 15px 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: none;
+            align-items: center;
+        }
+
+        /* 左側：日出日落區 (改為水平排列) */
+        .astro-left-col {
+            display: flex;
+            flex-direction: row; /* [修改] 水平排列 */
+            gap: 25px;           /* 增加間距 */
+            border-right: 1px dashed #CBD5E1; 
+            padding-right: 25px;
+            align-items: center;
+        }
+
+        .astro-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 5px; 
+        }
+
+        /* 圖示設定 */
+        .astro-icon svg {
+            width: 36px;  /* 稍微再大一點點 */
+            height: 36px;
+            fill: none;
+            stroke-width: 2.5; /* 線條加粗一點，解決變形感 */
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.05));
+        }
+
+        .icon-sunrise { stroke: #cf8402; }
+        .icon-sunset { stroke: #5759cf; }
+
+        .astro-time { 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            color: #334155; 
+            font-family: monospace;
+        }
+
+        /* 右側：維持不變 */
+        .astro-right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        /* [修改] 溫差標籤 - 透明背景、縮小字體、不換行 */
+        .diff-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;  /* [修改] 字體縮小 (原 0.8rem) */
+            font-weight: 700;
+            padding: 2px 8px;    /* [修改] 內距縮小，讓標籤更精緻 */
+            border-radius: 20px;
+            width: fit-content;
+            white-space: nowrap; /* [新增] 強制文字不換行 */
+        }
+        
+        /* [修改] 背景改為 transparent (透明)，只保留有顏色的邊框 */
+        .diff-hot { 
+            background: transparent; 
+            color: #DC2626; 
+            border: 1px solid #FECACA; 
+        }
+        .diff-cold { 
+            background: transparent; 
+            color: #2563EB; 
+            border: 1px solid #BFDBFE; /* 保留您想要的藍色邊框 */
+        }
+        .diff-same { 
+            background: transparent; 
+            color: #64748B; 
+            border: 1px solid #E2E8F0; 
+        }
+
+        /* 穿衣建議文字 */
+        .advice-text-small {
+            font-size: 0.85rem;
+            color: #334155;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+/* --- [新增] iOS 天氣動態特效 (仿 iPhone 天氣) --- */
+/* 1. Header 容器設定 */
+.weather-bg-layer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0;  /* 關鍵修正！讓它浮在背景色之上 */
+    pointer-events: none; /* 讓滑鼠點擊可以穿透特效，點到下面的按鈕 */
+}
+
+
+/* --- 天氣背景色 (參考您的截圖配色) --- */
+/* 晴天: 亮藍漸層 */
+header.w-sun { background: linear-gradient(180deg, #2980B9 0%, #6DD5FA 100%); }
+/* 多雲: 灰藍漸層 */
+header.w-cloud { background: linear-gradient(180deg, #536976 0%, #292E49 100%); }
+/* 雨天: 深灰藍 (參考截圖1) */
+header.w-rain { background: linear-gradient(180deg, #373B44 0%, #4286f4 100%); }
+/* 雪天: 冰霜淺藍 (參考截圖2) */
+header.w-snow { background: linear-gradient(180deg, #83a4d4 0%, #b6fbff 100%); }
+/* 霧/陰天: 迷霧灰 */
+header.w-fog { background: linear-gradient(180deg, #757F9A 0%, #D7DDE8 100%); }
+
+/* 晚上模式 (權重最高，覆蓋以上顏色，但保留粒子特效) */
+header.is-night {
+    background: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%) !important;
+}
+
+/* [星星特效] - 僅在晴朗夜晚出現 */
+.star-particle {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgba(255, 255, 255, 0.8); /* 微微發光暈 */
+    animation: twinkle linear infinite;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); } /* 變亮變大 */
+    100% { opacity: 0.3; transform: scale(0.8); }
+}
+/* --- 粒子動畫定義 --- */
+/* [雨滴] */
+.rain-drop {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.3);
+    width: 1px; height: 60px;
+    top: -60px;
+    animation: rain-fall 0.7s linear infinite;
+}
+@keyframes rain-fall {
+    to { transform: translateY(400px); }
+}
+/* --- [新] 玻璃水珠特效 (Glass Rain) --- */
+/* --- [升級版] 寫實玻璃水珠特效 (Glass Rain) --- */
+        .glass-surface {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; overflow: hidden; pointer-events: none;
+        }
+
+        .glass-drop {
+            position: absolute;
+            /* 1. 基底改為全透明，不依靠背景色 */
+            background: transparent;
+            
+            /* 2. 複雜陰影：模擬光線折射 (Refraction) 與立體感 */
+            /* 內陰影(亮) + 內陰影(暗) + 外部投影 */
+            box-shadow: 
+                inset 2px 2px 2px rgba(255, 255, 255, 0.4), 
+                inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+                1px 2px 4px rgba(0, 0, 0, 0.3);
+            
+            /* 預設圓角，稍後 JS 會隨機微調 */
+            border-radius: 50%;
+        }
+
+        /* 3. [關鍵] 增加高光反射點 (Specular Highlight) - 讓它看起來像水 */
+        .glass-drop::after {
+            content: '';
+            position: absolute;
+            top: 20%; left: 20%;
+            width: 30%; height: 30%;
+            /* 模擬光源反射的小白點 */
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            filter: blur(0.5px);
+        }
+
+        /* [修改] 滑落的水流 (模擬拖尾水痕) - 長條漸層 */
+        /* [修改] 滑落的水流 (模擬拖尾水痕) - 高透明度寫實版 */
+        /* [修改] 滑落的水流 (垂錐狀 Tapered Shape) */
+        .glass-drop.trickle {
+            /* 1. 漸層：上方完全透明，下方半透明白 */
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0) 0%, 
+                rgba(255, 255, 255, 0.1) 20%, 
+                rgba(255, 255, 255, 0.5) 80%, 
+                rgba(255, 255, 255, 0.8) 100%
+            );
+            
+            /* 2. 形狀：利用 clip-path 裁切出「上窄下寬」的錐形 */
+            clip-path: polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%);
+            
+            /* 3. 寬度設定 */
+            width: 6px; 
+            
+            /* 4. 陰影：因為 clip-path 會裁掉 box-shadow，改用 filter */
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+            
+            /* 5. 動畫設定 */
+            animation-name: rain-slide-linear;
+            animation-timing-function: linear;
+            animation-iteration-count: 1; 
+            
+            z-index: 12; 
+            pointer-events: none;
+        }
+
+        /* 修正動畫位移量，因為水流變長了，需要滑得更遠 */
+        @keyframes trickle-wait-drop {
+            0% { transform: translateY(-100%) scale(1); opacity: 0; }
+            50% { transform: translateY(-100%) scale(1); opacity: 1; } /* 靜止在畫面外/上方 */
+            55% { transform: translateY(0) scale(1); opacity: 1; }     /* 慢慢流進畫面 */
+            100% { transform: translateY(600px) scale(1); opacity: 0; } /* 快速滑落 */
+        }
+        /* [新] 被水流帶走(融合)的效果 */
+.glass-drop.merged {
+    transform: scale(0.2) translateY(20px); /* 縮小並稍微往下被帶走 */
+    opacity: 0;
+    transition: all 0.3s ease-out; /* 0.3秒內快速消失 */
+}
+
+/* [新] 純滑落動畫 (給 JavaScript 控制生成的動態水流使用) */
+/* 不需要等待，生成後直接滑落，這樣方便我們計算碰撞時間 */
+@keyframes rain-slide-linear {
+    0% { transform: translateY(-50px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(600px); opacity: 0; } 
+}
+/* [修改] 全螢幕飄落特效：同步更新雪花造型 */
+.snow-flake {
+    position: absolute;
+    /* 改用 stroke='white' 的版本 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 9 L14.6 10.5 L14.6 13.5 L12 15 L9.4 13.5 L9.4 10.5 Z'/%3E%3Cpath d='M12 9 V1 M12 15 V23 M14.6 10.5 L21.5 6.5 M14.6 13.5 L21.5 17.5 M9.4 13.5 L2.5 17.5 M9.4 10.5 L2.5 6.5'/%3E%3Cpath d='M9.5 5.5 L12 7.5 L14.5 5.5 M9.5 2 L12 4 L14.5 2'/%3E%3Cpath d='M9.5 18.5 L12 16.5 L14.5 18.5 M9.5 22 L12 20 L14.5 22'/%3E%3Cpath d='M16.4 6.6 L15.9 9.75 L18.9 10.9 M19.4 4.8 L18.9 8 L21.9 9.2'/%3E%3Cpath d='M18.9 13.1 L15.9 14.25 L16.4 17.4 M21.9 14.8 L18.9 16 L19.4 19.2'/%3E%3Cpath d='M7.6 17.4 L8.1 14.25 L5.1 13.1 M4.6 19.2 L5.1 16 L2.1 14.8'/%3E%3Cpath d='M5.1 10.9 L8.1 9.75 L7.6 6.6 M2.1 9.2 L5.1 8 L4.6 4.8'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    opacity: 0.9;
+    top: -20px;
+    animation: snow-fall-rotate 5s linear infinite; 
+}
+
+/* [新增] 雪花飄落 + 自轉動畫 */
+@keyframes snow-fall-rotate {
+    0% { 
+        transform: translateY(0) translateX(0) rotate(0deg); 
+        opacity: 0.9; 
+    }
+    100% { 
+        /* 往下掉 300px + 往右飄 20px + 自轉 360度 */
+        transform: translateY(400px) translateX(30px) rotate(360deg); 
+        opacity: 0; 
+    }
+}
+
+/* [雲朵飄動] */
+/* [雲朵飄動 - 新版] */
+/* [霧氣特效 - 補回遺失的設定] */
+.fog-layer {
+    position: absolute;
+    width: 100%; height: 100%;
+    top: 0; left: 0;
+    /* 使用漸層模擬地面升起的霧氣 */
+    background: linear-gradient(to top, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.2) 60%, transparent 100%);
+    filter: blur(15px); /* 強力模糊，製造朦朧感 */
+    animation: fog-pulse 8s infinite alternate;
+    z-index: 1;
+}
+
+@keyframes fog-pulse {
+    0% { opacity: 0.6; transform: translateY(0); }
+    100% { opacity: 1; transform: translateY(-10px); } /* 霧氣上下浮動 */
+}
+.cloud-shape {
+    position: absolute;
+    width: 100px; height: 40px;
+    background: rgba(255, 255, 255, 0.8); /* 提高白度，讓它更明顯 */
+    border-radius: 50px; /* 圓角膠囊狀 */
+    top: 20px;
+    filter: blur(5px); /* 輕微柔焦就好，不要太糊 */
+    animation: cloud-float linear infinite;
+    z-index: 2; /* 確保有一點層次 */
+}
+
+/* 利用偽元素製作雲的凸起造型 */
+.cloud-shape::after, .cloud-shape::before {
+    content: '';
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+}
+.cloud-shape::after {
+    width: 45px; height: 45px;
+    top: -25px; left: 15px;
+}
+.cloud-shape::before {
+    width: 35px; height: 35px;
+    top: -15px; left: 45px;
+}
+
+/* 定義雲朵從左飄到右的動畫 */
+@keyframes cloud-float {
+    0% { left: -150px; opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { left: 100%; opacity: 0; } /* 飄出螢幕右邊 */
+}
+/* [太陽光暈] */
+/* [太陽光暈 - 強烈照射版] */
+.sun-glow {
+    position: absolute;
+    /* 1. 調整位置：稍微往右上角外推，模擬陽光從角落射入 */
+    top: -120px; 
+    right: -120px;
+    
+    /* 2. 加大範圍：讓光芒覆蓋半個 Header */
+    width: 300px; 
+    height: 300px;
+    
+    /* 3. 強化顏色：核心純白 -> 中層金黃 -> 外層透明 */
+    background: radial-gradient(circle, 
+        rgba(255, 255, 255, 0.95) 10%,   /* 核心極亮 */
+        rgba(253, 224, 71, 0.6) 35%,     /* 中層暖黃光 */
+        rgba(255, 255, 255, 0.1) 60%,    /* 外層柔光 */
+        transparent 75%
+    );
+    
+    border-radius: 50%;
+    /* 4. 增加模糊度，讓光線更柔和自然 */
+    filter: blur(40px);
+    
+    /* 5. 混合模式：讓光疊加在藍色背景上更耀眼 */
+    mix-blend-mode: screen;
+    
+    animation: sun-breath 5s infinite ease-in-out;
+    z-index: 1; /* 確保在背景之上 */
+    pointer-events: none; /* 讓點擊穿透 */
+}
+
+/* 加入第二層光暈 (利用偽元素)，製造光線擴散感 */
+.sun-glow::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140%; height: 140%; /* 比本體更大 */
+    
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+    border-radius: 50%;
+    filter: blur(20px);
+    
+    /* 獨立的呼吸動畫，錯開時間 */
+    animation: sun-pulse-slow 7s infinite ease-in-out;
+}
+
+/* 呼吸動畫定義 */
+@keyframes sun-breath {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.15); opacity: 1; } /* 變大且變亮 */
+}
+
+@keyframes sun-pulse-slow {
+    0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
+}
   </style>
 </head>
 <body>
@@ -1444,11 +2354,24 @@
         </defs>
     </svg>
     <header>
-        <div class="header-content">
+    <div id="weather-effect-layer" class="weather-bg-layer"></div>
+
+    <div class="header-content">
+        
+        <div class="header-title-area">
             <div class="header-title-area">
-                <h1>九州親子自駕遊</h1>
+                <h1>九州親子自駕遊
+                    <button class="btn-app-refresh" onclick="window.location.reload()" title="重新整理">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 4v6h-6"></path>
+                            <path d="M1 20v-6h6"></path>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </button>   
+                </h1>
                 <div class="subtitle">2026/01/25 - 01/30 (6天5夜)</div>
                 <div class="badge-trip">親子自由行 • 熊本進福岡出</div>
+            </div>
             </div>
 
             <!-- 天氣資訊盒 (擺放在右側，三欄式設計) -->
@@ -1465,24 +2388,25 @@
                     </div>
                 </div>
 
-                <div class="hw-col-loc">
-                    <span class="hw-loc" id="hw-loc">熊本市</span>
-                    <span class="hw-date" id="hw-date">1/25 (Day 1)</span>
-                </div>
-                <!-- 2. 溫度狀態 -->
+                <div class="hw-col-loc" onclick="openDetailedWeatherModal()" style="cursor: pointer;">
+    <span class="hw-loc" id="hw-loc">定位中...</span>
+    <span class="hw-date" id="hw-date">現在位置</span>
+    <div style="font-size: 0.7rem; opacity: 0.7; margin-top: 2px;">
+        點擊查看詳情 ▼
+    </div>
+</div>
                 <div class="hw-col-main">
                     <div class="hw-icon" id="hw-icon">
-                        <!-- SVG Icon -->
+                        <div class="weather-icon cloud"></div>
                     </div>
                     <div class="hw-temp-group">
-                        <div class="hw-temp" id="hw-temp">10°C</div>
-                        <span class="hw-desc" id="hw-desc">晴時多雲</span>
-                        <span class="hw-range" id="hw-range">2°C ~ 11°C</span>
+                        <div class="hw-temp" id="hw-temp">--°</div>
+                        <span class="hw-desc" id="hw-desc">讀取中</span>
+                        <span class="hw-range" id="hw-range"></span>
                     </div>
                 </div>
-                <!-- 3. 穿衣建議 -->
                 <div class="hw-col-advice" id="hw-advice">
-                    氣溫適中但早晚偏涼，長袖配外套。
+                    正在讀取當地天氣資訊...
                 </div>
             </div>
         </div>
@@ -1497,9 +2421,12 @@
                     行前準備 Check List
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="tag tag-tip" id="checklist-progress" style="background:#FFFBEB; color:#D97706; font-weight:700;">計算中...</div>
-                    <div class="toggle-icon" style="font-size: 0.8rem; color: #6B7280; font-weight: 700; transition: transform 0.3s;">▼</div>
-                </div>
+                <button onclick="resetChecklist(event)" style="border:none; background:none; color:#9CA3AF; font-size:0.8rem; cursor:pointer; text-decoration:underline;">
+                    ↺ 重置
+                </button>
+                <div class="tag tag-tip" id="checklist-progress" style="background:#FFFBEB; color:#D97706; font-weight:700;">計算中...</div>
+                <div class="toggle-icon" style="font-size: 0.8rem; color: #6B7280; font-weight: 700; transition: transform 0.3s;">▼</div>
+            </div>
             </div>
             
             <div id="checklist-container" class="checklist-container">
@@ -1551,8 +2478,8 @@
                     <div class="activity">午餐/點心時段：熊本站周邊</div>
                     <div class="desc">
                         <ul style="list-style-type: disc;">
-                            <li><b>肥後好物市場：：</b> (熊本站內) 推薦：いきなり団子 (長壽庵)、竹輪沙拉 (ヒライ)。快速解決。</li>
-                            <li><b>熊本拉麵：：</b> 站前有幾間拉麵店，可快速飽餐一頓。</li>
+                            <li><b>肥後好物市場：</b> (熊本站內) 推薦：いきなり団子 (長壽庵)、竹輪沙拉 (ヒライ)。快速解決。</li>
+                            <li><b>熊本拉麵：</b> 站前有幾間拉麵店，可快速飽餐一頓。</li>
                         </ul>
                     </div>
                     <div class="tags"><span class="tag tag-food">選擇午餐</span></div>
@@ -1599,8 +2526,8 @@
                     <div class="activity">晚餐時段：熊本市區/車站選擇</div>
                     <div class="desc">
                         <ul style="list-style-type: disc;">
-                            <li><b>勝烈亭豬排：：</b> (新市街/Amu Plaza) 知名日式豬排老店，白飯高麗菜可續。</li>
-                            <li><b>天外天拉麵：：：</b> (新市街) 知名蒜味豚骨拉麵，重口味。</li>
+                            <li><b>勝烈亭豬排：</b> (新市街/Amu Plaza) 知名日式豬排老店，白飯高麗菜可續。</li>
+                            <li><b>天外天拉麵：</b> (新市街) 知名蒜味豚骨拉麵，重口味。</li>
                         </ul>
                     </div>
                     <a href="https://www.google.com/maps/search/?api=1&query=Katsuretsutei+Amu+Plaza+Kumamoto" target="_blank" class="btn-map">勝烈亭導航</a>
@@ -1611,9 +2538,9 @@
                     <div class="activity">晚餐後建議行程 (自由選擇)</div>
                     <div class="desc">
                         <ul style="list-style-type: disc;">
-                            <li><b>Amu Plaza 購物 (推薦)：：</b> 飯店樓下，可逛逛藥妝店或伴手禮店。</li>
-                            <li><b>車站超市補貨：：：</b> 購買隔天零食及飲品。</li>
-                            <li><b>飯店泡澡休息：：：</b> 第一天長途旅行，提早回房讓孩子休息。</li>
+                            <li><b>Amu Plaza 購物 (推薦)：</b> 飯店樓下，可逛逛藥妝店或伴手禮店。</li>
+                            <li><b>車站超市補貨：</b> 購買隔天零食及飲品。</li>
+                            <li><b>飯店泡澡休息：</b> 第一天長途旅行，提早回房讓孩子休息。</li>
                         </ul>
                     </div>
                     <div class="tags"><span class="tag tag-spot">輕鬆</span><span class="tag tag-kids">購物</span></div>
@@ -1633,7 +2560,7 @@
             <div id="d2" class="timeline">
                 <div class="alert-box" style="background: #F7FCEF; border: 1px solid #D9F99D; color: #3F6212;">
                     <div class="alert-icon time"></div>
-                    <div><b>優化目標：：</b>調整下午行程時間，確保 **17:05 從大觀峰出發**，於 **18:00 抵達黑川溫泉**。</div>
+                    <div><b>優化目標：</b>調整下午行程時間，確保 **17:05 從大觀峰出發**，於 **18:00 抵達黑川溫泉**。</div>
                 </div>
                 <div class="event">
                     <div class="time">09:00</div>
@@ -1666,39 +2593,63 @@
                     <div class="time">11:40</div>
                     <div class="activity">Toyota 租車 - 阿蘇站前店 (取車)</div>
                     <div class="desc">
-                        <b>租車行：：</b> Toyota Rent a Car 阿蘇站前店 (トヨタレンタカー阿蘇駅前店)。建議預留 30-45 分鐘辦理手續。
+                        <b>租車行：</b> Toyota Rent a Car 阿蘇站前店 (トヨタレンタカー阿蘇駅前店)。建議預留 30-45 分鐘辦理手續。
                     </div>
                     <a href="https://www.google.com/maps/search/?api=1&query=Toyota+Rent+a+Car+阿蘇駅前店" target="_blank" class="btn-map">導航至租車行</a>
                     <div class="tags"><span class="tag tag-car">Toyota</span><span class="tag tag-move">租車開始</span></div>
+                </div><div style="text-align:center; margin: 20px 0 10px 0; color:#6B7280; font-size:0.9rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:10px;">
+                    <span>👇 下午行程二選一 (視天氣/體力決定) 👇</span>
                 </div>
-                <div class="event event-meal optimized">
-                    <div class="time">12:20</div>
-                    <div class="activity" style="color: var(--secondary);">午餐時段：阿蘇赤牛丼 (精簡)</div>
-                    <div class="desc">
-                        <ul style="list-style-type: disc;">
-                            <li>**赤牛丼：** 推薦前往 **いまきん食堂** (需自駕，約 15-20 分鐘)。因需控制時間，建議事先電話預約，或選擇人潮較少的同類型餐廳，**將用餐時間控制在 60 分鐘內**。</li>
-                        </ul>
+
+                <div style="border: 2px solid #D1FAE5; background: #ECFDF5; border-radius: 12px; padding: 15px; margin-bottom: 20px; position:relative;">
+                    <div style="position:absolute; top:-12px; left:15px; background:#059669; color:white; padding:2px 10px; border-radius:12px; font-size:0.8rem; font-weight:bold;">
+                        ☀️ 方案 A：經典阿蘇風光
                     </div>
-                    <a href="https://www.google.com/maps/search/?api=1&query=いまきん食堂+阿蘇" target="_blank" class="btn-map">導航至 いまきん食堂</a>
-                     <div class="tags"><span class="tag tag-food">時間緊湊</span><span class="tag tag-car">需自駕</span></div>
+
+                    <div class="event event-meal optimized" style="margin-top:10px;">
+                        <div class="time">12:20</div>
+                        <div class="activity">午餐：阿蘇赤牛丼 (いまきん)</div>
+                        <div class="desc">若排隊過長，建議改吃附近其他餐廳以節省時間。</div>
+                        <a href="https://www.google.com/maps/search/?api=1&query=いまきん食堂+阿蘇" target="_blank" class="btn-map">導航</a>
+                    </div>
+                    <div class="event optimized">
+                        <div class="time">13:40</div>
+                        <div class="activity">阿蘇神社 (參拜)</div>
+                        <div class="desc">參觀樓門與商店街，祈求旅途平安。</div>
+                    </div>
+                    <div class="event optimized" style="margin-bottom:0;">
+                        <div class="time">14:45</div>
+                        <div class="activity">草千里 (火山博物館)</div>
+                        <div class="desc">欣賞阿蘇火山群與放牧美景。</div>
+                        <a href="https://www.google.com/maps/search/?api=1&query=Kusasenri+Coffee+Roastery" target="_blank" class="btn-map">導航</a>
+                    </div>
                 </div>
-                 <div class="event optimized">
-                    <div class="time">13:40</div>
-                    <div class="activity" style="color: var(--secondary);">阿蘇神社 (Aso Shrine)</div>
-                    <div class="desc">
-                        抵達神社並參觀門前町，**建議停留時間約 45 分鐘**。
+
+                <div style="border: 2px solid #BAE6FD; background: #F0F9FF; border-radius: 12px; padding: 15px; margin-bottom: 20px; position:relative;">
+                    <div style="position:absolute; top:-12px; left:15px; background:#0284C7; color:white; padding:2px 10px; border-radius:12px; font-size:0.8rem; font-weight:bold;">
+                        ❄️ 方案 B：九重玩雪趣
                     </div>
-                    <a href="https://www.google.com/maps/search/?api=1&query=Aso+Shine" target="_blank" class="btn-map">導航</a>
-                    <div class="tags"><span class="tag tag-shrine">停留 45分</span></div>
-                </div>
-                <div class="event optimized">
-                    <div class="time">14:45</div>
-                    <div class="activity" style="color: var(--secondary);">草千里咖啡烘焙坊 (Kusasenri)</div>
-                    <div class="desc">
-                        欣賞阿蘇火山群與草千里放牧美景，並享用咖啡。**建議停留時間約 60 分鐘**，避免逗留過久。
+
+                    <div class="event event-meal" style="margin-top:10px;">
+                        <div class="time">12:15</div>
+                        <div class="activity">午餐：阿蘇道之驛 (便當)</div>
+                        <div class="desc">購買熊本熊便當或輕食，在車上或休息區快速解決，爭取玩雪時間。</div>
                     </div>
-                    <a href="https://www.google.com/maps/search/?api=1&query=Kusasenri+Coffee+Roastery" target="_blank" class="btn-map">導航</a>
-                    <div class="tags"><span class="tag tag-spot">停留 60分</span></div>
+                    <div class="event" style="margin-bottom:0;">
+                        <div class="time">13:30 - 15:30</div>
+                        <div class="activity">九重森林公園滑雪場</div>
+                        <div class="desc">
+                            租個雪盆 (Sled) 讓孩子放電！
+                            <ul style="margin-top:5px; padding-left:20px; font-size:0.85rem; color:#555;">
+                                <li><b>距離：</b>從阿蘇站開車約 50 分鐘。</li>
+                                <li><b>裝備：</b>現場可租雪衣手套，人到就好。</li>
+                            </ul>
+                        </div>
+                        <button class="btn-ai-guide" onclick="askGeminiGuide('九重滑雪場', '用興奮的語氣邀請孩子去滑雪，並說明玩雪盆有多刺激安全。')">
+                            ✨ AI 介紹滑雪場
+                        </button>
+                        <a href="http://googleusercontent.com/maps.google.com/search?q=Kuju+Forest+Park+Skiing+Ground" target="_blank" class="btn-map">導航至滑雪場</a>
+                    </div>
                 </div>
                 <div class="event optimized">
                     <div class="time">16:00</div>
@@ -1714,7 +2665,7 @@
                     <div class="time">17:05</div>
                     <div class="activity" style="color: var(--danger); font-weight: 700;">前往黑川溫泉 (自駕 55分)</div>
                     <div class="desc">
-                        <span style="color:var(--danger); font-weight: 600;">⚠️ 山路駕駛請小心：：</span> 冬季山路，請勿超速並注意安全。
+                        <span style="color:var(--danger); font-weight: 600;">⚠️ 山路駕駛請小心：</span> 冬季山路，請勿超速並注意安全。
                     </div>
                     <div class="tags"><span class="tag tag-move">準時出發！</span></div>
                 </div>
@@ -1728,10 +2679,7 @@
                             <div class="info-label">麓旅館</div>
                             <div class="info-val">0967-44-0103</div>
                         </div>
-                        <div class="info-grid">
-                            <div class="info-label">湯本莊</div>
-                            <div class="info-val">0967-44-0211</div>
-                        </div>
+                        
                         <span style="display: block; font-size: 0.8rem; color: #666; margin-top: 5px;">建議使用電話號碼輸入車用導航。</span>
                     </div>
                 </div>
@@ -1766,7 +2714,7 @@
             <div id="d3" class="timeline">
                 <div class="alert-box" style="background: var(--beppu-bg); border: 1px solid var(--beppu-info); color: #075985;">
                     <div class="alert-icon onsen"></div>
-                    <div><b>行程提示：：</b>海地獄已加入此行程！您將從黑川溫泉出發，**在前往由布院的途中經過別府並參觀海地獄**，完美串聯行程。</div>
+                    <div><b>行程提示：</b>海地獄已加入此行程！您將從黑川溫泉出發，**在前往由布院的途中經過別府並參觀海地獄**，完美串聯行程。</div>
                 </div>
                 <div class="event event-meal">
                     <div class="time">06:30</div>
@@ -1792,8 +2740,8 @@
                     <div class="desc">
                         地獄巡禮中最夢幻的一處！因佔地較大，建議停留約 **75分鐘**。
                         <ul style="list-style-type: disc; margin-top: 5px; padding-left: 20px;">
-                            <li>**必看：：** 鈷藍色的溫泉水、熱帶睡蓮池（鬼蓮）、溫泉雞蛋。</li>
-                            <li>**備案：：** 海地獄旁的 **灶地獄（Kamado Jigoku）** 也很推薦，以多種顏色的溫泉和飲用溫泉聞名，若時間許可可一併參觀（多加 30 分鐘）。</li>
+                            <li>**必看：** 鈷藍色的溫泉水、熱帶睡蓮池（鬼蓮）、溫泉雞蛋。</li>
+                            <li>**備案：** 海地獄旁的 **灶地獄（Kamado Jigoku）** 也很推薦，以多種顏色的溫泉和飲用溫泉聞名，若時間許可可一併參觀（多加 30 分鐘）。</li>
                         </ul>
                     </div>
                     <a href="https://www.google.com/maps/search/?api=1&query=別府+海地獄" target="_blank" class="btn-map">導航至海地獄</a>
@@ -1804,8 +2752,8 @@
                     <div class="activity">午餐時段：地獄周邊輕食/移動中</div>
                     <div class="desc">
                          <ul style="list-style-type: disc;">
-                            <li><b>地獄蒸料理/溫泉蛋：：</b> 在地獄區快速購買輕食 (如溫泉蛋或地獄蒸布丁) 當作午餐。</li>
-                            <li><b>動物園園內餐廳：：：</b> 若在地獄區未用餐，則直接前往動物園在園內用餐。</li>
+                            <li><b>地獄蒸料理/溫泉蛋：</b> 在地獄區快速購買輕食 (如溫泉蛋或地獄蒸布丁) 當作午餐。</li>
+                            <li><b>動物園園內餐廳：</b> 若在地獄區未用餐，則直接前往動物園在園內用餐。</li>
                         </ul>
                     </div>
                      <div class="tags"><span class="tag tag-food">選擇午餐</span></div>
@@ -1895,8 +2843,8 @@
                     <div class="activity">午餐時段：由布院必吃釜飯</div>
                     <div class="desc">
                         <ul style="list-style-type: disc;">
-                            <li><b>由布まぶし 心 (由布釜飯)：：</b> 超人氣排隊名店，推薦豐後牛釜飯或地雞釜飯，一鍋三吃（原味、加佐料、茶泡飯）。建議提前排隊或避開尖峰。</li>
-                            <li><b>湯之坪街道小吃：：</b> 若不想久候，可選擇沿街吃豐後牛串燒、可樂餅等。</li>
+                            <li><b>由布まぶし 心 (由布釜飯)：</b> 超人氣排隊名店，推薦豐後牛釜飯或地雞釜飯，一鍋三吃（原味、加佐料、茶泡飯）。建議提前排隊或避開尖峰。</li>
+                            <li><b>湯之坪街道小吃：</b> 若不想久候，可選擇沿街吃豐後牛串燒、可樂餅等。</li>
                         </ul>
                     </div>
                     <a href="https://www.google.com/maps/search/?api=1&query=Yufu+Mabushi+Shin" target="_blank" class="btn-map">導航至由布釜飯</a>
@@ -1945,7 +2893,7 @@
                 <div class="event">
                     <div class="time">18:00</div>
                     <div class="activity">飯店 Check-in</div>
-                    <div class="desc">日航西鐵 或 休雷克蓋特。</div>
+                    <div class="desc">休雷克蓋特 The Gate Hotel。</div>
                     <div class="tags"><span class="tag tag-stay">市區飯店</span></div>
                 </div>
                 <div class="event event-meal">
@@ -1953,8 +2901,8 @@
                     <div class="activity">晚餐時段：福岡在地美食選擇</div>
                     <div class="desc">
                         <ul style="list-style-type: disc;">
-                            <li><b>博多牛腸鍋 (もつ鍋)：：</b> 冬天必吃，暖胃。可選博多站附近知名店家。</li>
-                            <li><b>博多拉麵：：：</b> 一蘭或一風堂本店都在福岡。</li>
+                            <li><b>博多牛腸鍋 (もつ鍋)：</b> 冬天必吃，暖胃。可選博多站附近知名店家。</li>
+                            <li><b>博多拉麵：</b> 一蘭或一風堂本店都在福岡。</li>
                         </ul>
                     </div>
                     <div class="tags"><span class="tag tag-food">選擇晚餐</span></div>
@@ -1998,8 +2946,8 @@
                     <div class="activity">午餐時段：太宰府周邊選擇</div>
                     <div class="desc">
                         <ul style="list-style-type: disc;">
-                            <li><b>梅枝餅：：</b> 可當點心。</li>
-                            <li><b>太宰府食堂：：</b> 表參道上有多家烏龍麵、定食餐廳。</li>
+                            <li><b>梅枝餅：</b> 可當點心。</li>
+                            <li><b>太宰府食堂：</b> 表參道上有多家烏龍麵、定食餐廳。</li>
                         </ul>
                     </div>
                     <div class="tags"><span class="tag tag-food">選擇午餐</span></div>
@@ -2672,13 +3620,742 @@
                         **結冰風險：** 早晨或深夜，橋樑和山區背光路段容易結冰，請減速慢行，與前車保持安全距離。
                     </p>
                 </div>
+                <div class="info-detail-box" style="margin-top: 15px; border-color: #EF4444; background-color: #FEF2F2;">
+        <h4 style="color: #DC2626;">⚠️ 雪地駕駛關鍵 (Fact Check)</h4>
+        <div class="method-detail">
+            <ul class="step-list" style="padding-left: 20px; margin-top: 5px; color: #7F1D1D;">
+                <li><b>嚴禁「急」操作：</b>雪地摩擦力低，嚴禁急踩油門、急煞車或急轉彎。請秉持「慢、柔、穩」原則。</li>
+                <li><b>善用引擎煞車：</b>下坡或減速時，請善用低速檔 (B檔/S檔/L檔) 利用引擎牽引力減速，避免單純依賴腳煞導致打滑。</li>
+                <li><b>小心「黑冰」：</b>看起來濕濕的柏油路面，可能其實是透明的「黑冰 (Black Ice)」，極其滑溜。橋樑、隧道出入口與陰影處最常見。</li>
+                <li><b>停車兩大重點：</b>
+                    <br>1. 戶外過夜<b>請勿拉手煞車</b> (以免凍結卡死)，P 檔即可。
+                    <br>2. <b>請立起雨刷</b>，避免橡膠凍結黏在玻璃上。
+                </li>
+                <li><b>除雪再上路：</b>出發前務必清除<b>車頂</b>積雪，以免煞車時雪塊滑落遮擋視線。</li>
+            </ul>
+        </div>
+    </div>
             </div>
         </div>
     </div>
 
     <!-- TAB 4: 旅遊資訊 -->
     <div id="view-info" class="container">
-        
+        <div class="card" style="background: transparent; box-shadow: none; padding: 0; border: none; margin-bottom: 10px;">
+            <div class="card-header" style="background: #fff; border-radius: 16px; padding: 15px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 6px rgba(0,0,0,0.04); margin-bottom: 15px;">
+                <div class="card-title">美食備案口袋名單</div>
+                <div class="tag tag-food">彈性選擇</div>
+            </div>
+
+            <div class="day-wrapper">
+                <div class="day-toggle" id="toggle-food-k" onclick="toggleTimeline('food-k', this)">
+                    <div class="day-info">
+                        <h3>熊本區備案</h3>
+                        <span>勝烈亭、拉麵、馬肉料理</span>
+                    </div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div id="food-k" class="timeline">
+                    <div class="info-section" style="border-color: #34D399; background-color: #ECFDF5; margin-bottom: 15px;">
+                        <h3 style="color: #059669; border-bottom-color: #34D399;">☀️ 午餐口袋名單 (炸豬排/拉麵/太平燕)</h3>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🐷 勝烈亭 (Katsuretsu Tei) 新市街本店</span>
+                            <div class="method-detail">
+                                <p>熊本必吃！米其林推薦的炸豬排。外皮酥脆不油膩，肉質鮮嫩。<b>兒童餐</b>也非常豐盛。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Katsuretsu+Tei+Shinshigai" target="_blank" class="btn-map">導航至勝烈亭</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍜 黑亭拉麵 (Kokutei) 下通店</span>
+                            <div class="method-detail">
+                                <p>熊本拉麵代表，特色是香濃的<b>焦蒜油豚骨湯頭</b>。下通店位置方便，適合逛街中途用餐。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Kokutei+Shimotori" target="_blank" class="btn-map">導航至黑亭拉麵</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🦐 紅蘭亭 (Kourantei) 下通本店</span>
+                            <div class="method-detail">
+                                <p>熊本鄉土料理<b>「太平燕」</b>的名店。類似口感清爽的粉絲湯，搭配滿滿的海鮮與蔬菜，健康無負擔。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Kourantei+Shimotori" target="_blank" class="btn-map">導航至紅蘭亭</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🥩 菅乃屋 (Suganoya) 上通店</span>
+                            <div class="method-detail">
+                                <p>知名的馬肉料理專門店。午間套餐價格親民，可以嘗試馬肉刺身或馬肉漢堡排。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Suganoya+Kamitori" target="_blank" class="btn-map">導航至菅乃屋</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍣 壽司 Zanmai (すしざんまい) 下通店</span>
+                            <div class="method-detail">
+                                <p>位於下通商店街內，24小時營業的知名壽司連鎖。食材穩定新鮮，對兒童也很友善。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Sushi+Zanmai+Shimotori+Kumamoto" target="_blank" class="btn-map">導航至壽司 Zanmai</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #FBBF24; background-color: #FFFBEB; margin-bottom: 15px;">
+                        <h3 style="color: #B45309; border-bottom-color: #FBBF24;">🌙 晚餐口袋名單 (居酒屋/燒肉/馬肉)</h3>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🐎 馬櫻 (Uma Sakura) 下通店</span>
+                            <div class="method-detail">
+                                <p>如果晚餐想認真吃馬肉料理，這裡提供燒肉、涮涮鍋等多種吃法。店內氣氛較時尚，設有包廂。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Umasakura+Shimotori" target="_blank" class="btn-map">導航至馬櫻</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🏮 橫馬場 (Yokobachi)</span>
+                            <div class="method-detail">
+                                <p>位於上乃裏通的古民家風居酒屋。有戶外庭院座位，氛圍極佳。提供餃子、串燒等豐富料理。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Yokobachi+Kumamoto" target="_blank" class="btn-map">導航至橫馬場</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🔥 孫三郎 (Mago Saburo) 燒肉</span>
+                            <div class="method-detail">
+                                <p>主打熊本產的「黑樺牛」燒肉。肉質鮮美，價格合理。位於熱鬧的下通附近。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Magosaburo+Kagomachi" target="_blank" class="btn-map">導航至孫三郎</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🐓 天草水產研究所</span>
+                            <div class="method-detail">
+                                <p>主打天草直送的新鮮海鮮居酒屋。生魚片拼盤非常壯觀，海鮮愛好者首選。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Amakusa+Suisan+Kenkyujo" target="_blank" class="btn-map">導航至天草水產</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍜 味千拉麵 本店</span>
+                            <div class="method-detail">
+                                <p>熊本拉麵的世界級連鎖本店。口味穩定，適合家庭旅客的安全牌。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Ajisen+Ramen+Honten" target="_blank" class="btn-map">導航至味千本店</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F472B6; background-color: #FFF1F2; margin-bottom: 15px;">
+                        <h3 style="color: #DB2777; border-bottom-color: #F472B6;">🍰 熊本午茶 & 咖啡</h3>
+                        
+                        <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
+                            <span class="method-title" style="color: #BE185D;">Swiss Konditorei (スイス)</span>
+                            <div class="method-detail">
+                                <p>熊本老字號洋菓子店。推薦<b>「酒心巧克力 (Liqueur Bonbon)」</b>是經典伴手禮。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Swiss+Konditorei+Shimotori" target="_blank" class="btn-map">導航至 Swiss</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
+                            <span class="method-title" style="color: #BE185D;">岡田咖啡 (Okada Coffee)</span>
+                            <div class="method-detail">
+                                <p>上通商店街的優雅咖啡館，沈穩的昭和風格。適合喝手沖咖啡配栗子蛋糕。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Okada+Coffee+Kamitori" target="_blank" class="btn-map">導航至岡田咖啡</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F87171; background-color: #FEF2F2; margin-bottom: 15px;">
+                        <h3 style="color: #DC2626; border-bottom-color: #F87171;">🍠 必吃！熊本名物「いきなり団子」</h3>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">1. 長壽庵 (長寿庵)</span>
+                            <div class="method-detail">
+                                <p>熊本最有名的いきなり団子專賣店。熱騰騰的番薯與紅豆內餡，外皮Q彈微鹹。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Chojuan+Kumamoto" target="_blank" class="btn-map">搜尋長壽庵</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">2. 華丸堂 (Hanamarudo)</span>
+                            <div class="method-detail">
+                                <p>位於櫻之馬場城彩苑內，除了傳統口味，還有創新的<b>彩色糰子</b>。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Hanamarudo+Kumamoto" target="_blank" class="btn-map">導航至華丸堂</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">3. 芋屋長兵衛</span>
+                            <div class="method-detail">
+                                <p>番薯專門店，還有番薯片、番薯霜淇淋等各種番薯製品。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Imoya+Chobei" target="_blank" class="btn-map">搜尋芋屋長兵衛</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">4. 村上 KARASHI RENKON</span>
+                            <div class="method-detail">
+                                <p>推薦嘗試熊本名物<b>「辛子蓮藕」</b>。現炸熱熱吃比較不嗆辣。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Murakami+Karashi+Renkon" target="_blank" class="btn-map">導航至村上辛子蓮藕</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">5. KUMAMON Square 限定甜點</span>
+                            <div class="method-detail">
+                                <p>熊本部長辦公室限定的聖代或拿鐵，造型可愛絕對能收服小孩的心。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Kumamon+Square" target="_blank" class="btn-map">導航至 Kumamon Square</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-wrapper">
+                <div class="day-toggle" id="toggle-food-a" onclick="toggleTimeline('food-a', this)">
+                    <div class="day-info">
+                        <h3>阿蘇 & 黑川備案</h3>
+                        <span>赤牛丼、地雞、溫泉街甜點</span>
+                    </div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div id="food-a" class="timeline">
+                    <div class="info-section" style="border-color: #34D399; background-color: #ECFDF5; margin-bottom: 15px;">
+                        <h3 style="color: #059669; border-bottom-color: #34D399;">☀️ 午餐口袋名單 (赤牛丼/田樂/蕎麥麵)</h3>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🥩 Imakin 食堂 (いまきん食堂)</span>
+                            <div class="method-detail">
+                                <p>阿蘇<b>赤牛丼的傳說級名店</b>。百年老店，半熟的赤牛鋪滿碗面。建議一早去登記。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Imakin+Shokudo" target="_blank" class="btn-map">導航至 Imakin</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">⛰️ 倍喰丼 (Bakuro)</span>
+                            <div class="method-detail">
+                                <p>位於半山腰，視野極佳可眺望阿蘇五岳，赤牛漢堡排和牛排丼都非常美味。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Restaurant+Bakuro+Aso" target="_blank" class="btn-map">導航至倍喰丼</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍢 高森田樂保存會 (高森田楽保存会)</span>
+                            <div class="method-detail">
+                                <p>體驗在圍爐裏旁吃<b>「田樂燒」</b>。將芋頭、蒟蒻、山女魚塗上味噌炭烤，非常具有日本傳統風情。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Takamori+Dengaku+Hozonkai" target="_blank" class="btn-map">導航至高森田樂</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🥢 阿蘇路 蕎麥麵 (そば処 阿蘇路)</span>
+                            <div class="method-detail">
+                                <p>位於阿蘇站附近的老字號蕎麥麵店。麵條手工製作，推薦搭配炸蝦天婦羅。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Sobadokoro+Asoji" target="_blank" class="btn-map">導航至阿蘇路</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🌾 農家餐廳 山之里 (農家れすとらん 山の里)</span>
+                            <div class="method-detail">
+                                <p>提供自家農場種植的食材與赤牛燒肉。環境溫馨，適合家庭用餐。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Nouka+Restaurant+Yamanosato" target="_blank" class="btn-map">導航至山之里</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #FBBF24; background-color: #FFFBEB; margin-bottom: 15px;">
+                        <h3 style="color: #B45309; border-bottom-color: #FBBF24;">🌙 晚餐口袋名單 (黑川溫泉/阿蘇)</h3>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🏮 味處 Naka (味処なか)</span>
+                            <div class="method-detail">
+                                <p>黑川溫泉街上的人氣定食店。提供地雞料理、關東煮與丼飯。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Ajidokoro+Naka+Kurokawa" target="_blank" class="btn-map">導航至味處 Naka</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🥩 燒肉 UFUFU (焼肉 　うふふ)</span>
+                            <div class="method-detail">
+                                <p>黑川溫泉區內的燒肉店。提供阿蘇牛燒肉，店內乾淨舒適。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Yakiniku+Ufufu+Kurokawa" target="_blank" class="btn-map">導航至燒肉 UFUFU</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍺 Waroku 屋 (わろく屋)</span>
+                            <div class="method-detail">
+                                <p>黑川著名的百年建築餐廳，主打<b>「黑咖哩」</b>與赤牛牛排。氛圍復古迷人。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Warokuya+Kurokawa" target="_blank" class="btn-map">導航至 Waroku 屋</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍜 小國蕎麥街道 (吾亦紅)</span>
+                            <div class="method-detail">
+                                <p>阿蘇小國町的蕎麥麵名店。若晚餐時間較早，可以在回黑川前先用餐。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Sobadokoro+Waremoko" target="_blank" class="btn-map">導航至吾亦紅</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍱 道之驛 阿蘇 (外帶備案)</span>
+                            <div class="method-detail">
+                                <p>阿蘇站旁的道之驛販賣許多高品質的<b>赤牛便當</b>和在地熟食，買回飯店吃也很享受。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Michinoeki+Aso" target="_blank" class="btn-map">導航至道之驛阿蘇</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F472B6; background-color: #FFF1F2; margin-bottom: 15px;">
+                        <h3 style="color: #DB2777; border-bottom-color: #F472B6;">☕ 山林午茶 & 甜點</h3>
+                        
+                        <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
+                            <span class="method-title" style="color: #BE185D;">Patisserie Roku (麓)</span>
+                            <div class="method-detail">
+                                <p>黑川溫泉必訪甜點店。<b>「鹽麴泡芙」</b>是招牌，外皮酥脆內餡濃郁。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Patisserie+Roku+Kurokawa" target="_blank" class="btn-map">導航至 Patisserie Roku</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F87171; background-color: #FEF2F2; margin-bottom: 15px;">
+                        <h3 style="color: #DC2626; border-bottom-color: #F87171;">🥛 必吃！阿蘇牧場鮮乳 & 霜淇淋</h3>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">1. ABE 牧場 (ASO MILK FACTORY)</span>
+                            <div class="method-detail">
+                                <p>榮獲國際味覺賞三星的頂級牛奶。年輪蛋糕和義式冰淇淋 (Gelato) 超級濃郁。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Aso+Milk+Factory" target="_blank" class="btn-map">導航至 Aso Milk Factory</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">2. 大觀峰 茶店</span>
+                            <div class="method-detail">
+                                <p>在絕景展望台吃<b>阿蘇小國澤西牛乳</b>製作的霜淇淋，奶香特濃。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Daikanbo+Tea+House" target="_blank" class="btn-map">導航至大觀峰茶店</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">3. 草千里 珈琲焙煎所</span>
+                            <div class="method-detail">
+                                <p>位於草千里展望台，文青風格的咖啡店。手沖咖啡搭配獨特的竹炭拿鐵。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Kusasenri+Coffee+Roastery" target="_blank" class="btn-map">導航至草千里咖啡</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">4. 山吹水源 烤香魚</span>
+                            <div class="method-detail">
+                                <p>產山村水源頭旁的現烤香魚。肉質細緻，連骨頭都能吃，孩子也能輕鬆嘗試。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Yamabuki+Suigen" target="_blank" class="btn-map">導航至山吹水源</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">5. 白川水源 物產館</span>
+                            <div class="method-detail">
+                                <p>取用名水製作的<b>「水饅頭」</b>和豆腐，口感滑嫩清爽。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Shirakawa+Suigen" target="_blank" class="btn-map">導航至白川水源</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-wrapper">
+                <div class="day-toggle" id="toggle-food-y" onclick="toggleTimeline('food-y', this)">
+                    <div class="day-info">
+                        <h3>別府 & 由布院備案</h3>
+                        <span>地獄蒸、豐後牛釜飯</span>
+                    </div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div id="food-y" class="timeline">
+                    <div class="info-section" style="border-color: #34D399; background-color: #ECFDF5; margin-bottom: 15px;">
+                        <h3 style="color: #059669; border-bottom-color: #34D399;">☀️ 午餐口袋名單 (釜飯/天婦羅/地獄蒸)</h3>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍚 由布Mabushi 心 (由布まぶし 心)</span>
+                            <div class="method-detail">
+                                <p>由布院必吃<b>「豐後牛釜飯」</b>，一鍋三吃。建議開店前去金鱗湖店排隊。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Yufu+Mabushi+Shin+Kinrinko" target="_blank" class="btn-map">導航至金鱗湖店</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍤 東洋軒 (Toyoken) - 別府</span>
+                            <div class="method-detail">
+                                <p>大分名物<b>「雞肉天婦羅」</b>發源地。外酥內嫩，酸橘醋醬油清爽好吃，孩子最愛。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Toyoken+Beppu" target="_blank" class="btn-map">導航至東洋軒</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">♨️ 地獄蒸工房 鐵輪 (地獄蒸し工房)</span>
+                            <div class="method-detail">
+                                <p>DIY體驗型餐廳。利用溫泉蒸氣蒸熟蔬菜海鮮，健康又好玩。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Jigokumushi+Kobo+Kannawa" target="_blank" class="btn-map">導航至地獄蒸工房</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍜 六盛 (Rokusei) 冷麵 - 別府</span>
+                            <div class="method-detail">
+                                <p>別府名物<b>「冷麵」</b>。麵條Q彈有勁，牛肉湯頭醇厚，一年四季都好吃。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Rokusei+Reimen+Beppu" target="_blank" class="btn-map">導航至六盛冷麵</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🐶 Snoopy Tea House 由布院</span>
+                            <div class="method-detail">
+                                <p>全球第一間史努比茶屋。提供可愛造型餐點，口味意外地好，環境療癒。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Snoopy+Tea+House+Yufuin" target="_blank" class="btn-map">導航至史努比茶屋</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #FBBF24; background-color: #FFFBEB; margin-bottom: 15px;">
+                        <h3 style="color: #B45309; border-bottom-color: #FBBF24;">🌙 晚餐口袋名單 (燒肉/居酒屋/洋食)</h3>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🥩 燒肉元相 (Gensou) - 別府</span>
+                            <div class="method-detail">
+                                <p>別府人氣燒肉，提供高品質豐後牛。座位寬敞適合家庭，建議預約。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Yakiniku+Gensou+Beppu" target="_blank" class="btn-map">導航至燒肉元相</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🐟 海鮮居酒屋 爐端仁 (Robata Jin)</span>
+                            <div class="method-detail">
+                                <p>位於別府站前，CP值高。必吃大分名物「關鯖魚、關竹莢魚」生魚片。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Robata+Jin+Beppu" target="_blank" class="btn-map">導航至爐端仁</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍽️ Somuri (そむり) 牛排館 - 別府</span>
+                            <div class="method-detail">
+                                <p>正宗豐後牛牛排。老派西餐廳風格，服務周到，牛排鮮嫩多汁。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Steak+House+Somuri+Beppu" target="_blank" class="btn-map">導航至 Somuri</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍣 龜正迴轉壽司 (Kamesho) - 別府</span>
+                            <div class="method-detail">
+                                <p>別府傳奇排隊壽司。生魚片厚切、CP值極高。只能現場排隊，建議晚餐前提早去。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Kamesho+Kurukuru+Sushi" target="_blank" class="btn-map">導航至龜正壽司</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🥘 龜之井別莊 湯之岳庵 - 由布院</span>
+                            <div class="method-detail">
+                                <p>環境極為清幽雅致，提供精緻的山里料理。不住宿也能享受頂級氛圍。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Yunotakean+Yufuin" target="_blank" class="btn-map">導航至湯之岳庵</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F472B6; background-color: #FFF1F2; margin-bottom: 15px;">
+                        <h3 style="color: #DB2777; border-bottom-color: #F472B6;">☕ 由布院童話午茶</h3>
+                        
+                        <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
+                            <span class="method-title" style="color: #BE185D;">Miffy Kitchen (米飛兔麵包)</span>
+                            <div class="method-detail">
+                                <p>童話小屋風格，販售米飛兔造型麵包。二樓有內用區，適合親子休息。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Miffy+Kitchen+Yufuin" target="_blank" class="btn-map">導航至米飛兔廚房</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F87171; background-color: #FEF2F2; margin-bottom: 15px;">
+                        <h3 style="color: #DC2626; border-bottom-color: #F87171;">🍰 必吃！由布院散步甜點</h3>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">1. B-Speak 蛋糕捲</span>
+                            <div class="method-detail">
+                                <p>由布院甜點王者。蛋糕捲蓬鬆濕潤。通常中午前會賣完小條裝。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=B-Speak+Yufuin" target="_blank" class="btn-map">導航至 B-Speak</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">2. Milch (ミルヒ) 起司杯</span>
+                            <div class="method-detail">
+                                <p>半熟起司蛋糕杯，熱熱吃中間會流心。推薦現場吃熱的！</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Milch+Yufuin" target="_blank" class="btn-map">導航至 Milch</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">3. 金賞可樂餅 (金賞コロッケ)</span>
+                            <div class="method-detail">
+                                <p>湯之坪街道必吃。外皮酥脆，內餡牛肉馬鈴薯泥鹹香好吃。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Gold+Prize+Croquette+Yufuin" target="_blank" class="btn-map">導航至金賞可樂餅</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">4. 鞠智 (Cucuchi) 銅鑼燒</span>
+                            <div class="method-detail">
+                                <p>現做的銅鑼燒，餅皮鬆軟。店面設計很美，適合拍照。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Cucuchi+Yufuin" target="_blank" class="btn-map">導航至鞠智</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">5. 岡本屋 地獄蒸布丁 (別府)</span>
+                            <div class="method-detail">
+                                <p>利用溫泉蒸氣製作的布丁，口感扎實帶有焦糖苦甜味，別府必吃。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Okamotoya+Shop" target="_blank" class="btn-map">導航至岡本屋</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="day-wrapper">
+                <div class="day-toggle" id="toggle-food-f" onclick="toggleTimeline('food-f', this)">
+                    <div class="day-info">
+                        <h3>福岡區備案</h3>
+                        <span>牛腸鍋、屋台、博多拉麵</span>
+                    </div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div id="food-f" class="timeline">
+                    <div class="info-section" style="border-color: #34D399; background-color: #ECFDF5; margin-bottom: 15px;">
+                        <h3 style="color: #059669; border-bottom-color: #34D399;">☀️ 午餐口袋名單 (壽司/定食/烏龍麵)</h3>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍣 瓢簞壽司 (ひょうたん寿司)</span>
+                            <div class="method-detail">
+                                <p>天神地區CP值最高的排隊壽司名店。食材新鮮、價格合理。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Hyotan+Sushi+Tenjin" target="_blank" class="btn-map">導航至瓢簞壽司</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍤 天麩羅處 Hirao (天麩羅処ひらお)</span>
+                            <div class="method-detail">
+                                <p>福岡靈魂美食！現炸天婦羅一道道上桌，免費的<b>「柚子花枝」</b>非常下飯。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Tempura+Hirao+Daimyo" target="_blank" class="btn-map">導航至大名店</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍜 大地之烏龍麵 (大地のうどん)</span>
+                            <div class="method-detail">
+                                <p>博多烏龍麵代表。推薦<b>「牛蒡天烏龍麵」</b>，炸牛蒡大到蓋住碗，麵條半透明Q彈。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Daichi+no+Udon+Hakata" target="_blank" class="btn-map">導航至博多站地下店</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🍱 吉塚鰻魚屋 (吉塚うなぎ屋)</span>
+                            <div class="method-detail">
+                                <p>中洲河畔百年名店。烤工絕佳，外酥內嫩。建議開店前抽號碼牌。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Yoshizuka+Unagiya" target="_blank" class="btn-map">導航至吉塚鰻魚屋</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #34D399; margin-top: 10px;">
+                            <span class="method-title" style="color: #059669;">🦀 稚加榮 (Chikae) - 假日午間御膳</span>
+                            <div class="method-detail">
+                                <p>福岡高級料亭，午餐限量御膳。可以在巨大的魚池吧台旁用餐。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Chikae+Fukuoka" target="_blank" class="btn-map">導航至稚加榮</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #FBBF24; background-color: #FFFBEB; margin-bottom: 15px;">
+                        <h3 style="color: #B45309; border-bottom-color: #FBBF24;">🌙 晚餐口袋名單 (鍋物/拉麵/燒肉)</h3>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍲 博多華味鳥 (水炊雞肉鍋)</span>
+                            <div class="method-detail">
+                                <p><b>親子首選</b>。雞湯濃郁充滿膠原蛋白，口味清爽健康。建議預約。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Hakata+Hanamidori+Hakata" target="_blank" class="btn-map">搜尋華味鳥</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍜 Shin-Shin 拉麵</span>
+                            <div class="method-detail">
+                                <p>麵條極細，豚骨湯頭濃郁無腥味，小朋友接受度高。天神本店常大排長龍。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Hakata+Ramen+Shin-Shin+Tenjin" target="_blank" class="btn-map">搜尋 Shin-Shin</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🥩 極味屋 (KIWAMIYA) 漢堡排</span>
+                            <div class="method-detail">
+                                <p>特色<b>「DIY 鐵板漢堡排」</b>，自己用筷子切下煎熟。排隊隊伍通常很長。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Kiwamiya+Hakata" target="_blank" class="btn-map">導航至極味屋</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🥘 博多摩滋鍋 大山 (もつ鍋 おおやま)</span>
+                            <div class="method-detail">
+                                <p>推薦<b>「味噌口味」</b>牛腸鍋。博多站內有分店，交通方便。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Hakata+Motsunabe+Ooyama" target="_blank" class="btn-map">搜尋大山牛腸鍋</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
+                            <span class="method-title" style="color: #B45309;">🍣 博多魚嘉 (博多魚がし)</span>
+                            <div class="method-detail">
+                                <p>位於博多站一番街。由魚市場直營，食材新鮮，適合想吃壽司但不想跑遠的選擇。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Hakata+Uogashi+Hakata+Station" target="_blank" class="btn-map">導航至博多魚嘉</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F472B6; background-color: #FFF1F2; margin-bottom: 15px;">
+                        <h3 style="color: #DB2777; border-bottom-color: #F472B6;">🍰 下午茶 & 療癒甜點 (逛累專用)</h3>
+                        
+                        <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
+                            <span class="method-title" style="color: #BE185D;">Cafe del SOL (天神/西通)</span>
+                            <div class="method-detail">
+                                <p><b>「蓬鬆系鬆餅」</b>，口感像雲朵一樣軟綿。受女性與小孩歡迎。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Cafe+del+SOL+Fukuoka" target="_blank" class="btn-map">導航至 Cafe del SOL</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
+                            <span class="method-title" style="color: #BE185D;">Mutsukado むつか堂 (博多站)</span>
+                            <div class="method-detail">
+                                <p>知名吐司專賣店咖啡廳，必吃<b>「水果鮮奶油三明治」</b>。位於 AMU PLAZA 5樓。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Mutsukado+Hakata" target="_blank" class="btn-map">導航至 AMU PLAZA 店</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
+                            <span class="method-title" style="color: #BE185D;">il FORNO del Mignon (博多站)</span>
+                            <div class="method-detail">
+                                <p>博多站中央改札口旁的<b>「迷你可頌」</b>排隊名店。適合買回飯店當宵夜。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=il+FORNO+del+Mignon+Hakata" target="_blank" class="btn-map">導航至博多站可頌</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section" style="border-color: #F87171; background-color: #FEF2F2; margin-bottom: 15px;">
+                        <h3 style="color: #DC2626; border-bottom-color: #F87171;">🥖 必吃！明太子法國麵包 (5大名店)</h3>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">1. Full Full (フルフル)</span>
+                            <div class="method-detail">
+                                <p>福岡明太子法國麵包的代名詞！外皮酥脆，內餡濃郁。值得特地前往。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Full+Full+Bakery+Fukuoka" target="_blank" class="btn-map">搜尋 Full Full</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">2. Pain Stock (パンストック)</span>
+                            <div class="method-detail">
+                                <p>福岡超人氣排隊麵包店。招牌明太子法國麵包口感極佳，常秒殺。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Pain+Stock+Tenjin" target="_blank" class="btn-map">導航至天神店 (Stock)</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">3. DACOMECCA (ダコメッカ)</span>
+                            <div class="method-detail">
+                                <p>東京超紅 Amam Dacotan 姊妹店。裝潢夢幻，炭烤漢堡排與明太子麵包必買。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Dacomecca+Hakata" target="_blank" class="btn-map">導航至 Dacomecca</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">4. TRANDOR (トランドール)</span>
+                            <div class="method-detail">
+                                <p>位於博多站內。半熟蛋咖哩麵包和明太子麵包是旅客補給首選。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=Trandor+Hakata" target="_blank" class="btn-map">導航至博多站店</a>
+                            </div>
+                        </div>
+
+                        <div class="safari-method" style="border-color: #F87171; margin-top: 10px;">
+                            <span class="method-title" style="color: #DC2626;">5. THE CITY BAKERY</span>
+                            <div class="method-detail">
+                                <p>位於天神 Solaria Plaza B2。推薦<b>「明太子椒鹽可頌」</b>，鹹香酥脆。</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=The+City+Bakery+Tenjin" target="_blank" class="btn-map">導航至天神店</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+            <div class="card-header">
+                <!-- 修正 1: 將 Emoji 🌍 換成簡約 SVG 地球圖示 -->
+                <div class="card-title" style="display: flex; align-items: center; gap: 6px;">
+                    <svg class="icon-mini" style="color: var(--primary);"><use href="#icon-earth"></use></svg>
+                    即時天氣查詢 & 穿衣建議
+                </div>
+            </div>
+            
+            <div class="weather-search-box">
+                <input type="text" id="weather-city-input" class="weather-input" placeholder="輸入城市 (例如: 熊本, 由布院)">
+                <button class="btn-weather-search" onclick="fetchRealtimeWeather()">查詢</button>
+            </div>
+
+            <!-- Main Result -->
+            <div id="weather-result" style="display:none;">
+                <div class="weather-card-main">
+                    <div class="wc-loc" id="wc-loc">--</div>
+                    <div class="wc-temp-big" id="wc-temp">--°</div>
+                    <div class="wc-desc" id="wc-desc">載入中...</div>
+                </div>
+
+                <!-- Comparison Row -->
+                <div class="weather-compare-row">
+                    <div class="wc-mini-card" onclick="getLocalWeather()" style="cursor:pointer; background:#F9FAFB;">
+                        <!-- 修正 1: 我的位置圖示 (Pin) -->
+                        <div id="wc-loc-box" class="wc-mini-title" style="display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="getLocalWeather()">
+    <svg class="icon-mini" style="color: #EF4444;"><use href="#icon-loc"></use></svg>
+    <span>我的位置 (點擊更新)</span>
+</div>
+                        <div class="wc-mini-temp" id="wc-my-temp">--°</div>
+                    </div>
+                    <div class="wc-mini-card">
+                        <!-- 修正 2: 溫差對比圖示 (Thermometer) -->
+                        <div class="wc-mini-title" style="display: flex; align-items: center; justify-content: center;">
+                            <svg class="icon-mini" style="color: #3B82F6;"><use href="#icon-temp"></use></svg>
+                            溫差對比
+                        </div>
+                        <div id="wc-diff-tag" class="wc-diff-tag" style="display:none;">--</div>
+                        <div id="wc-diff-text" style="font-size:0.8rem; color:#666; margin-top:2px;">--</div>
+                    </div>
+                </div>
+
+                <!-- AI Advice -->
+                <div class="advice-box">
+                    <!-- 修正 3: 穿衣建議圖示 (Shirt) -->
+                    <strong style="display: flex; align-items: center; gap: 4px;">
+                        <svg class="icon-mini" style="color: #059669;"><use href="#icon-shirt"></use></svg>
+                        AI 穿衣建議：
+                    </strong>
+                    <div style="margin-top: 5px;" id="wc-advice">分析氣候數據中...</div>
+                </div>
+                
+                <div style="font-size: 0.75rem; color: #9CA3AF; text-align: center; margin-top: 15px;">
+                    * 天氣數據來源：Open-Meteo Real-time API<br>
+                    * 穿衣建議由 Google Gemini AI 分析生成
+                </div>
+            </div>
+            
+            <!-- Default / Loading State -->
+            <div id="weather-placeholder" style="text-align: center; padding: 40px; color: #9CA3AF;">
+                <svg viewBox="0 0 24 24" style="width: 60px; height: 60px; stroke: #D1D5DB; fill: none; stroke-width: 1.5; margin-bottom: 10px;"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>
+                <div>請輸入城市名稱查詢即時天氣</div>
+            </div>
+        </div>
+            </div>
+        </div>
         <!-- 熊本 上/下通 攻略 -->
         <div class="card">
             <div class="card-header">
@@ -2855,7 +4532,47 @@
                     **費用總計：** 若選擇「入園 + 叢林巴士」，每位成人約 ¥4,000。
                 </p>
             </div>
-            
+            <div class="info-section" style="border-color: #F59E0B; background-color: #FFFBEB; margin-top: 15px;">
+                <h3 style="color: var(--secondary); border-bottom-color: var(--secondary);">⏰ 開園時間與搶票攻略</h3>
+                
+                <div class="method-detail">
+                    <div style="margin-bottom: 12px;">
+                        <span style="font-weight: 700; color: #1F2937; display: block; margin-bottom: 4px;">❄️ 冬季 (11月1日 ～ 2月底)</span>
+                        <ul style="padding-left: 20px; margin: 0; font-size: 0.9rem; line-height: 1.6;">
+                            <li><b>售票開始：</b>09:30</li>
+                            <li><b>正式開園：</b>10:00</li>
+                            <li><b>閉園時間：</b>15:30 (最後入園 15:00)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <span style="font-weight: 700; color: #1F2937; display: block; margin-bottom: 4px;">☀️ 夏季 (3月1日 ～ 10月31日)</span>
+                        <ul style="padding-left: 20px; margin: 0; font-size: 0.9rem; line-height: 1.6;">
+                            <li><b>售票開始：</b>09:00</li>
+                            <li><b>正式開園：</b>09:30</li>
+                            <li><b>閉園時間：</b>16:30 (最後入園 16:00)</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: white; padding: 12px; border-radius: 8px; border: 1px dashed #D97706; margin-top: 10px;">
+                        <span style="color: #D97706; font-weight: 700; display: flex; align-items: center; gap: 5px; margin-bottom: 5px;">
+                            <svg class="icon-mini" style="color:#D97706"><use href="#icon-time"></use></svg>
+                            Jungle Bus 搶票建議
+                        </span>
+                        <p style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; font-weight: 500;">
+                            因巴士座位有限且需當日現場排隊購票，強烈建議：
+                        </p>
+                        <ul style="padding-left: 20px; margin: 0; font-size: 0.9rem; line-height: 1.6;">
+                            <li><b>平日：</b>建議 <b style="color: #DC2626;">09:00 前</b> (開園前 30 分鐘) 抵達。</li>
+                            <li><b>假日/連假：</b>建議 <b style="color: #DC2626;">08:30 前</b> (開園前 1 小時) 抵達。</li>
+                        </ul>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 8px; border-top: 1px solid #eee; padding-top: 6px;">
+                            💡 <b>為什麼要這麼早？</b><br>
+                            旺季時開園前門口常有自駕車陣排隊。早點到是為了確保能買到<b>「上午時段」</b>的巴士票，以免行程被拖到下午，影響後續前往由布院的時間。
+                        </p>
+                    </div>
+                </div>
+            </div>
             <!-- 叢林巴士預約教學 -->
             <div class="info-section">
                 <h3>🚌 叢林巴士 (Jungle Bus) 預約教學</h3>
@@ -2864,9 +4581,9 @@
                     叢林巴士是必玩項目！建議您提前預約，以確保有位子，特別是週末或假期。
                 </p>
                 <ol style="font-size: 0.9rem; margin-top: 10px; padding-left: 20px;">
-                    <li>**線上預約 (推薦)：：** 官方網站通常會在出發日期的前 1 個月左右開放預約。選擇日期與時段，線上付費。</li>
-                    <li>**當日現場購票：：** 如果無法線上預訂，請務必在**一開園時**（或預計抵達時）立刻前往售票處購買當日的場次。熱門時段容易客滿。</li>
-                    <li>**選擇時段：：** 建議選擇剛入園後的時段（約 14:30-15:30），以免耽誤後續前往由布院的行程。</li>
+                    <li>**線上預約 (推薦)：** 官方網站通常會在出發日期的前 1 個月左右開放預約。選擇日期與時段，線上付費。</li>
+                    <li>**當日現場購票：** 如果無法線上預訂，請務必在**一開園時**（或預計抵達時）立刻前往售票處購買當日的場次。熱門時段容易客滿。</li>
+                    <li>**選擇時段：** 建議選擇剛入園後的時段（約 14:30-15:30），以免耽誤後續前往由布院的行程。</li>
                 </ol>
             </div>
 
@@ -2945,75 +4662,7 @@
                 </p>
             </div>
         </div>
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Day 4-6: 福岡美食 & 下午茶口袋名單</div>
-                <div class="tag tag-food">彈性推薦</div>
-            </div>
-
-            <div class="info-section" style="border-color: #F472B6; background-color: #FFF1F2;">
-                <h3 style="color: #DB2777; border-bottom-color: #F472B6;">🍰 下午茶 & 療癒甜點 (逛累專用)</h3>
-                
-                <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
-                    <span class="method-title" style="color: #BE185D;">Cafe del SOL (天神/西通)</span>
-                    <div class="method-detail">
-                        <p>福岡知名的<b>「蓬鬆系鬆餅 (Pancake)」</b>，口感像雲朵一樣軟綿，搭配新鮮水果與冰淇淋。店內氛圍溫馨，非常受女性與小孩歡迎。</p>
-                        <ul style="margin-top:5px; font-size:0.85rem; color:#666; padding-left:20px;">
-                            <li><b>推薦：</b>季節限定水果鬆餅、拿鐵拉花。</li>
-                        </ul>
-                        <a href="https://www.google.com/maps/search/Cafe+del+SOL+福岡" target="_blank" class="btn-map">導航至 Cafe del SOL</a>
-                    </div>
-                </div>
-
-                <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
-                    <span class="method-title" style="color: #BE185D;">Mutsukado むつか堂 (博多站)</span>
-                    <div class="method-detail">
-                        <p>知名吐司專賣店的咖啡廳，位於博多站 AMU PLAZA 5樓 (大鐘旁手扶梯上去)。必吃<b>「水果鮮奶油三明治」</b>，吐司極度柔軟，鮮奶油清爽不膩。</p>
-                        <p style="margin-top:5px; font-size:0.85rem; color:#666;">*位置極佳，適合等待回程列車或剛抵達時享用。</p>
-                        <a href="https://www.google.com/maps/search/むつか堂+アミュプラザ博多店" target="_blank" class="btn-map">導航至 AMU PLAZA 店</a>
-                    </div>
-                </div>
-
-                <div class="safari-method" style="border-color: #F472B6; margin-top: 10px;">
-                    <span class="method-title" style="color: #BE185D;">il FORNO del Mignon (博多站)</span>
-                    <div class="method-detail">
-                        <p>位於博多站中央改札口旁的<b>「迷你可頌」</b>排隊名店。雖然不是內用店，但經過一定會聞到香味！</p>
-                        <p style="margin-top:5px; font-size:0.85rem; color:#666;">*按重量計價，有原味、巧克力、地瓜口味。非常適合買回飯店當宵夜或車上點心。</p>
-                        <a href="https://www.google.com/maps/search/il+FORNO+del+Mignon+博多" target="_blank" class="btn-map">導航至博多站可頌</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="info-section" style="border-color: #FBBF24; background-color: #FFFBEB;">
-                <h3 style="color: #B45309; border-bottom-color: #FBBF24;">🍜 晚餐與在地名物 (親子友善)</h3>
-
-                <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
-                    <span class="method-title" style="color: #B45309;">博多華味鳥 (水炊雞肉鍋)</span>
-                    <div class="method-detail">
-                        <p>如果不習慣重口味的拉麵或內臟鍋，<b>「博多水炊鍋 (Mizutaki)」</b>是親子首選。雞湯濃郁充滿膠原蛋白，雞肉軟嫩，口味清爽健康，最後的雜炊粥更是精華。</p>
-                        <p style="margin-top:5px; font-size:0.85rem; color:#666;">*博多站與天神都有多家分店，晚餐建議預約。</p>
-                        <a href="https://www.google.com/maps/search/博多華味鳥+博多駅前" target="_blank" class="btn-map">搜尋附近分店</a>
-                    </div>
-                </div>
-
-                <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
-                    <span class="method-title" style="color: #B45309;">Shin-Shin 拉麵 (博多/天神)</span>
-                    <div class="method-detail">
-                        <p>福岡在地人氣超高的拉麵店。相比一蘭，它的麵條極細，豚骨湯頭雖濃郁但較無腥味，且帶有甜味，<b>小朋友通常接受度很高</b>。</p>
-                        <a href="https://www.google.com/maps/search/博多らーめん+Shin-Shin" target="_blank" class="btn-map">搜尋 Shin-Shin 拉麵</a>
-                    </div>
-                </div>
-
-                <div class="safari-method" style="border-color: #FBBF24; margin-top: 10px;">
-                    <span class="method-title" style="color: #B45309;">極味屋 (KIWAMIYA) 漢堡排</span>
-                    <div class="method-detail">
-                        <p>超人氣排隊店！特色是<b>「DIY 鐵板漢堡排」</b>，店員會送上表面微熟的漢堡排，自己用筷子切下放在小鐵石上煎熟。雖然排隊隊伍通常很長，但用餐體驗非常有趣。</p>
-                        <p style="margin-top:5px; font-size:0.85rem; color:#DC2626;">*注意：鐵板極燙且有油煙，若孩子太小需注意安全。</p>
-                        <a href="https://www.google.com/maps/search/極味屋+博多" target="_blank" class="btn-map">導航至極味屋</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
         <!-- 伴手禮攻略 -->
         <div class="card">
             <div class="card-header">
@@ -3180,73 +4829,14 @@
         </div>
     </div>
 
-    <!-- TAB 6: 即時天氣 (New) -->
+    <!-- TAB 6: 旅遊管家 (New) -->
     <div id="view-weather" class="container">
-        <div class="card">
-            <div class="card-header">
-                <!-- 修正 1: 將 Emoji 🌍 換成簡約 SVG 地球圖示 -->
-                <div class="card-title" style="display: flex; align-items: center; gap: 6px;">
-                    <svg class="icon-mini" style="color: var(--primary);"><use href="#icon-earth"></use></svg>
-                    即時天氣查詢 & 穿衣建議
-                </div>
-            </div>
-            
-            <div class="weather-search-box">
-                <input type="text" id="weather-city-input" class="weather-input" placeholder="輸入城市 (例如: 熊本, 由布院)">
-                <button class="btn-weather-search" onclick="fetchRealtimeWeather()">查詢</button>
-            </div>
-
-            <!-- Main Result -->
-            <div id="weather-result" style="display:none;">
-                <div class="weather-card-main">
-                    <div class="wc-loc" id="wc-loc">--</div>
-                    <div class="wc-temp-big" id="wc-temp">--°</div>
-                    <div class="wc-desc" id="wc-desc">載入中...</div>
-                </div>
-
-                <!-- Comparison Row -->
-                <div class="weather-compare-row">
-                    <div class="wc-mini-card" onclick="getLocalWeather()" style="cursor:pointer; background:#F9FAFB;">
-                        <!-- 修正 1: 我的位置圖示 (Pin) -->
-                        <div id="wc-loc-box" class="wc-mini-title" style="display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="getLocalWeather()">
-    <svg class="icon-mini" style="color: #EF4444;"><use href="#icon-loc"></use></svg>
-    <span>我的位置 (點擊更新)</span>
-</div>
-                        <div class="wc-mini-temp" id="wc-my-temp">--°</div>
-                    </div>
-                    <div class="wc-mini-card">
-                        <!-- 修正 2: 溫差對比圖示 (Thermometer) -->
-                        <div class="wc-mini-title" style="display: flex; align-items: center; justify-content: center;">
-                            <svg class="icon-mini" style="color: #3B82F6;"><use href="#icon-temp"></use></svg>
-                            溫差對比
-                        </div>
-                        <div id="wc-diff-tag" class="wc-diff-tag" style="display:none;">--</div>
-                        <div id="wc-diff-text" style="font-size:0.8rem; color:#666; margin-top:2px;">--</div>
-                    </div>
-                </div>
-
-                <!-- AI Advice -->
-                <div class="advice-box">
-                    <!-- 修正 3: 穿衣建議圖示 (Shirt) -->
-                    <strong style="display: flex; align-items: center; gap: 4px;">
-                        <svg class="icon-mini" style="color: #059669;"><use href="#icon-shirt"></use></svg>
-                        AI 穿衣建議：
-                    </strong>
-                    <div style="margin-top: 5px;" id="wc-advice">分析氣候數據中...</div>
-                </div>
-                
-                <div style="font-size: 0.75rem; color: #9CA3AF; text-align: center; margin-top: 15px;">
-                    * 天氣數據來源：Open-Meteo Real-time API<br>
-                    * 穿衣建議由 Google Gemini AI 分析生成
-                </div>
-            </div>
-            
-            <!-- Default / Loading State -->
-            <div id="weather-placeholder" style="text-align: center; padding: 40px; color: #9CA3AF;">
-                <svg viewBox="0 0 24 24" style="width: 60px; height: 60px; stroke: #D1D5DB; fill: none; stroke-width: 1.5; margin-bottom: 10px;"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>
-                <div>請輸入城市名稱查詢即時天氣</div>
-            </div>
-        </div>
+    <div class="ai-header" style="justify-content:center; margin-top:20px;">
+        <span>🎩 旅遊管家</span>
+    </div>
+    <div style="text-align:center; color:#666; padding:20px;">
+        為您服務中...
+    </div>
     </div>
 
     <!-- 自定義彈出視窗 HTML -->
@@ -3262,45 +4852,90 @@
         </div>
     </div>
 <div id="note-modal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 350px; text-align: left;">
-            <div class="modal-title" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+        <div class="modal-box" style="max-width: 350px; text-align: left; position: relative;">
+            
+            <div style="position: absolute; top: 5px; right: 5px; display: flex; align-items: center; gap: 4px; z-index: 20;">
+                
+                <button class="btn-modal-close-x" style="position: static;" onclick="document.getElementById('note-img-input').click()" title="插入照片">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                </button>
+
+                <button class="btn-modal-close-x" style="position: static;" onclick="closeNoteModal()" title="關閉">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-title" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px; padding-right: 80px;">
                 <span style="display:flex; align-items:center; gap:6px;">
                     <svg class="icon-mini" style="color:#2563EB;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    隨身筆記
+                    隨身圖文筆記
                 </span>
                 <span id="note-status" style="font-size:0.75rem; color:#10B981; font-weight:normal;"></span>
             </div>
-            <textarea id="note-area" style="width:100%; height:200px; padding:12px; border:1px solid #E5E7EB; border-radius:8px; font-size:1rem; resize:none; outline:none; font-family:inherit; background:#F9FAFB;" placeholder="在這裡記下想記錄的事... (自動儲存)"></textarea>
-            <div class="modal-btns" style="margin-top:15px;">
-                <button class="modal-btn btn-confirm" onclick="closeNoteModal()">關閉</button>
+            
+            <input type="file" id="note-img-input" accept="image/*" style="display:none;" onchange="insertNoteImage(event)">
+
+            <div id="note-area" class="note-editable-box" contenteditable="true" placeholder="在這裡記下停車位號碼、照片..."></div>
+            
             </div>
-        </div>
     </div>
     <div id="calc-modal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 300px;">
-            <div class="modal-title" style="color: #D97706; border-bottom: 1px solid #FDE68A; padding-bottom: 10px;">
-                💱 匯率試算 (JPY ↔ TWD)
-            </div>
+        <div class="modal-box" style="max-width: 340px; padding: 25px 20px 20px 20px; position: relative;">
             
-            <div style="margin: 10px 0; font-size: 0.85rem; color: #666; display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
-                <span id="rate-status" style="font-size: 0.75rem; color: #9CA3AF;">● 準備中...</span>
-                <label>匯率:</label>
-                <input type="number" id="calc-rate" step="0.0001" style="width: 70px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center;" oninput="calculateExchange()">
+            <button class="btn-modal-close-x" onclick="closeCalcModal()">×</button>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom:10px; border-bottom:1px solid #eee; margin-right: 30px;">
+                <button id="btn-swap-cur" onclick="toggleCurrency()" style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:20px; padding:5px 12px; font-size:0.85rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                    <span id="cur-label-main" style="color:#2563EB">JPY</span> 
+                    <svg style="width:16px;height:16px; color:#6B7280;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17H4M4 17L8 13M4 17L8 21M4 7H20M20 7L16 3M20 7L16 11"/></svg>
+                    <span id="cur-label-sub" style="color:#059669">TWD</span>
+                </button>
+
+                <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: #666;">
+                    <label>匯率:</label>
+                    <input type="number" id="calc-rate" step="0.0001" style="width: 65px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight:bold; color:#D97706;" oninput="reCalcTotal()">
+                </div>
             </div>
 
-            <div class="calc-row">
-                <span class="calc-label">日幣</span>
-                <input type="number" id="inp-jpy" class="calc-input" placeholder="¥" inputmode="decimal" oninput="calculateExchange('jpy')">
+            <div class="calc-display">
+                <div class="calc-expr" id="calc-expr-display"></div> 
+                <div class="calc-main" id="calc-main-display">¥0</div> 
+                <div class="calc-sub" id="calc-sub-display">≈ NT$0</div> 
             </div>
 
-            <div class="calc-row">
-                <span class="calc-label">台幣</span>
-                <input type="number" id="inp-twd" class="calc-input" placeholder="NT$" inputmode="decimal" oninput="calculateExchange('twd')">
-            </div>
+            <div class="calc-keypad">
+                <button class="calc-btn ac" onclick="calcInput('AC')">AC</button>
+                <button class="calc-btn op" onclick="calcInput('DEL')">⌫</button>
+                <button class="calc-btn op" onclick="calcInput('/')">÷</button>
+                <button class="calc-btn op" onclick="calcInput('*')">×</button>
 
-            <div class="modal-btns" style="margin-top: 20px;">
-                <button class="modal-btn btn-confirm" style="background: #F59E0B;" onclick="closeCalcModal()">關閉</button>
-            </div>
+                <button class="calc-btn" onclick="calcInput('7')">7</button>
+                <button class="calc-btn" onclick="calcInput('8')">8</button>
+                <button class="calc-btn" onclick="calcInput('9')">9</button>
+                <button class="calc-btn op" onclick="calcInput('-')">-</button>
+
+                <button class="calc-btn" onclick="calcInput('4')">4</button>
+                <button class="calc-btn" onclick="calcInput('5')">5</button>
+                <button class="calc-btn" onclick="calcInput('6')">6</button>
+                <button class="calc-btn op" onclick="calcInput('+')">+</button>
+
+                <button class="calc-btn" onclick="calcInput('1')">1</button>
+                <button class="calc-btn" onclick="calcInput('2')">2</button>
+                <button class="calc-btn" onclick="calcInput('3')">3</button>
+                
+                <button class="calc-btn eq" onclick="calcInput('=')">=</button> 
+                
+                <button class="calc-btn zero" onclick="calcInput('0')">0</button>
+                <button class="calc-btn" onclick="calcInput('.')">.</button>
+                
+                </div>
         </div>
     </div>
     <div id="img-preview-modal" class="modal-overlay">
@@ -3347,11 +4982,11 @@
         </div>
         
         <div class="nav-item" data-target="view-weather" onclick="switchTab(this)">
-            <span class="nav-icon">
-                <svg class="icon-sprite"><use href="#icon-weather"></use></svg>
-            </span>
-            即時天氣
-        </div>
+    <span class="nav-icon">
+        <svg class="icon-sprite"><use href="#icon-consult"></use></svg>
+    </span>
+    旅遊管家
+</div>
 
         <div class="nav-item" data-target="view-ai" onclick="switchTab(this)">
             <span class="nav-icon">
@@ -3374,7 +5009,114 @@
         
     </button>
 
+<div id="weather-detail-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 400px; padding: 20px; max-height: 85vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+           <div class="modal-title" id="wd-title" style="margin:0; font-size:1.3rem; color: #1F2937;">--</div>
+           
+           <div class="modal-header-actions">
+               <button id="wd-btn-refresh" class="btn-header-icon" title="重新整理">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                       <path d="M23 4v6h-6"></path>
+                       <path d="M1 20v-6h6"></path>
+                       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                   </svg>
+               </button>
+               
+               <button class="btn-header-icon" onclick="document.getElementById('weather-detail-modal').style.display='none'" title="關閉">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                       <line x1="18" y1="6" x2="6" y2="18"></line>
+                       <line x1="6" y1="6" x2="18" y2="18"></line>
+                   </svg>
+               </button>
+           </div>
+        </div>
 
+        <div class="cw-container">
+            <div class="cw-header">
+                <div class="cw-temp-big" id="wd-cur-temp">--°</div>
+                <div class="cw-info-col">
+                    <div class="cw-condition" id="wd-cur-desc">--</div>
+                    <div class="cw-hl-temp" id="wd-cur-hl">高:-- 低:--</div>
+                </div>
+            </div>
+            <div class="cw-grid">
+                <div class="cw-card">
+                    <div class="cw-label">體感</div>
+                    <div class="cw-value" id="wd-feel">--°</div>
+                </div>
+                <div class="cw-card">
+                    <div class="cw-label">降雨率</div>
+                    <div class="cw-value" id="wd-pop">--%</div>
+                </div>
+                <div class="cw-card">
+                    <div class="cw-label">紫外線</div>
+                    <div class="cw-value" id="wd-uv">--</div>
+                </div>
+                <div class="cw-card">
+                    <div class="cw-label">風速</div>
+                    <div class="cw-value" id="wd-wind">--</div>
+                </div>
+            </div>
+        </div>
+        <div class="astro-box">
+            <div class="astro-left-col">
+                <div class="astro-item">
+                    <div class="astro-icon">
+                        <svg class="icon-sunrise" viewBox="0 0 24 24">
+                            <path d="M17 18a5 5 0 0 0-10 0"></path>
+                            <line x1="12" y1="2" x2="12" y2="9"></line>
+                            <polyline points="8 6 12 2 16 6"></polyline> 
+                            
+                            <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                            <line x1="1" y1="18" x2="3" y2="18"></line>
+                            <line x1="21" y1="18" x2="23" y2="18"></line>
+                            <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                            <line x1="23" y1="22" x2="1" y2="22"></line>
+                            <polyline points="8 6 12 2 16 6"></polyline>
+                        </svg>
+                    </div>
+                    <span class="astro-time" id="wd-sunrise">--:--</span>
+                </div>
+                
+                <div class="astro-item">
+                    <div class="astro-icon">
+                        <svg class="icon-sunset" viewBox="0 0 24 24">
+                            <path d="M17 18a5 5 0 0 0-10 0"></path>
+                            <line x1="12" y1="9" x2="12" y2="2"></line>
+                            <path d="M8 5 L12 9 L16 5"></path>
+                            
+                            <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                            <line x1="1" y1="18" x2="3" y2="18"></line>
+                            <line x1="21" y1="18" x2="23" y2="18"></line>
+                            <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                            <line x1="23" y1="22" x2="1" y2="22"></line>
+                        </svg>
+                    </div>
+                    <span class="astro-time" id="wd-sunset">--:--</span>
+                </div>
+            </div>
+
+            <div class="astro-right-col">
+                <div id="wd-diff-badge" class="diff-badge diff-same" style="display:none;">
+                    計算中...
+                </div>
+                <div id="wd-advice-text" class="advice-text-small">
+                    正在分析當地穿著建議...
+                </div>
+            </div>
+        </div>
+
+        <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 5px; color: #4B5563;">未來 24 小時預報</div>
+        <div class="weather-detail-scroll" id="wd-hourly-list">
+            <div style="padding:10px; color:#999;">載入中...</div>
+        </div>
+
+        <div style="font-size: 0.9rem; font-weight: 700; margin-top: 10px; margin-bottom: 5px; color: #4B5563;">未來 7 天預報</div>
+        <div id="wd-daily-list"></div>
+        
+        </div>
+</div>
     <div id="lightbox-modal" class="lightbox-overlay" onclick="closeLightbox()">
         <span class="lightbox-close">&times;</span>
         <img class="lightbox-content" id="lightbox-img">
@@ -3403,7 +5145,29 @@
 
        // [修改] 原本的 const apiKey = ""; 替換成以下內容：
 
+// [新增] 雨滴特效計時器管理 (避免切換分頁時殘留)
+// [修改] 雨滴特效計時器與物理引擎管理
+window.rainTimers = []; 
+window.rainInterval = null; 
+window.rainPhysicsFrame = null; // ★ 新增：物理運算幀代碼
 
+function clearRainTimers() {
+    // 1. 清除計時器
+    if (window.rainTimers) {
+        window.rainTimers.forEach(t => clearTimeout(t));
+        window.rainTimers = [];
+    }
+    // 2. 停止生成新水流
+    if (window.rainInterval) {
+        clearInterval(window.rainInterval);
+        window.rainInterval = null;
+    }
+    // 3. ★ 停止物理碰撞偵測迴圈 (避免切換頁面後還在背景運算)
+    if (window.rainPhysicsFrame) {
+        cancelAnimationFrame(window.rainPhysicsFrame);
+        window.rainPhysicsFrame = null;
+    }
+}
 // [修改] 1. 定義兩組加密亂碼 (請將您的 AES 加密字串分別填入)
 // 用於 Gemini AI 對話、翻譯
 const encryptedGeminiKey = "U2FsdGVkX1/64ozwLOVc7Q7oTx058ndDWtXLLJ6Ri7cafbqjyyabFrsg2GixFXZV8bGjn7m7O7ZkH4CKCQjIjA=="; 
@@ -3591,9 +5355,13 @@ function getKey(type) {
                 return null;
             }
         }
+window.currentActiveConfig = null; 
+
 async function updateWeatherWidget(dayId) {
     const config = tripConfig[dayId];
     if (!config) return;
+    
+    window.currentActiveConfig = config; // ★ 加入這一行！紀錄目前的設定
 
     // 1. 先顯示 Loading 狀態 (提升使用者體驗)
     document.getElementById('hw-loc').innerText = config.loc;
@@ -3622,6 +5390,63 @@ async function updateWeatherWidget(dayId) {
     const finalIcon = validIcons.includes(iconType) ? iconType : 'cloud';
     
     document.getElementById('hw-icon').innerHTML = `<div class="weather-icon ${finalIcon}"></div>`;
+    // ... 前面是 document.getElementById('hw-icon').innerHTML = ...
+
+    // ★★★ [新增 Start] 依據日本當地的 isDay 切換 Header 背景 ★★★
+    const header = document.querySelector('header');
+    
+    // 如果 API 有回傳 isDay (代表是即時資料)，就用它判斷
+    if (data.isDay !== undefined) {
+        if (data.isDay === 0) {
+            header.classList.add('is-night'); // 切換為黑夜
+        } else {
+            header.classList.remove('is-night'); // 切換為白天
+        }
+    } else {
+        // 如果是未來預報或離線資料，通常預設顯示白天比較美觀
+        header.classList.remove('is-night');
+    }
+    // ★★★ [新增 End] ★★★
+
+    setWeatherEffect(finalIcon); 
+}
+// ★★★ [新增函式] 當行程摺頁全關閉時，還原回「我的位置」天氣與特效
+function resetHeaderToLocal() {
+    /* --- 請在此處插入代碼 Start --- */
+    // [修正] 強制清空目前選中的行程設定，讓 Modal 知道現在是「我的位置」模式
+    window.currentActiveConfig = null;
+    /* --- 請在此處插入代碼 End --- */
+
+    // 1. 檢查是否有快取的定位資料
+    if (!window.appCache || !window.appCache['my_location_combined']) {
+        return; // 還沒定位過就不動作
+    }
+
+    const cached = window.appCache['my_location_combined'].data;
+    const header = document.querySelector('header');
+
+    // 2. 還原文字資訊
+    document.getElementById('hw-loc').innerText = cached.city;
+    document.getElementById('hw-date').innerText = '現在位置'; 
+    document.getElementById('hw-temp').innerText = `${Math.round(cached.temp)}°C`;
+    document.getElementById('hw-desc').innerText = getWeatherDescText(cached.code);
+    document.getElementById('hw-range').innerText = ''; 
+    document.getElementById('hw-advice').innerText = '顯示您所在地的即時天氣。';
+
+    // 3. 還原日夜背景 (關鍵)
+    if (cached.isDay === 0) {
+        header.classList.add('is-night');
+    } else {
+        header.classList.remove('is-night');
+    }
+
+    // 4. 還原天氣圖示與特效
+    const iconType = getWeatherIconClass(cached.code);
+    document.getElementById('hw-icon').innerHTML = `<div class="weather-icon ${iconType}"></div>`;
+    
+    if (typeof setWeatherEffect === 'function') {
+        setWeatherEffect(iconType);
+    }
 }
 // [修改] 智慧判斷函式：改用「真實溫度」生成動態建議
 // [修改] 智慧判斷函式：加入 10 分鐘快取機制
@@ -3664,7 +5489,8 @@ async function getSmartWeatherData(config) {
                 range: `${Math.round(todayMin)}°C ~ ${Math.round(todayMax)}°C`,
                 desc: getWeatherDescText(current.weathercode),
                 icon: getWeatherIconClass(current.weathercode),
-                advice: `(即時) ${getSmartAdviceText(current.temperature, current.weathercode)}`
+                advice: `(即時) ${getSmartAdviceText(current.temperature, current.weathercode)}`,
+                isDay: current.is_day // ★ 新增這行：回傳日本當地的日夜
             };
         } 
         else if (index !== -1) {
@@ -3678,9 +5504,12 @@ async function getSmartWeatherData(config) {
                 range: `${Math.round(min)}°C ~ ${Math.round(max)}°C`,
                 desc: getWeatherDescText(code),
                 icon: getWeatherIconClass(code),
-                advice: `(預報) ${getSmartAdviceText(avgTemp, code)}`
+                advice: `(預報) ${getSmartAdviceText(avgTemp, code)}`,
+                // ★★★ [新增] 強制帶入該地點「此時此刻」的日夜狀態 ★★★
+                // 這樣就算查看明天的行程，背景也會反映日本現在是黑夜
+                isDay: json.current_weather.is_day 
             };
-        } 
+        }
         else {
             // 若超出預報範圍 (例如7天後)，顯示當下天氣作為參考
             const current = json.current_weather;
@@ -3691,7 +5520,8 @@ async function getSmartWeatherData(config) {
                 range: `${Math.round(todayMin)}°C ~ ${Math.round(todayMax)}°C`,
                 desc: getWeatherDescText(current.weathercode),
                 icon: getWeatherIconClass(current.weathercode),
-                advice: `(行前參考) ${getSmartAdviceText(current.temperature, current.weathercode)}`
+                advice: `(行前參考) ${getSmartAdviceText(current.temperature, current.weathercode)}`,
+                isDay: current.is_day // ★★★ [新增] 補上這行
             };
         }
         
@@ -3706,13 +5536,18 @@ async function getSmartWeatherData(config) {
 // 輔助函式：將 WMO Code 轉成中文描述
 function getWeatherDescText(code) {
     if (code === 0) return '晴朗';
-    if (code <= 3) return '多雲';
-    if (code <= 48) return '有霧';
-    if (code <= 67) return '有雨';
-    if (code <= 77) return '有雪';
-    if (code <= 82) return '陣雨';
-    if (code <= 99) return '雷雨';
+    if (code >= 1 && code <= 3) return '多雲';
+    if (code >= 45 && code <= 48) return '有霧'; // [優化] 增加霧的判斷
+    if (code >= 51 && code <= 67) return '有雨';
+    if (code >= 71 && code <= 77) return '有雪';
+    if (code >= 80 && code <= 82) return '陣雨';
+    if (code >= 95) return '雷雨';
     return '多雲';
+}
+// [新增] 補上遺失的天氣狀態文字轉換函式 (用於詳細天氣 Modal)
+function getWeatherStatusText(code) {
+    // 直接沿用 getWeatherDescText 的邏輯，或者可以寫得更簡短
+    return getWeatherDescText(code);
 }
 
 // 輔助函式：將 WMO Code 轉成你的 CSS Icon Class
@@ -3983,13 +5818,16 @@ function getSmartAdviceText(temp, weatherCode) {
 
         // 修正 2: 定義簡約天氣 SVG 圖示 (白色線條)
         const simpleIcons = {
-            sun: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
-            cloud: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>',
-            rain: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 13v8"></path><path d="M8 13v8"></path><path d="M12 15v8"></path><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>',
-            snow: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10H4a7 7 0 1 1 7-7v.5"></path><path d="M10 14a6 6 0 0 0-6-6"></path><line x1="12" y1="16" x2="12" y2="22"></line><line x1="12" y1="22" x2="9" y2="19"></line><line x1="12" y1="22" x2="15" y2="19"></line><line x1="18.5" y1="12" x2="22" y2="12"></line><line x1="22" y1="12" x2="19.5" y2="9.5"></line><line x1="22" y1="12" x2="19.5" y2="14.5"></line><line x1="5" y1="18.5" x2="2" y2="18.5"></line><line x1="2" y1="18.5" x2="4.5" y2="21"></line><line x1="2" y1="18.5" x2="4.5" y2="16"></line><line x1="17.5" y1="18.5" x2="20.5" y2="21"></line><line x1="17.5" y1="18.5" x2="20.5" y2="16"></line></svg>',
-            fog: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M4 10h16M6 14h12M4 18h16"></path></svg>',
-            lightning: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"></path><polyline points="13 11 9 17 15 17 11 23"></polyline></svg>'
-        };
+    sun: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+    cloud: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>',
+    rain: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 13v8"></path><path d="M8 13v8"></path><path d="M12 15v8"></path><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>',
+    
+    // [修改] 雪：更新為最新的雙重平行 V 型 + 六角冰核
+    snow: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9 L14.6 10.5 L14.6 13.5 L12 15 L9.4 13.5 L9.4 10.5 Z"/><path d="M12 9 V1 M12 15 V23 M14.6 10.5 L21.5 6.5 M14.6 13.5 L21.5 17.5 M9.4 13.5 L2.5 17.5 M9.4 10.5 L2.5 6.5"/><path d="M9.5 5.5 L12 7.5 L14.5 5.5 M9.5 2 L12 4 L14.5 2"/><path d="M9.5 18.5 L12 16.5 L14.5 18.5 M9.5 22 L12 20 L14.5 22"/><path d="M16.4 6.6 L15.9 9.75 L18.9 10.9 M19.4 4.8 L18.9 8 L21.9 9.2"/><path d="M18.9 13.1 L15.9 14.25 L16.4 17.4 M21.9 14.8 L18.9 16 L19.4 19.2"/><path d="M7.6 17.4 L8.1 14.25 L5.1 13.1 M4.6 19.2 L5.1 16 L2.1 14.8"/><path d="M5.1 10.9 L8.1 9.75 L7.6 6.6 M2.1 9.2 L5.1 8 L4.6 4.8"/></svg>',
+    
+    fog: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M4 10h16M6 14h12M4 18h16"></path></svg>',
+    lightning: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"></path><polyline points="13 11 9 17 15 17 11 23"></polyline></svg>'
+};
 
         function getWeatherDesc(code) {
             // Updated to return HTML with Simple SVG
@@ -4052,7 +5890,9 @@ function getSmartAdviceText(temp, weatherCode) {
                     currentMyTemp = weatherData.current_weather.temperature;
                     const tempStr = `${Math.round(currentMyTemp)}°C`;
                     const code = weatherData.current_weather.weathercode;
-                    
+                    // ★★★ [新增 Start] 捕捉日夜狀態 ★★★
+                    const localIsDay = weatherData.current_weather.is_day; // 1=白, 0=夜
+                    // ★★★ [新增 End] ★★★
                     // [新增] 取得 API 回傳的當地時區 (例如 "Asia/Tokyo")
                     const localTimezone = weatherData.timezone;
                     
@@ -4094,9 +5934,26 @@ function getSmartAdviceText(temp, weatherCode) {
                             temp: currentMyTemp, 
                             city: displayZh, 
                             code: code,
-                            timezone: localTimezone // [新增] 儲存時區
+                            timezone: localTimezone,
+                            isDay: localIsDay // ★ 重點：這裡多存了一個欄位
                         }
                     };
+                    
+                    // ★★★ [新增] 若目前沒有任何行程被打開，就直接套用這裡的日夜特效
+                    /*if (!document.querySelector('.timeline.show')) {
+                        const header = document.querySelector('header');
+                        if (localIsDay === 0) header.classList.add('is-night');
+                        else header.classList.remove('is-night');
+                        
+                        // 重繪特效
+                        if (typeof setWeatherEffect === 'function') {
+                             setWeatherEffect(getWeatherIconClass(code));
+                        }
+                    }*/
+                   // ★★★ [修改] 若目前沒有任何行程被打開，直接呼叫還原函式更新「全部介面」(含文字與特效)
+                    if (!document.querySelector('.timeline.show')) {
+                        resetHeaderToLocal(); 
+                    }
                     const targetTempStr = document.getElementById('wc-temp') ? document.getElementById('wc-temp').innerText : '--°';
                     if (targetTempStr !== '--°') updateComparison(parseFloat(targetTempStr));
 
@@ -4150,6 +6007,7 @@ function getSmartAdviceText(temp, weatherCode) {
             document.getElementById('location-modal').style.display = 'none';
         }
         // [新增] 隨身筆記功能 (自動儲存)
+       // [修改] 隨身筆記功能 (支援圖文儲存 + 點擊放大)
         const NOTE_STORAGE_KEY = 'kyushu_trip_note_2026';
 
         function openNoteModal() {
@@ -4157,21 +6015,73 @@ function getSmartAdviceText(temp, weatherCode) {
             const area = document.getElementById('note-area');
             const status = document.getElementById('note-status');
             
-            // 1. 讀取舊筆記
-            area.value = localStorage.getItem(NOTE_STORAGE_KEY) || '';
+            // 1. 讀取舊筆記 (改用 innerHTML 讀取 HTML 格式)
+            area.innerHTML = localStorage.getItem(NOTE_STORAGE_KEY) || '';
             status.innerText = '';
             
             modal.style.display = 'flex';
             
-            // 2. 綁定輸入事件 (即時自動儲存)
+            // 2. 綁定輸入事件 (即時自動儲存 HTML)
             area.oninput = function() {
-                localStorage.setItem(NOTE_STORAGE_KEY, area.value);
-                status.innerText = '已自動儲存 ✓';
+                saveNoteContent();
             };
+
+            // [關鍵新增] 3. 綁定圖片點擊事件 (事件委派)
+            // 讓筆記內任何圖片被點擊時，都會觸發全螢幕燈箱
+            area.onclick = function(e) {
+                if (e.target.tagName === 'IMG') {
+                    openLightbox(e.target.src); // 呼叫原本已寫好的燈箱功能
+                }
+            };
+        }
+
+        function saveNoteContent() {
+            const area = document.getElementById('note-area');
+            const status = document.getElementById('note-status');
+            
+            // 儲存整個 HTML (含圖片 Base64)
+            localStorage.setItem(NOTE_STORAGE_KEY, area.innerHTML);
+            status.innerText = '已自動儲存 ✓';
         }
 
         function closeNoteModal() {
             document.getElementById('note-modal').style.display = 'none';
+        }
+
+        // [新增] 處理筆記插入圖片
+        async function insertNoteImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const area = document.getElementById('note-area');
+            const status = document.getElementById('note-status');
+            status.innerText = '圖片處理中...';
+
+            try {
+                // 1. 強力壓縮圖片 (寬度 600px, 品質 0.6)
+                // 使用您程式碼底部原本就有的 compressImage 函式
+                const base64 = await compressImage(file, 600, 0.6);
+                
+                // 2. 建立圖片元素
+                const img = document.createElement('img');
+                img.src = `data:image/jpeg;base64,${base64}`;
+                
+                // 3. 插入圖片
+                area.focus(); // 確保焦點
+                area.appendChild(document.createElement('br')); // 換行
+                area.appendChild(img);
+                area.appendChild(document.createElement('br')); // 換行
+                
+                // 4. 觸發儲存
+                saveNoteContent();
+                
+            } catch (e) {
+                alert("圖片插入失敗：" + e);
+                status.innerText = '失敗';
+            } finally {
+                // 清空 input，確保下一張同名圖片也能觸發
+                event.target.value = '';
+            }
         }
 /* --- 在 function closeNoteModal() { ... } 結束後插入 --- */
 
@@ -4179,19 +6089,34 @@ function getSmartAdviceText(temp, weatherCode) {
         function openCalcModal() {
             document.getElementById('calc-modal').style.display = 'flex';
             
-            // 1. 先嘗試讀取快取 (避免每次開都打 API)
+            // 1. 先嘗試讀取快取
             const savedRateData = JSON.parse(localStorage.getItem('live_exchange_rate_cache') || '{}');
             const now = Date.now();
-            const oneHour = 3600000; // 1小時毫秒數
+            const oneHour = 3600000; 
             
-            // 如果有快取且在 1 小時內，就用快取，否則抓新的
             if (savedRateData.rate && (now - savedRateData.timestamp < oneHour)) {
                 updateRateUI(savedRateData.rate, '快取');
             } else {
                 fetchLiveRate();
             }
             
-            document.getElementById('inp-jpy').focus();
+            // [新增] 每次開啟預設為 JPY -> TWD 模式
+            if (typeof isJpyToTwd !== 'undefined') {
+                isJpyToTwd = true; 
+                const mainLabel = document.getElementById('cur-label-main');
+                const subLabel = document.getElementById('cur-label-sub');
+                if(mainLabel && subLabel) {
+                    mainLabel.innerText = "JPY";
+                    subLabel.innerText = "TWD";
+                    mainLabel.style.color = "#2563EB"; // JPY 藍色
+                    subLabel.style.color = "#059669"; // [新增] TWD 綠色
+                }
+            }
+
+            // 重置計算機畫面
+            if (typeof calcInput === 'function') {
+                calcInput('AC');
+            }
         }
 
         function closeCalcModal() {
@@ -4199,88 +6124,205 @@ function getSmartAdviceText(temp, weatherCode) {
         }
 
         // 抓取即時匯率 (來源: 免費公開 API)
+        // 抓取即時匯率 (來源: 免費公開 API)
         async function fetchLiveRate() {
+            // [修正] 加入檢查
             const statusEl = document.getElementById('rate-status');
-            statusEl.innerText = '⟳ 更新中...';
-            statusEl.style.color = '#F59E0B';
+            if (statusEl) {
+                statusEl.innerText = '⟳ 更新中...';
+                statusEl.style.color = '#F59E0B';
+            }
 
             try {
-                // 使用 ExchangeRate-API (以日幣 JPY 為基準)
                 const res = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
                 const data = await res.json();
-                
-                // 抓取對台幣 (TWD) 的匯率
                 const newRate = data.rates.TWD;
                 
                 if (newRate) {
-                    // 儲存到 LocalStorage
                     localStorage.setItem('live_exchange_rate_cache', JSON.stringify({
                         rate: newRate,
                         timestamp: Date.now()
                     }));
                     updateRateUI(newRate, '即時');
                     
-                    // 如果原本有輸入數字，自動重算
-                    if(document.getElementById('inp-jpy').value) calculateExchange('jpy');
+                    // [修正] 改呼叫新的重算函式
+                    if (typeof reCalcTotal === 'function') reCalcTotal(); 
                 }
             } catch (e) {
                 console.error("匯率更新失敗", e);
-                statusEl.innerText = '⚠️ 連線失敗';
-                statusEl.style.color = '#EF4444';
+                // [修正] 加入檢查
+                if (statusEl) {
+                    statusEl.innerText = '⚠️ 連線失敗';
+                    statusEl.style.color = '#EF4444';
+                }
                 // 失敗時若沒值，給個預設值
-                if(!document.getElementById('calc-rate').value) document.getElementById('calc-rate').value = 0.22;
+                const rateInput = document.getElementById('calc-rate');
+                if(rateInput && !rateInput.value) rateInput.value = 0.22;
             }
         }
 
         function updateRateUI(rate, type) {
-            document.getElementById('calc-rate').value = rate;
-            const statusEl = document.getElementById('rate-status');
-            statusEl.innerText = `● ${type}匯率`;
-            statusEl.style.color = '#10B981'; // 綠色
-        }
-
-        function calculateExchange(source) {
             const rateInput = document.getElementById('calc-rate');
-            const jpyInput = document.getElementById('inp-jpy');
-            const twdInput = document.getElementById('inp-twd');
-            
-            let rate = parseFloat(rateInput.value);
-            if (isNaN(rate) || rate <= 0) rate = 0.22; 
+            if (rateInput) rateInput.value = rate;
 
-            if (source === 'jpy') {
-                const jpy = parseFloat(jpyInput.value);
-                if (!isNaN(jpy)) {
-                    twdInput.value = Math.round(jpy * rate);
-                } else {
-                    twdInput.value = '';
-                }
-            } else if (source === 'twd') {
-                const twd = parseFloat(twdInput.value);
-                if (!isNaN(twd)) {
-                    jpyInput.value = Math.round(twd / rate);
-                } else {
-                    jpyInput.value = '';
-                }
-            } else {
-                // 修改匯率時 -> 更新台幣
-                const jpy = parseFloat(jpyInput.value);
-                if (!isNaN(jpy)) {
-                    twdInput.value = Math.round(jpy * rate);
-                }
+            // [修正] 加入檢查：確認 statusEl 存在才更新，避免報錯
+            const statusEl = document.getElementById('rate-status');
+            if (statusEl) {
+                statusEl.innerText = `● ${type}匯率`;
+                statusEl.style.color = '#10B981'; // 綠色
             }
         }
 
+        // [新增] 計算機變數與邏輯
+        let calcExpression = ""; // 儲存算式字串
+        let isJpyToTwd = true;   // [新增] 預設為 日幣 -> 台幣
 
-        // 點擊背景關閉視窗 (修改版)
-        window.onclick = function(event) {
-            const nModal = document.getElementById('note-modal');
-            const lModal = document.getElementById('location-modal');
-            const cModal = document.getElementById('calc-modal'); // [新增]
+        // [新增] 切換幣別模式
+        function toggleCurrency() {
+            isJpyToTwd = !isJpyToTwd; // 切換狀態
             
-            if (event.target == nModal) nModal.style.display = "none";
-            if (event.target == lModal) lModal.style.display = "none";
-            if (event.target == cModal) cModal.style.display = "none"; // [新增]
+            // 更新按鈕文字與顏色
+            const mainLabel = document.getElementById('cur-label-main');
+            const subLabel = document.getElementById('cur-label-sub');
+            
+            if (isJpyToTwd) {
+                // 模式：日 -> 台
+                mainLabel.innerText = "JPY";
+                mainLabel.style.color = "#2563EB"; // 主顯示 JPY (藍)
+                subLabel.innerText = "TWD";
+                subLabel.style.color = "#059669";  // 副顯示 TWD (綠)
+            } else {
+                // 模式：台 -> 日
+                mainLabel.innerText = "TWD";
+                mainLabel.style.color = "#059669"; // 主顯示 TWD (綠)
+                subLabel.innerText = "JPY";
+                subLabel.style.color = "#2563EB";  // 副顯示 JPY (藍)
+            }
+
+            // 更新畫面上的符號並重新計算
+            updateCalcDisplaySymbol();
+            reCalcTotal();
         }
+
+        // [新增] 更新畫面上的幣別符號
+        function updateCalcDisplaySymbol() {
+            const mainDisplay = document.getElementById('calc-main-display');
+            // 讀取目前的數字 (去掉非數字字元)
+            let currentVal = mainDisplay.innerText.replace(/[^\d.-]/g, '');
+            if (!currentVal) currentVal = "0";
+
+            // 根據模式加上對應符號
+            const symbol = isJpyToTwd ? "¥" : "NT$";
+            mainDisplay.innerText = symbol + currentVal;
+        }
+
+        // [修改] 計算機核心處理
+        function calcInput(val) {
+            const exprDisplay = document.getElementById('calc-expr-display');
+            const mainDisplay = document.getElementById('calc-main-display');
+            const symbol = isJpyToTwd ? "¥" : "NT$"; // 根據模式決定主符號
+
+            if (val === 'AC') {
+                calcExpression = "";
+                exprDisplay.innerText = "";
+                mainDisplay.innerText = symbol + "0";
+                reCalcTotal(0);
+                return;
+            }
+
+            if (val === 'DEL') {
+                calcExpression = calcExpression.toString().slice(0, -1);
+            } else if (val === '=') {
+                try {
+                    const safeExpr = calcExpression.replace(/×/g, '*').replace(/÷/g, '/');
+                    if(!safeExpr) return;
+                    
+                    const result = eval(safeExpr);
+                    
+                    // 顯示結果 (加上符號)
+                    mainDisplay.innerText = symbol + parseFloat(result.toFixed(2));
+                    calcExpression = result.toString();
+                    exprDisplay.innerText = ""; 
+                    reCalcTotal(result);
+                    return;
+                } catch (e) {
+                    mainDisplay.innerText = "Error";
+                    calcExpression = "";
+                }
+            } else {
+                const lastChar = calcExpression.slice(-1);
+                const ops = ['+', '-', '*', '/', '.'];
+                let displayVal = val;
+                if(val === '*') displayVal = '×';
+                if(val === '/') displayVal = '÷';
+
+                if (ops.includes(val) && ops.includes(lastChar)) {
+                    calcExpression = calcExpression.slice(0, -1) + val;
+                } else {
+                    calcExpression += val;
+                }
+            }
+
+            exprDisplay.innerText = calcExpression.replace(/\*/g, '×').replace(/\//g, '÷');
+            
+            try {
+                const safeExpr = calcExpression.replace(/×/g, '*').replace(/÷/g, '/');
+                if (safeExpr && !['+', '-', '*', '/'].includes(safeExpr.slice(-1))) {
+                    const previewRes = eval(safeExpr);
+                    reCalcTotal(previewRes);
+                }
+            } catch(e) {}
+        }
+
+        // [修改] 雙向匯率換算邏輯
+        function reCalcTotal(amount = null) {
+            const rate = parseFloat(document.getElementById('calc-rate').value) || 0;
+            const subDisplay = document.getElementById('calc-sub-display');
+            const mainDisplay = document.getElementById('calc-main-display');
+
+            if (amount === null) {
+                // 從畫面讀取數字 (移除 ¥ 或 NT$)
+                amount = parseFloat(mainDisplay.innerText.replace(/[^\d.-]/g, '')) || 0;
+            }
+
+            let resultVal = 0;
+            let resultSymbol = "";
+
+            if (isJpyToTwd) {
+                // 模式：日幣轉台幣 (乘法)
+                // 邏輯：日幣金額 × 匯率(0.22) = 台幣
+                resultVal = Math.round(amount * rate);
+                resultSymbol = "NT$";
+            } else {
+                // 模式：台幣轉日幣 (除法)
+                // 邏輯：台幣金額 ÷ 匯率(0.22) = 日幣
+                if (rate !== 0) {
+                    resultVal = Math.round(amount / rate);
+                }
+                resultSymbol = "¥";
+            }
+
+            subDisplay.innerText = `≈ ${resultSymbol}${resultVal.toLocaleString()}`;
+        }
+
+
+        // [修正版] 點擊背景關閉視窗 (改用直接綁定，解決手機觸控無效問題)
+        // 自動抓取所有 class 為 modal-overlay 的遮罩層
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                // 判斷關鍵：只有當點擊的目標是「背景本人」時才關閉
+                // 如果點到內部的白色視窗 (modal-box)，e.target 會是 box 而不是 overlay，就不會觸發
+                if (e.target === this) {
+                    
+                    // 特殊處理：如果是圖片預覽視窗，需要清空暫存
+                    if (this.id === 'img-preview-modal' && typeof cancelImagePreview === 'function') {
+                        cancelImagePreview();
+                    } else {
+                        this.style.display = 'none';
+                    }
+                }
+            });
+        });
         
 // [修改] 兩段式分享功能 (解決瀏覽器阻擋視窗問題)
         // 狀態標記：紀錄目前是否已經分析完成
@@ -4300,9 +6342,10 @@ function getSmartAdviceText(temp, weatherCode) {
     ];
 
         const url = `https://places.googleapis.com/v1/places:searchNearby`;
-        const body = {
+      const body = {
             includedTypes: validTypes,
-            maxResultCount: 1, // 我們只需要最接近的那一個
+            maxResultCount: 1, // [修改] 受歡迎度第一，所以取 1 筆即可
+            rankPreference: "POPULARITY", // [修改] 改回依「受歡迎度」排序
             locationRestriction: {
                 circle: {
                     center: { latitude: centerLat, longitude: centerLng },
@@ -4409,10 +6452,25 @@ function getSmartAdviceText(temp, weatherCode) {
                         // 呼叫我們剛剛新增的輔助函式
                         const googlePlaces = await fetchGooglePlaces(lat, lon, 100); 
                         
-                        if (googlePlaces.length > 0 && googlePlaces[0].displayName) {
-                            locationName = googlePlaces[0].displayName.text;
-                            locationSource = "(Google)";
+                        // [修改] 條件：取用受歡迎度第一(Index 0) 的結果，並優先讀取其 Landmark
+                    if (googlePlaces.length > 0) {
+                        const place = googlePlaces[0];
+                        
+                        // 1. 優先檢查是否有「地標 (landmarks)」資訊
+                        if (place.addressDescriptor && 
+                            place.addressDescriptor.landmarks && 
+                            place.addressDescriptor.landmarks.length > 0) {
+                            
+                            // 取出第一個地標名稱 (例如：盛群半導體)
+                            locationName = place.addressDescriptor.landmarks[0].displayName.text;
+                            locationSource = "(Google地標)";
+                        } 
+                        // 2. 如果沒有地標，才使用原本的名稱
+                        else if (place.displayName) {
+                            locationName = place.displayName.text;
+                            locationSource = "(Google熱點)";
                         }
+                    }
                     }
 
                     // --- 第三關：OSM 門牌地址 (Fallback) ---
@@ -4452,17 +6510,22 @@ function getSmartAdviceText(temp, weatherCode) {
                     await navigator.share(window.pendingShareData);
                     resetShareButton(btn);
                 } catch (err) {
-                    // 被阻擋時，切換為手動發送按鈕
+                   // 被阻擋時，切換為手動發送按鈕
                     console.log("自動分享未觸發，切換為手動模式");
                     btn.style.pointerEvents = "auto";
+                    
+                    /* --- [修改] 加入右上角取消按鈕 (X) --- */
                     btn.innerHTML = `
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px; animation: popIn 0.3s;">
                             <line x1="22" y1="2" x2="11" y2="13"></line>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                         </svg>
                         點擊發送
+                        <div class="share-cancel-badge" onclick="event.stopPropagation(); resetShareButton(this.parentElement);">✕</div>
                     `;
-                    btn.style.background = "#10B981"; 
+                    /* --- [修改結束] --- */
+
+                    btn.style.background = "#10B981";
                     btn.style.borderColor = "#10B981";
                     btn.style.color = "white";
                     btn.style.opacity = "1";
@@ -4715,10 +6778,16 @@ function resetShareButton(btn) {
                 // Update Weather!
                 updateWeatherWidget(id);
             } else {
-                // Closing the current day
-                timeline.classList.remove('show');
-                toggleElement.classList.remove('open');
-            }
+        // Closing the current day
+        timeline.classList.remove('show');
+        toggleElement.classList.remove('open');
+        
+        // ★★★ [修改] 檢查是否還有其他摺頁是開著的？
+        // 如果沒有任何 .timeline.show 了，代表全部關閉 -> 還原回我的位置
+        if (!document.querySelector('.timeline.show')) {
+            resetHeaderToLocal();
+        }
+    }
         }
 
         // AI Functions - UI Interaction Part
@@ -5268,7 +7337,33 @@ function resetShareButton(btn) {
                 renderChecklist();
             }
         }
+// [新增] 重置檢查清單 (恢復預設值)
+        function resetChecklist(event) {
+            event.stopPropagation(); // 阻止冒泡，避免觸發折疊
+            
+            if (!confirm("確定要重置清單嗎？\n\n這將會：\n1. 清除所有勾選狀態\n2. 刪除您自訂的新增項目\n3. 恢復為原始預設清單")) {
+                return;
+            }
 
+            // 恢復為預設項目 (使用深拷貝，避免汙染原始 defaultItems)
+            checklistData = JSON.parse(JSON.stringify(defaultItems));
+            
+            // 重新渲染並儲存
+            renderChecklist();
+            
+            // 如果清單目前是收合的，自動展開讓使用者看到結果
+            const container = document.getElementById('checklist-container');
+            const icon = document.querySelector('.checklist-card-header .toggle-icon');
+            if (container && !container.classList.contains('show')) {
+                container.classList.add('show');
+                if(icon) {
+                    icon.style.transform = 'rotate(180deg)';
+                    icon.style.color = '#2563EB';
+                }
+            }
+            
+            alert("清單已重置完成！");
+        }
         // 折疊/展開控制
         function toggleChecklist(headerEl) {
             const container = document.getElementById('checklist-container');
@@ -5398,10 +7493,125 @@ function compressImage(file, maxWidth, quality) {
             };
             img.onerror = (err) => reject(err);
         };
-        reader.onerror = (err) => reject(err);
+       reader.onerror = (err) => reject(err);
     });
 }
-        document.addEventListener('DOMContentLoaded', () => {
+
+// --- 👇 請在此處插入修正衝突的程式碼 👇 ---
+
+// [修正] 防止天氣橫向捲動區與全域換頁手勢衝突
+// [修正] 防止天氣橫向捲動區與全域換頁手勢衝突
+// [修正] 防止天氣視窗滑動時誤觸底層換頁
+function preventSwipeConflict() {
+    // 定義一個阻擋訊號往上傳的函式
+    const stopPropagation = (e) => { 
+        e.stopPropagation(); 
+    };
+
+    // 1. 針對「橫向」捲動的小時預報 (維持原有功能)
+    const hourlyScroll = document.getElementById('wd-hourly-list');
+    if (hourlyScroll) {
+        hourlyScroll.addEventListener('touchstart', stopPropagation, { passive: true });
+        hourlyScroll.addEventListener('touchmove', stopPropagation, { passive: true });
+        hourlyScroll.addEventListener('touchend', stopPropagation, { passive: true });
+        hourlyScroll.addEventListener('wheel', stopPropagation, { passive: true });
+    }
+
+    // 2. [新增] 針對「垂直」捲動的天氣視窗白色區塊 (.modal-box)
+    // 這行是解決「上下滑動誤控」的關鍵
+    const weatherModalBox = document.querySelector('#weather-detail-modal .modal-box');
+    if (weatherModalBox) {
+        weatherModalBox.addEventListener('touchstart', stopPropagation, { passive: true });
+        weatherModalBox.addEventListener('touchmove', stopPropagation, { passive: true });
+        weatherModalBox.addEventListener('touchend', stopPropagation, { passive: true });
+        weatherModalBox.addEventListener('wheel', stopPropagation, { passive: true });
+    }
+}
+
+// 確保頁面載入完成後執行綁定
+window.addEventListener('load', preventSwipeConflict);
+
+// --- 👆 插入結束 👆 ---
+
+document.addEventListener('DOMContentLoaded', () => {
+            // [新增] 依據 GPS 位置自動判斷日夜 (支援跨時區)
+    function initDynamicTheme() {
+        const header = document.querySelector('header');
+        
+        // 定義成功時的邏輯
+        const applyTheme = async (lat, lon) => {
+            try {
+                // 呼叫 API，傳入當下座標，API 會根據經緯度與天文時間自動計算
+                // current_weather=true 包含 is_day (1=白天, 0=黑夜)
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+                
+                // 嘗試讀取快取以節省流量 (與天氣功能共用快取系統)
+                const cacheKey = `theme_status_${lat.toFixed(1)}_${lon.toFixed(1)}`;
+                let isDay = CACHE_SYSTEM.get(cacheKey);
+
+                if (isDay === null) {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    isDay = data.current_weather.is_day;
+                    // 存入快取 30 分鐘
+                    CACHE_SYSTEM.save(cacheKey, isDay, 30);
+                }
+
+                // 切換樣式：0 代表黑夜，1 代表白天
+                if (isDay === 0) {
+                    header.classList.add('is-night');
+                    console.log(`[主題] 位於 (${lat},${lon})，目前是夜晚 🌙`);
+                } else {
+                    header.classList.remove('is-night');
+                    console.log(`[主題] 位於 (${lat},${lon})，目前是白天 ☀️`);
+                }
+
+                // ★★★ [插入這段] 設定完日夜後，強制重繪特效 ★★★
+                if (window.setWeatherEffect && window.currentWeatherIcon) {
+                    setWeatherEffect(window.currentWeatherIcon);
+                }
+            } catch (e) {
+                console.warn("主題 API 連線失敗，切換為系統時間備案");
+                fallbackTheme();
+            }
+        };
+
+        // 備案邏輯：如果沒開 GPS 或 API 失敗，改用手機系統時間
+        const fallbackTheme = () => {
+            const hour = new Date().getHours();
+            // 簡單判斷：晚上 6 點後或早上 6 點前為夜晚
+            if (hour >= 18 || hour < 6) {
+                header.classList.add('is-night');
+            } else {
+                header.classList.remove('is-night');
+            }
+
+            // ★★★ [插入這段] 備案模式也要重繪特效 ★★★
+            if (window.setWeatherEffect && window.currentWeatherIcon) {
+                setWeatherEffect(window.currentWeatherIcon);
+            }
+        };
+
+        // 開始執行定位
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // 成功取得位置，使用 API 精準判斷
+                    applyTheme(position.coords.latitude, position.coords.longitude);
+                },
+                (error) => {
+                    console.log("無法取得位置，使用時間備案");
+                    fallbackTheme();
+                },
+                { timeout: 5000 }
+            );
+        } else {
+            fallbackTheme();
+        }
+    }
+
+    // 啟動主題偵測
+    initDynamicTheme();
         // [新增] 圖片處理與壓縮邏輯
         
             // --- 智慧自動展開邏輯開始 ---
@@ -5443,7 +7653,7 @@ function compressImage(file, maxWidth, quality) {
                     }
                 }
                 // 預設載入 Day 1 天氣資訊供參考
-                updateWeatherWidget('d1');
+                /*updateWeatherWidget('d1');*/
 
             } else if (scheduleMap[todayStr]) {
                 // 【情境 B：旅途中】(1/25 ~ 1/30)
@@ -5474,7 +7684,7 @@ function compressImage(file, maxWidth, quality) {
             } else {
                 // 【情境 C：旅程結束】
                 // 全部收合，或視需求顯示
-                updateWeatherWidget('d1'); // 預設回顯 D1
+                /*updateWeatherWidget('d1'); // 預設回顯 D1*/
             }
             
             // --- 智慧自動展開邏輯結束 ---
@@ -5829,6 +8039,249 @@ function compressImage(file, maxWidth, quality) {
             btn.classList.remove('copied');
         }, 2000);
     }
+   // [新增] 定義一個全域變數來記住現在是什麼圖示 (預設 cloud)
+window.currentWeatherIcon = 'cloud'; 
+
+// [修改] 原本的 setWeatherEffect 函式
+function setWeatherEffect(iconType) {
+    // 1. [關鍵新增] 無論切換到哪種天氣，先強制關閉之前的物理引擎
+    // 這能確保雨天特效不會在晴天、陰天或霧天時繼續在背景運算
+    if (typeof clearRainTimers === 'function') {
+        clearRainTimers(); 
+    }
+
+    // 2. 記住現在的天氣圖示，以便日夜切換後重繪
+    window.currentWeatherIcon = iconType;
+
+    const header = document.querySelector('header');
+    const layer = document.getElementById('weather-effect-layer');
+    if (!header || !layer) return;
+
+    // 3. 重置所有天氣 class (保留 is-night)
+    header.classList.remove('w-sun', 'w-cloud', 'w-rain', 'w-snow', 'w-fog');    layer.innerHTML = ''; // 清空舊粒子
+
+    // 2. 根據圖示類型套用對應特效
+    // 對應您的 validIcons: 'sun', 'cloud', 'cloud-sun', 'snow', 'rain', 'fog', 'lightning'
+    
+    if (iconType === 'sun') {
+        header.classList.add('w-sun');
+        
+        // [修改] 檢查 Header 是否有 'is-night' 類別 (由 initDynamicTheme 控制)
+        if (header.classList.contains('is-night')) {
+            // ★ 情境 A：晴朗的晚上 -> 顯示寫實星空
+            let stars = '';
+            // 生成 60 顆隨機分佈的星星
+            for(let i=0; i<60; i++) {
+                const left = Math.floor(Math.random() * 100);     // 水平隨機
+                const top = Math.floor(Math.random() * 70);       // 集中在中上空 (0%~70%)
+                const size = (Math.random() * 2 + 1).toFixed(1);  // 大小 1px ~ 3px
+                const dur = (Math.random() * 3 + 1.5).toFixed(1); // 閃爍速度 1.5s ~ 4.5s (讓星星不要閃得太整齊)
+                const delay = (Math.random() * 2).toFixed(1);     // 隨機延遲入場
+                
+                stars += `<div class="star-particle" style="left:${left}%; top:${top}%; width:${size}px; height:${size}px; animation-duration:${dur}s; animation-delay:${delay}s;"></div>`;
+            }
+            layer.innerHTML = stars;
+        } else {
+            // ★ 情境 B：晴朗的白天 -> 顯示太陽光暈 (原本的代碼)
+            layer.innerHTML = '<div class="sun-glow"></div>';
+        }
+    }
+    else if (iconType === 'cloud' || iconType === 'cloud-sun') {
+        header.classList.add('w-cloud');
+        
+        const isNight = header.classList.contains('is-night');
+        
+        // [關鍵修改] 設定日夜不同的透明度
+        // 白天：雲朵不透明度高 (0.85)，看起來白白胖胖
+        // 晚上：雲朵不透明度低 (0.4)，看起來像夜空中的陰影
+        const mainOp = isNight ? 0.4 : 0.85; 
+        const bgOp = isNight ? 0.1 : 0.3;    // 背景大雲更淡
+        
+        let content = '';
+
+        // [新增] 如果是「晚上多雲」，在雲層後方加一點稀疏的星星
+        if (isNight) {
+            // 生成 15 顆星星 (比晴天的 60 顆少，營造被雲遮擋的感覺)
+            for(let i=0; i<15; i++) {
+                const left = Math.floor(Math.random() * 100);
+                const top = Math.floor(Math.random() * 80);
+                const size = (Math.random() * 2).toFixed(1);
+                // 閃爍速度設慢一點，營造寧靜感
+                const dur = (Math.random() * 3 + 3).toFixed(1); 
+                content += `<div class="star-particle" style="left:${left}%; top:${top}%; width:${size}px; height:${size}px; animation-duration:${dur}s; opacity: 0.6;"></div>`;
+            }
+        }
+
+        // 雲朵層 (HTML 結構不變，但 style 裡的 opacity 換成了變數)
+        content += `
+            <div class="cloud-shape" style="top: 5%; transform: scale(3); animation-duration: 20s; opacity: ${bgOp}; z-index: 1;"></div>
+            <div class="cloud-shape" style="top: 25%; transform: scale(1.8); animation-duration: 35s; animation-delay: -5s; opacity: ${mainOp};"></div>
+            <div class="cloud-shape" style="top: 45%; width: 140px; transform: scale(1.6); animation-duration: 45s; animation-delay: -20s; opacity: ${mainOp * 0.8};"></div>
+            <div class="cloud-shape" style="top: 65%; transform: scale(2.0); animation-duration: 60s; animation-delay: -10s; opacity: ${bgOp};"></div>
+            <div class="cloud-shape" style="top: 10%; transform: scale(0.8); animation-duration: 80s; animation-delay: -40s; opacity: ${bgOp};"></div>
+        `;
+        
+        layer.innerHTML = content;
+    }
+    else if (iconType === 'rain' || iconType === 'lightning') {
+        // 1. 先清除舊狀態
+        clearRainTimers(); 
+        
+        header.classList.add('w-rain');
+        layer.innerHTML = ''; 
+
+        // 2. [背景] 空中落下的雨絲
+        const rainContainer = document.createElement('div');
+        for(let i=0; i<40; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'rain-drop';
+            drop.style.left = `${Math.floor(Math.random() * 100)}%`;
+            drop.style.animationDelay = `${(Math.random() * 2).toFixed(2)}s`;
+            drop.style.animationDuration = `${(0.5 + Math.random() * 0.4).toFixed(2)}s`;
+            rainContainer.appendChild(drop);
+        }
+        layer.appendChild(rainContainer);
+
+        // 3. [前景] 玻璃容器
+        const glassSurface = document.createElement('div');
+        glassSurface.className = 'glass-surface';
+        layer.appendChild(glassSurface);
+
+        // 4. 生成「靜態水珠」 (獵物)
+        const staticDrops = []; 
+        
+        function spawnStaticDrop(isRespawn = false) {
+            const drop = document.createElement('div');
+            const left = Math.random() * 100;
+            const top = Math.random() * 95;
+            const size = (Math.random() * 6 + 3).toFixed(1);
+            
+            drop.className = 'glass-drop';
+            if(isRespawn) drop.classList.add('fade-in'); 
+            
+            drop.style.left = `${left}%`;
+            drop.style.top = `${top}%`;
+            drop.style.width = `${size}px`;
+            drop.style.height = `${size}px`;
+            
+            const r1 = Math.floor(40 + Math.random() * 40);
+            const r2 = Math.floor(40 + Math.random() * 40);
+            drop.style.borderRadius = `${r1}% ${100-r1}% ${r2}% ${100-r2}%`;
+
+            glassSurface.appendChild(drop);
+            staticDrops.push(drop);
+        }
+
+        // 初始生成 45 顆
+        for (let i = 0; i < 45; i++) spawnStaticDrop();
+
+        // 5. 生成「動態水流」 (獵人)
+        const activeTricklers = []; 
+
+        const spawnTrickler = () => {
+            const trickler = document.createElement('div');
+            const tLeft = Math.random() * 96 + 2; 
+            const tDuration = Math.random() * 3 + 5; // 5~8秒
+            const tHeight = Math.random() * 40 + 60; // 60~100px
+            
+            trickler.className = 'glass-drop trickle';
+            trickler.style.left = `${tLeft}%`;
+            trickler.style.top = '0%'; 
+            trickler.style.height = `${tHeight}px`; 
+            
+            trickler.style.animationDuration = `${tDuration}s`;
+            
+            glassSurface.appendChild(trickler);
+            activeTricklers.push(trickler);
+
+            // 動畫結束後移除
+            const cleanup = setTimeout(() => {
+                trickler.remove();
+                const idx = activeTricklers.indexOf(trickler);
+                if (idx > -1) activeTricklers.splice(idx, 1);
+            }, tDuration * 1000);
+            
+            window.rainTimers.push(cleanup);
+        };
+
+        // 6. [核心] 即時物理引擎 (Real-time Physics Engine)
+        function runPhysicsLoop() {
+            if (activeTricklers.length > 0) {
+                const targets = staticDrops.filter(d => !d.classList.contains('merged') && d.parentNode);
+
+                activeTricklers.forEach(trickler => {
+                    const tRect = trickler.getBoundingClientRect(); 
+                    if (tRect.bottom < 0 || tRect.top > window.innerHeight) return;
+
+                    targets.forEach(drop => {
+                        const dRect = drop.getBoundingClientRect(); 
+
+                        // 碰撞判定
+                        const xOverlap = (tRect.right > dRect.left + 2) && (tRect.left < dRect.right - 2);
+                        const yHit = (tRect.bottom >= dRect.top + 5); 
+                        const yNotPassed = (tRect.top < dRect.bottom);
+
+                        if (xOverlap && yHit && yNotPassed) {
+                            drop.classList.add('merged'); // 即時消失
+                            
+                            // 3秒後重生
+                            const respawnTimer = setTimeout(() => {
+                                if (drop.parentNode) drop.remove(); 
+                                const idx = staticDrops.indexOf(drop);
+                                if (idx > -1) staticDrops.splice(idx, 1);
+                                spawnStaticDrop(true); 
+                            }, Math.random() * 2000 + 2000);
+                            window.rainTimers.push(respawnTimer);
+                        }
+                    });
+                });
+            }
+            window.rainPhysicsFrame = requestAnimationFrame(runPhysicsLoop);
+        }
+
+        // 啟動引擎
+        spawnTrickler(); 
+        window.rainInterval = setInterval(spawnTrickler, 1200);
+        runPhysicsLoop(); 
+    }
+    else if (iconType === 'snow') {
+        // [重要] 切換到雪天時，務必清除雨天的物理運算
+        if (typeof clearRainTimers === 'function') {
+            clearRainTimers(); 
+        }
+
+        header.classList.add('w-snow');
+        
+        let html = '';
+        // 生成 30 片雪花 (依據您 snowflash 檔案中的設定)
+        for(let i=0; i<30; i++) { 
+            const left = Math.floor(Math.random() * 100);
+            const delay = (Math.random() * 5).toFixed(2);
+            // 讓雪花大小差異大一點 (3px ~ 8px)
+            const size = 3 + Math.floor(Math.random() * 6); 
+            
+            // opacity: 0.9 讓它在淺色背景更清楚
+            html += `<div class="snow-flake" style="left:${left}%; width:${size}px; height:${size}px; animation-delay:${delay}s; opacity: 0.9;"></div>`;
+        }
+        layer.innerHTML = html;
+    }
+    else if (iconType === 'fog') {
+        header.classList.add('w-fog');
+        
+        const isNight = header.classList.contains('is-night');
+        
+        // [修正] 設定日夜透明度
+        // 白天 (0.8): 霧很濃，下方白白的
+        // 晚上 (0.2): 霧很薄，像一層薄紗，才不會讓夜空變成全白
+        const fogOp = isNight ? 0.5 : 0.8;
+        
+        // 使用剛剛新增的 CSS class "fog-layer"
+        layer.innerHTML = `<div class="fog-layer" style="opacity:${fogOp};"></div>`;
+    }
+    else {
+        header.classList.add('w-cloud'); // 預設
+    }
+}
     // --- PWA Service Worker Registration ---
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
@@ -5837,7 +8290,409 @@ function compressImage(file, maxWidth, quality) {
                         .catch(err => console.log('PWA registration failed:', err));
                 });
             }
+// [新增] 開啟詳細天氣 Modal 的邏輯
+async function openDetailedWeatherModal() {
+    // 1. 取得目前 Header 顯示的地點資料
+    // 優先使用行程表切換的設定，如果沒有(例如剛開啟App)，則使用「我的位置」
+    let config = window.currentActiveConfig;
+    
+    // 特判：如果使用者剛點了「我的位置」，我們需要抓取我的位置的經緯度
+    // 這裡我們利用之前 getLocalWeather 存入的 appCache
+    if (!config && window.appCache && window.appCache['my_location_combined']) {
+        const myData = window.appCache['my_location_combined'].data;
+        // 由於我們沒存經緯度在 cache (只存了氣溫)，這裡簡化處理：
+        // 如果是「我的位置」狀態，重新觸發一次 getLocalWeather 來獲取經緯度並呼叫 API
+        // 為了不讓程式碼太複雜，這裡建議使用者先選擇一天行程，或是我們直接顯示提示
+        if(!navigator.geolocation) { alert("無法取得詳細資訊"); return; }
+        
+        navigator.geolocation.getCurrentPosition(pos => {
+            fetchAndShowDetail(pos.coords.latitude, pos.coords.longitude, myData.city);
+        });
+        return;
+    }
 
+    if (!config) {
+        alert("請先選擇一天行程，或等待定位完成。");
+        return;
+    }
+
+    // 2. 呼叫 API 並顯示
+    fetchAndShowDetail(config.lat, config.lon, config.loc);
+}
+
+// [修改] 抓取詳細天氣資料 (加入漸層圖示邏輯)
+// [修改] 抓取詳細天氣資料 (修正：現在標籤、日夜判斷、標準圖示)
+async function fetchAndShowDetail(lat, lon, locName) {
+    // 顯示 Loading
+    document.getElementById('weather-detail-modal').style.display = 'flex';
+    document.getElementById('wd-title').innerText = locName;
+    // [新增] 設定重整按鈕的功能 (點擊後重新執行此函式)
+    document.getElementById('wd-btn-refresh').onclick = function() {
+        // 加入簡單的旋轉動畫效果，讓使用者知道有在跑
+        const icon = this.querySelector('svg');
+        if(icon) { 
+            icon.style.transition = 'transform 0.5s'; 
+            icon.style.transform = 'rotate(360deg)';
+            setTimeout(() => { icon.style.transform = 'none'; }, 500);
+        }
+        // 重新抓取資料
+        fetchAndShowDetail(lat, lon, locName);
+    };
+    // 初始化儀表板數值
+    document.getElementById('wd-cur-temp').innerText = '--°';
+    document.getElementById('wd-cur-desc').innerText = '載入中...';
+    document.getElementById('wd-feel').innerText = '--';
+    document.getElementById('wd-pop').innerText = '--';
+    document.getElementById('wd-uv').innerText = '--';
+    document.getElementById('wd-wind').innerText = '--';
+
+    document.getElementById('wd-hourly-list').innerHTML = '<div style="padding:10px;">資料載入中...</div>';
+    document.getElementById('wd-daily-list').innerHTML = '';
+    
+    try {
+        // [關鍵修改] URL 新增 hourly 參數: apparent_temperature (體感), uv_index (紫外線), wind_speed_10m (風速)
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode,precipitation_probability,apparent_temperature,uv_index,wind_speed_10m&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&current_weather=true&timezone=auto`;
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        // --- 0. 處理時間索引 (修正：使用當地的 current_weather 時間) ---
+        // Open-Meteo 的 current_weather.time 回傳的是當地的 ISO 時間 (例如 "2026-01-27T11:00")
+        const localTimeStr = data.current_weather.time;
+        
+        // 直接在 hourly 列表中尋找這個時間字串，就能精準對應到當地的「現在」
+        let startIdx = data.hourly.time.indexOf(localTimeStr);
+        
+        // 防呆：如果剛好沒對到 (極少見)，則預設從 0 開始
+        if (startIdx === -1) {
+            // 嘗試只比對 "YYYY-MM-DDTHH" (前13碼)，忽略分鐘差異
+            const hourStr = localTimeStr.substring(0, 13);
+            startIdx = data.hourly.time.findIndex(t => t.startsWith(hourStr));
+        }
+        
+        if (startIdx === -1) startIdx = 0;
+
+        // --- 1. 更新上方儀表板 (Dashboard) ---
+        // 使用目前這小時的詳細數據
+        const curTemp = Math.round(data.current_weather.temperature);
+        const curCode = data.current_weather.weathercode;
+        const curFeel = Math.round(data.hourly.apparent_temperature[startIdx]);
+        const curPop = data.hourly.precipitation_probability[startIdx];
+        const curUv = data.hourly.uv_index[startIdx];
+        const curWind = Math.round(data.hourly.wind_speed_10m[startIdx]);
+        
+        const todayMax = Math.round(data.daily.temperature_2m_max[0]);
+        const todayMin = Math.round(data.daily.temperature_2m_min[0]);
+
+        document.getElementById('wd-cur-temp').innerText = `${curTemp}°`;
+        document.getElementById('wd-cur-desc').innerText = getWeatherDescText(curCode); // 使用既有的文字轉換函式
+        document.getElementById('wd-cur-hl').innerText = `高:${todayMax}° 低:${todayMin}°`;
+        
+        document.getElementById('wd-feel').innerText = `${curFeel}°`;
+        document.getElementById('wd-pop').innerText = `${curPop}%`;
+        document.getElementById('wd-uv').innerText = curUv;
+        document.getElementById('wd-wind').innerText = `${curWind} km/h`;
+
+
+        // --- 2. 更新日出日落 ---
+        const todayIndex = 0;
+        const sunriseStr = data.daily.sunrise[todayIndex].split('T')[1];
+        const sunsetStr = data.daily.sunset[todayIndex].split('T')[1];
+        const sunriseHour = parseInt(sunriseStr.split(':')[0]);
+        const sunsetHour = parseInt(sunsetStr.split(':')[0]);
+
+        document.getElementById('wd-sunrise').innerText = sunriseStr;
+        document.getElementById('wd-sunset').innerText = sunsetStr;
+// --- [新增] 2.5 更新右側：溫差比對與穿衣建議 ---
+        
+        // A. 溫差比對
+        const diffBadge = document.getElementById('wd-diff-badge');
+        // currentMyTemp 是全域變數，若有定位成功會有數值
+        if (typeof currentMyTemp !== 'undefined' && currentMyTemp !== null) {
+            const diff = curTemp - currentMyTemp;
+            diffBadge.style.display = 'inline-flex';
+            
+            if (Math.abs(diff) < 2) {
+                // 溫差小於 2 度，不顯示差異，或顯示差不多
+                diffBadge.style.display = 'none'; 
+            } else if (diff > 0) {
+                diffBadge.className = 'diff-badge diff-hot';
+                diffBadge.innerHTML = `氣溫比目前高 ${diff.toFixed(1)}°C`;
+            } else {
+                diffBadge.className = 'diff-badge diff-cold';
+                diffBadge.innerHTML = `氣溫比目前低 ${Math.abs(diff).toFixed(1)}°C`;
+            }
+        } else {
+            diffBadge.style.display = 'none'; // 無定位資料時隱藏
+        }
+
+        // B. 穿衣建議 (重複利用您既有的智慧建議函式)
+        // getSmartAdviceText(溫度, 天氣代碼) 是您程式碼中已經存在的函式
+        const smartAdvice = getSmartAdviceText(curTemp, curCode);
+        document.getElementById('wd-advice-text').innerText = smartAdvice;
+
+        // --- 3. 渲染 24小時預報 (維持不變) ---
+        const hourlyContainer = document.getElementById('wd-hourly-list');
+        hourlyContainer.innerHTML = '';
+
+        for (let i = startIdx; i < startIdx + 24; i++) {
+            if (!data.hourly.time[i]) break;
+            
+            let hourRaw = parseInt(data.hourly.time[i].split('T')[1].split(':')[0]);
+            let timeStr = (i === startIdx) ? "現在" : `${hourRaw}時`;
+            let isNight = (hourRaw < sunriseHour || hourRaw >= sunsetHour);
+            const temp = Math.round(data.hourly.temperature_2m[i]);
+            const code = data.hourly.weathercode[i];
+            
+            const iconSvg = getSimpleIconSvg(code, 0, `h${i}`, isNight); 
+            const statusText = getWeatherStatusText(code);
+
+            const item = document.createElement('div');
+            item.className = 'wd-hour-item';
+            
+            item.innerHTML = `
+                <div class="wd-hour-time" style="${i === startIdx ? 'font-weight:bold; color:#2563EB;' : ''}">${timeStr}</div>
+                <div class="wd-hour-icon">${iconSvg}</div>
+                <div class="wd-hour-desc">${statusText}</div>
+                <div class="wd-hour-temp">${temp}°</div>
+            `;
+            hourlyContainer.appendChild(item);
+        }
+
+        // --- 4. 渲染未來 7 天預報 (紅線絕對防禦版：Gap 硬性隔離) ---
+            const dailyContainer = document.getElementById('wd-daily-list');
+            dailyContainer.innerHTML = '';
+
+            const weeklyMaxVals = data.daily.temperature_2m_max.slice(0, 7);
+            const weeklyMinVals = data.daily.temperature_2m_min.slice(0, 7);
+            const globalMax = Math.max(...weeklyMaxVals);
+            const globalMin = Math.min(...weeklyMinVals);
+            const globalRange = globalMax - globalMin || 1;
+
+            for (let i = 0; i < 7; i++) {
+                const max = Math.round(data.daily.temperature_2m_max[i]);
+                const min = Math.round(data.daily.temperature_2m_min[i]);
+                const code = data.daily.weathercode[i];
+                const popMax = data.daily.precipitation_probability_max[i];
+                const iconSvg = getSimpleIconSvg(code, popMax, `d${i}`, false);
+                
+                const dateObj = new Date(data.daily.time[i]);
+                const dayNames = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+                const dayName = dayNames[dateObj.getDay()];
+
+                const leftPercent = ((min - globalMin) / globalRange) * 100;
+                const widthPercent = ((max - min) / globalRange) * 100;
+
+                let dotHtml = '';
+                if (i === 0) {
+                    const currentT = data.current_weather.temperature;
+                    const dotPercent = ((currentT - globalMin) / globalRange) * 100;
+                    dotHtml = `
+                        <div style="
+                            position: absolute;
+                            left: ${dotPercent}%;
+                            top: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 10px;
+                            height: 10px;
+                            background: #FFFFFF;
+                            border: 2px solid #374151;
+                            border-radius: 50%;
+                            box-shadow: 0 0 3px rgba(0,0,0,0.3);
+                            z-index: 10;
+                        "></div>
+                    `;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'wd-daily-row';
+                
+                // [最終解決方案]
+                // 1. gap: 15px; -> 這就是您的紅線。
+                //    這是 Grid 系統的強制間距，任何元素都無法進入這 15px 的範圍。
+                // 2. 色條欄位寬度: 80px; -> 將色條限制在中間較窄的區域。
+                row.style.cssText = `
+                    display: grid;
+                    grid-template-columns: 45px 85px 1fr 30px 80px 30px;
+                    align-items: center;
+                    gap: 15px; 
+                    padding: 8px 0;
+                    border-bottom: 1px solid #f0f0f0;
+                `;
+
+                row.innerHTML = `
+                    <div style="text-align:center;">
+                        <div style="font-weight:700; font-size:0.9rem; color:#374151;">${i===0 ? '今天' : dayName}</div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap: 12px;">
+                        <div style="width:30px; height:30px; flex-shrink:0;">${iconSvg}</div>
+                        ${popMax > 0 ? `<div style="font-size:0.8rem; color:#60A5FA; font-weight:700; white-space:nowrap;">${popMax}%</div>` : ''}
+                    </div>
+                    
+                    <div></div>
+
+                    <div style="text-align:right; font-family:monospace; font-weight:600; color:#9CA3AF; font-size:0.95rem;">${min}°</div>
+
+                    <div style="height: 6px; position: relative; width: 100%;">
+                        <div style="
+                            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                            background: #E5E7EB; 
+                            border-radius: 10px; 
+                            overflow: hidden; /* ★關鍵：這裡負責切掉跑出去的色條 */
+                        ">
+                            <div style="
+                                position: absolute;
+                                top: 0;
+                                bottom: 0;
+                                left: ${leftPercent}%;
+                                width: ${widthPercent}%;
+                                min-width: 6px;
+                                border-radius: 10px;
+                                background: linear-gradient(90deg, #22D3EE, #34D399, #FBBF24, #FB923C, #F87171);
+                                opacity: 0.9;
+                            "></div>
+                        </div>
+                        
+                        ${dotHtml}
+                    </div>
+
+                    <div style="text-align:left; font-family:monospace; font-weight:600; color:#374151; font-size:0.95rem;">${max}°</div>
+                `;
+                dailyContainer.appendChild(row);
+            }
+
+    } catch (e) {
+        console.error(e);
+        document.getElementById('wd-hourly-list').innerHTML = '無法取得詳細資料';
+        alert('獲取天氣詳情失敗，請檢查網路。');
+    }
+}
+
+// [修改] 取得標準天氣 SVG 圖示
+// pop: 降雨機率 (決定水位，若為0則純線條)
+// isNight: 是否為晚上 (決定顯示太陽還是月亮)
+// [修改] 最終完整版：整合太陽光芒切換、藍色雨滴、雷雨雙閃電
+// [修正] 最終除錯版：修復雷雨被誤判為雨天(Code 80+)的問題
+// [修改] 最終版：加入「霧」的水位計支援 + 所有修復
+// [修改] 最終美化版：加入精緻「六角雪花」造型 + 完整功能
+// [修改] 最終完成版：嚴格幾何對稱雪花 + 全局水位計 (由下而上平整填滿)
+function getSimpleIconSvg(code, pop, uid, isNight = false) {
+    const originalColor = "#374151"; 
+    const waterColor = "#60A5FA";    
+    const percentage = pop || 0;
+    
+    // 1. 定義漸層 (修改為 userSpaceOnUse 模式)
+    let defs = '';
+    let strokeAttr = `stroke="${originalColor}"`; 
+
+    if (percentage > 0) {
+        defs = `
+        <defs>
+            <linearGradient id="grad-${uid}" x1="0" y1="24" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="${percentage}%" stop-color="${waterColor}" />
+                <stop offset="${percentage}%" stop-color="${originalColor}" />
+            </linearGradient>
+        </defs>`;
+        strokeAttr = `stroke="url(#grad-${uid})"`;
+    }
+    
+    const commonAttr = `viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${strokeAttr}`;
+
+    let path = '';
+
+    // 2. 圖示繪製邏輯
+    if (code === 0 || code === 1) { 
+        // === 晴朗 ===
+        if (isNight) {
+            path = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+        } else {
+            // 太陽
+            if (percentage > 0) {
+                path = `<circle cx="12" cy="12" r="5"></circle>`;
+                // 太陽光芒維持純色，不參與水位漸層
+                const rayStyle = `stroke="${originalColor}"`; 
+                path += `
+                    <line x1="12" y1="1" x2="12" y2="4" ${rayStyle}></line>
+                    <line x1="12" y1="1" x2="12" y2="4" transform="rotate(60 12 12)" ${rayStyle}></line>
+                    <line x1="12" y1="1" x2="12" y2="4" transform="rotate(120 12 12)" ${rayStyle}></line>
+                    <line x1="12" y1="1" x2="12" y2="4" transform="rotate(180 12 12)" ${rayStyle}></line>
+                    <line x1="12" y1="1" x2="12" y2="4" transform="rotate(240 12 12)" ${rayStyle}></line>
+                    <line x1="12" y1="1" x2="12" y2="4" transform="rotate(300 12 12)" ${rayStyle}></line>
+                `;
+            } else {
+                path = `
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                `;
+            }
+        }
+    } else if (code === 2 || code === 3) {
+        // === 多雲 ===
+        path = `<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>`;
+    } else if (code >= 45 && code <= 48) {
+        // === 霧 ===
+        path = `<path d="M4 10h16 M4 14h16 M4 18h16"></path>`;
+    } else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+        // === 雨 ===
+        path = `
+            <line x1="16" y1="13" x2="16" y2="21" stroke="${waterColor}"></line>
+            <line x1="8" y1="13" x2="8" y2="21" stroke="${waterColor}"></line>
+            <line x1="12" y1="15" x2="12" y2="23" stroke="${waterColor}"></line>
+            <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+        `;
+    } else if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
+        // === 雪：嚴格幾何對稱版 + 全局水位計 ===
+        
+        // 1. 中央六角冰核 (R=3)
+        path = `<path d="M12 9 L14.6 10.5 L14.6 13.5 L12 15 L9.4 13.5 L9.4 10.5 Z"></path>`;
+
+        // 2. 六條直線主幹 (R=3 到 R=11)
+        path += `
+            <path d="M12 9 V1 M12 15 V23"></path> <path d="M14.6 10.5 L21.5 6.5 M14.6 13.5 L21.5 17.5"></path> <path d="M9.4 13.5 L2.5 17.5 M9.4 10.5 L2.5 6.5"></path>     `;
+
+        // 3. V 型結構 (幾何對稱複製)
+        // --- 上 (0度) ---
+        path += `<path d="M9.5 5.5 L12 7.5 L14.5 5.5"></path>`;
+        path += `<path d="M9.5 2 L12 4 L14.5 2"></path>`;
+
+        // --- 下 (180度) ---
+        path += `<path d="M9.5 18.5 L12 16.5 L14.5 18.5"></path>`;
+        path += `<path d="M9.5 22 L12 20 L14.5 22"></path>`;
+        
+        // --- 右上 (60度) ---
+        path += `<path d="M16.4 6.6 L15.9 9.75 L18.9 10.9"></path>`;
+        path += `<path d="M19.4 4.8 L18.9 8 L21.9 9.2"></path>`;
+
+        // --- 右下 (120度) ---
+        path += `<path d="M18.9 13.1 L15.9 14.25 L16.4 17.4"></path>`;
+        path += `<path d="M21.9 14.8 L18.9 16 L19.4 19.2"></path>`;
+        
+        // --- 左下 (240度) ---
+        path += `<path d="M7.6 17.4 L8.1 14.25 L5.1 13.1"></path>`;
+        path += `<path d="M4.6 19.2 L5.1 16 L2.1 14.8"></path>`;
+
+        // --- 左上 (300度) ---
+        path += `<path d="M5.1 10.9 L8.1 9.75 L7.6 6.6"></path>`;
+        path += `<path d="M2.1 9.2 L5.1 8 L4.6 4.8"></path>`;
+
+    } else if (code >= 95) {
+        // === 雷雨 ===
+        path = `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>`;
+        /*path += `<polygon points="19 2 16 7 18 7 17 11 22 5 20 5 19 2"></polygon>`;*/
+    } else {
+        path = `<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>`;
+    }
+
+    return `<svg ${commonAttr}>${defs}${path}</svg>`;
+}
     </script>
     </div>
 </body>
