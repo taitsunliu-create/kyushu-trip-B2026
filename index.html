@@ -4314,23 +4314,24 @@ header.is-night {
                 </div>
 
                 <!-- Comparison Row -->
-                <div class="weather-compare-row" style="display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 0.9rem; color: #6B7280; margin: 4px 0 12px 0; padding: 8px 16px; background: rgba(255,255,255,0.85); border-radius: 99px; border: 1px solid #E5E7EB; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <div class="weather-compare-row" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #4B5563; margin: 8px 0 12px 0; padding: 6px 0; background: rgba(255,255,255,0.85); border-radius: 50px; border: 1px solid #E5E7EB; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
     
-    <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;" onclick="getLocalWeather()">
+    <div style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 4px; cursor: pointer;" onclick="getLocalWeather()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-9 13-9 13s-9-7-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
         <span id="wc-my-temp" style="font-weight: 500;">--°</span>
     </div>
 
-    <div style="width: 1px; height: 12px; background: #D1D5DB;"></div>
+    <div style="width: 1px; height: 14px; background: #D1D5DB;"></div>
 
-    <div style="display: flex; align-items: center; gap: 4px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <span id="wc-compact-search" style="color: #374151; font-weight: 700;">查詢地 --°</span>
+    <div style="flex: 1.2; display: flex; justify-content: center; align-items: center; gap: 4px;">
+        <span id="wc-center-text" style="font-weight: 700; color: #1F2937;">查詢地 --°</span>
+        <div id="wc-center-icon" style="display: flex; align-items: center;">
+            </div>
     </div>
 
-    <div style="width: 1px; height: 12px; background: #D1D5DB;"></div>
+    <div style="width: 1px; height: 14px; background: #D1D5DB;"></div>
 
-    <div id="wc-compact-diff" style="font-weight: 600; font-size: 0.85rem;">
+    <div id="wc-diff-area" style="flex: 1; display: flex; justify-content: center; align-items: center; font-weight: 600;">
         --
     </div>
 </div>
@@ -6682,41 +6683,58 @@ function resetShareButton(btn) {
             }
         }
 
-       /* [修改 3] 更新緊湊版資訊列 */
-function updateComparison(targetTemp) {
-    // 1. 如果還沒抓到目前位置，先執行定位
+       /* [修改] 支援三欄顯示與天氣 Icon 的更新函式 */
+// 新增參數 wmoCode，用來判斷要顯示什麼 Icon
+function updateComparison(targetTemp, wmoCode = 0) {
+    
+    // --- 1. 左區：目前位置 ---
     if (currentMyTemp === null) { 
         getLocalWeather(); 
     }
 
-    // 2. 處理地名 (從隱藏的標題獲取)
-    let locName = document.getElementById('wc-loc').innerText;
-    // 簡化地名：移除換行，且如果太長只取前4個字
-    locName = locName.split('\n')[0].trim();
-    if (locName.length > 5) locName = locName.substring(0, 4) + "..";
-    if (!locName || locName === '--') locName = "查詢地";
+    // --- 2. 中區：地名 + 溫度 + Icon ---
+    // 抓取地名 (從被隱藏的標題)
+    let locName = document.getElementById('wc-loc') ? document.getElementById('wc-loc').innerText : "查詢地";
+    locName = locName.split('\n')[0].trim(); // 去除換行
+    if (locName.length > 5) locName = locName.substring(0, 4); // 截斷過長地名
 
-    // 3. 更新中間欄位：地名 + 目標溫度
-    const searchEl = document.getElementById('wc-compact-search');
-    if (searchEl) {
-        searchEl.innerHTML = `${locName} ${targetTemp}°`;
+    // 更新文字
+    const centerText = document.getElementById('wc-center-text');
+    if (centerText) {
+        centerText.innerHTML = `${locName} ${targetTemp}°`;
     }
 
-    // 4. 計算溫差
+    // 更新 Icon (根據 WMO 代碼簡易判斷)
+    const centerIcon = document.getElementById('wc-center-icon');
+    if (centerIcon) {
+        let iconSvg = '';
+        // 簡單判斷 WMO Code (0-3:晴/多雲, 45-48:霧, 51-67:雨, 71+:雪/雷)
+        if (wmoCode <= 3) {
+            // 晴天/多雲 (Sun)
+            iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>`;
+        } else if (wmoCode >= 51) {
+            // 雨天 (Rain)
+            iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16.2A4.5 4.5 0 0 0 3.2 16.2"></path><path d="M8 20l0 2"></path><path d="M12 18l0 4"></path><path d="M16 20l0 2"></path></svg>`;
+        } else {
+            // 陰天/霧 (Cloud)
+            iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>`;
+        }
+        centerIcon.innerHTML = iconSvg;
+    }
+
+    // --- 3. 右區：溫差 ---
     if (currentMyTemp !== null) {
         const diff = targetTemp - currentMyTemp;
         const absDiff = Math.abs(diff).toFixed(1);
-        const diffEl = document.getElementById('wc-compact-diff');
+        const diffEl = document.getElementById('wc-diff-area');
         
         if (diffEl) {
-            if (Math.abs(diff) < 0.5) {
-                diffEl.innerHTML = `<span style="color:#9CA3AF;">無溫差</span>`;
-            } else if (diff > 0) {
-                // 比這裡熱 (紅色)
+            if (diff > 0) {
                 diffEl.innerHTML = `<span style="color:#DC2626;">+${absDiff}°</span>`;
-            } else {
-                // 比這裡冷 (藍色)
+            } else if (diff < 0) {
                 diffEl.innerHTML = `<span style="color:#2563EB;">-${absDiff}°</span>`;
+            } else {
+                diffEl.innerHTML = `<span style="color:#9CA3AF;">無溫差</span>`;
             }
         }
     }
