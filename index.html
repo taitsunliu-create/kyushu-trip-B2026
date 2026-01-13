@@ -4326,13 +4326,13 @@ header.is-night {
             <div id="wc-desc" style="font-size: 11px; opacity: 0.9;">--</div>
         </div>
 
-        <div style="background: white; padding: 8px 4px; border-radius: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-            <div style="color: #6B7280; font-size: 10px; margin-bottom: 4px;">與當地溫差</div>
-            <div id="wc-diff-tag" class="wc-diff-tag" style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #F3F4F6; color: #6B7280; display: inline-block;">
-                --
-            </div>
-            <span id="wc-diff-text" style="display: none;"></span>
-        </div>
+        <div id="wc-diff-box" style="background: #F3F4F6; padding: 8px 4px; border-radius: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid transparent; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.3s ease;">
+    <div id="wc-diff-title" style="color: inherit; font-size: 10px; margin-bottom: 4px; opacity: 0.8;">與當地溫差</div>
+    
+    <div id="wc-diff-val" style="font-size: 1.1rem; font-weight: bold; color: inherit;">--</div>
+    
+    <div id="wc-diff-tag" style="display: none;"></div>
+</div>
     </div>
 
     <div style="background: #EFF6FF; border-left: 4px solid #5A92E8; padding: 10px; border-radius: 0 8px 8px 0; font-size: 13px; color: #1E40AF; display: flex; align-items: flex-start; gap: 8px;">
@@ -6705,29 +6705,63 @@ function resetShareButton(btn) {
             }
         }
 
-        function updateComparison(targetTemp) {
-            if (currentMyTemp === null) {
-                // Try to fetch local if not yet fetched
-                getLocalWeather();
-                return;
-            }
-            
-            const diff = targetTemp - currentMyTemp;
-            const diffTag = document.getElementById('wc-diff-tag');
-            const diffText = document.getElementById('wc-diff-text');
-            
-            diffTag.style.display = 'inline-block';
-            
-            if (diff > 0) {
-                diffTag.className = 'wc-diff-tag wc-diff-hot';
-                diffTag.innerText = `熱 ${diff.toFixed(1)}°C`;
-                diffText.innerText = '比這裡溫暖';
-            } else {
-                diffTag.className = 'wc-diff-tag wc-diff-cold';
-                diffTag.innerText = `冷 ${Math.abs(diff).toFixed(1)}°C`;
-                diffText.innerText = '比這裡冷';
-            }
+        // [專家優化] 溫差比對：動態地點 + 顏色情緒
+function updateComparison(targetTemp) {
+    // 1. 檢查是否有定位資料
+    if (currentMyTemp === null) {
+        getLocalWeather(); // 嘗試重新定位
+        return;
+    }
+
+    // 2. 取得比較基準的地點名稱 (預設為「您的位置」)
+    let baseLocName = "您的位置";
+    if (window.appCache && window.appCache['my_location_combined']) {
+        // 取出定位時存下的城市名 (例如: 竹北市, Taipei)
+        const cachedName = window.appCache['my_location_combined'].data.city;
+        if (cachedName) {
+            // 如果名字太長，擷取前兩個字比較簡潔 (例如 "新竹市東區" -> "新竹")
+            baseLocName = cachedName.length > 3 ? cachedName.substring(0, 2) : cachedName;
         }
+    }
+
+    // 3. 計算溫差
+    const diff = targetTemp - currentMyTemp;
+    const diffAbs = Math.abs(diff).toFixed(1);
+    
+    // 4. 取得 UI 元素
+    const box = document.getElementById('wc-diff-box');
+    const title = document.getElementById('wc-diff-title');
+    const val = document.getElementById('wc-diff-val');
+
+    // 5. 顏色與文字邏輯
+    if (diff > 0) {
+        // 🥵 目的地比較熱 (暖色系)
+        box.style.background = '#FFF7ED'; // 淺橘底
+        box.style.color = '#9A3412';      // 深橘褐字
+        box.style.borderColor = '#FED7AA'; // 橘邊框
+        
+        title.innerText = `比${baseLocName}熱`;
+        val.innerText = `+${diffAbs}°C`;
+        
+    } else if (diff < 0) {
+        // 🥶 目的地比較冷 (冷色系)
+        box.style.background = '#EFF6FF'; // 淺藍底
+        box.style.color = '#1E40AF';      // 深藍字
+        box.style.borderColor = '#BFDBFE'; // 藍邊框
+        
+        title.innerText = `比${baseLocName}冷`;
+        val.innerText = `-${diffAbs}°C`;
+        
+    } else {
+        // 😐 溫度相同
+        box.style.background = '#F3F4F6';
+        box.style.color = '#4B5563';
+        box.style.borderColor = 'transparent';
+        
+        title.innerText = `與${baseLocName}`;
+        val.innerText = `溫差小`;
+    }
+}
 
         async function askAiWeatherAdvice(city, temp, condition) {
             // [新增] 1. 產生快取金鑰 (地點 + 氣溫整數 + 天氣狀況)
