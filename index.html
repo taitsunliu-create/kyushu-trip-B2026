@@ -2260,6 +2260,51 @@ header.is-night {
     0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.3; }
     50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
 }
+  
+  /* [新增] 三欄式天氣資訊網格樣式 */
+.weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* 三等分 */
+    gap: 10px;
+    background: white;
+    padding: 15px 10px;
+    border-radius: 16px;
+    margin: 10px 0 20px 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    border: 1px solid #E5E7EB;
+}
+
+.grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 如果是中間的項目，加上左右邊框分隔線 */
+.grid-item:nth-child(2) {
+    border-left: 1px solid #E5E7EB;
+    border-right: 1px solid #E5E7EB;
+}
+
+.grid-label {
+    font-size: 0.8rem;
+    color: #6B7280; /* 灰色標籤 */
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.grid-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1F2937; /* 深色數值 */
+    white-space: nowrap; /* 防止文字換行 */
+}
+
+/* 溫差正負值顏色 */
+.diff-plus { color: #DC2626; } /* 變熱 (紅) */
+.diff-minus { color: #2563EB; } /* 變冷 (藍) */
   </style>
 </head>
 <body>
@@ -4307,32 +4352,20 @@ header.is-night {
 
             <!-- Main Result -->
             <div id="weather-result" style="display:none;">
-                <div class="weather-card-main">
-                   <div class="wc-loc" id="wc-loc" style="display: none;">--</div>
-                    <div class="wc-temp-big" id="wc-temp">--°</div>
-                    <div class="wc-desc" id="wc-desc">載入中...</div>
-                </div>
-
-                <!-- Comparison Row -->
-                <div class="weather-compare-row" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #4B5563; margin: 8px 0 12px 0; padding: 6px 0; background: rgba(255,255,255,0.85); border-radius: 50px; border: 1px solid #E5E7EB; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <div id="weather-dashboard" class="weather-grid">
+    <div class="grid-item">
+        <span class="grid-label">所在地</span>
+        <span id="current-loc-display" class="grid-value">定位中...</span>
+    </div>
     
-    <div style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 4px; cursor: pointer;" onclick="getLocalWeather()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-9 13-9 13s-9-7-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-        <span id="wc-my-temp" style="font-weight: 500;">--°</span>
+    <div class="grid-item">
+        <span class="grid-label">查詢地</span>
+        <span id="target-loc-display" class="grid-value">--</span>
     </div>
 
-    <div style="width: 1px; height: 14px; background: #D1D5DB;"></div>
-
-    <div style="flex: 1.2; display: flex; justify-content: center; align-items: center; gap: 4px;">
-        <span id="wc-center-text" style="font-weight: 700; color: #1F2937;">查詢地 --°</span>
-        <div id="wc-center-icon" style="display: flex; align-items: center;">
-            </div>
-    </div>
-
-    <div style="width: 1px; height: 14px; background: #D1D5DB;"></div>
-
-    <div id="wc-diff-area" style="flex: 1; display: flex; justify-content: center; align-items: center; font-weight: 600;">
-        --
+    <div class="grid-item">
+        <span class="grid-label">溫差</span>
+        <span id="temp-diff-display" class="grid-value">--</span>
     </div>
 </div>
 
@@ -5813,7 +5846,28 @@ function getSmartAdviceText(temp, weatherCode) {
                 document.getElementById('wc-advice').innerHTML = `<span style="color:var(--danger); font-weight:bold;">${errorMsg}</span>`;
             }
         }
+// --- [新增] 更新三欄式資訊板邏輯 ---
+// 1. 更新所在地 (假設您已有變數 myCity 或 currentCityName)
+// 若沒有，請將 '定位中...' 替換為您的定位變數
+document.getElementById('current-loc-display').textContent = (typeof myCity !== 'undefined') ? myCity : "我的位置";
 
+// 2. 更新查詢地 (假設您的輸入框 ID 為 weather-city-input)
+var targetCity = document.getElementById('weather-city-input').value;
+document.getElementById('target-loc-display').textContent = targetCity || "--";
+
+// 3. 計算並更新溫差
+// 請確保您的程式碼中有變數儲存了「目前溫度 (currentTemp)」與「目標溫度 (targetTemp)」
+if (typeof currentTemp !== 'undefined' && typeof targetTemp !== 'undefined') {
+    var diff = targetTemp - currentTemp;
+    var diffElem = document.getElementById('temp-diff-display');
+    
+    // 格式化：正數加 '+' 號，保留一位小數
+    var sign = diff > 0 ? '+' : ''; 
+    diffElem.textContent = sign + diff.toFixed(1) + "°C";
+    
+    // 動態變色
+    diffElem.className = 'grid-value ' + (diff > 0 ? 'diff-plus' : 'diff-minus');
+}
         // 修正 2: 定義簡約天氣 SVG 圖示 (白色線條)
         const simpleIcons = {
     sun: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
