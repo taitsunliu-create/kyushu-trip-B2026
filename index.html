@@ -4364,6 +4364,16 @@ header.is-night {
     </div>
 
     <div class="grid-item">
+        <span class="grid-label">查詢地溫度</span>
+        <span id="target-temp-display" class="grid-value">--°</span>
+    </div>
+
+    <div class="grid-item">
+        <span class="grid-label">天氣狀態</span>
+        <span id="target-weather-display" class="grid-value">--</span>
+    </div>
+
+    <div class="grid-item">
         <span class="grid-label">溫差</span>
         <span id="temp-diff-display" class="grid-value">--</span>
     </div>
@@ -5714,9 +5724,9 @@ function getSmartAdviceText(temp, weatherCode) {
             // UI Loading State
             document.getElementById('weather-placeholder').style.display = 'none';
             document.getElementById('weather-result').style.display = 'block';
-            document.getElementById('wc-loc').innerText = rawInput; 
-            document.getElementById('wc-desc').innerText = '準備中...';
-            document.getElementById('wc-temp').innerText = '--°';
+            document.getElementById('target-loc-display').innerText = rawInput; 
+            document.getElementById('target-weather-display').innerText = '準備中...';
+            document.getElementById('target-temp-display').innerText = '--°';
             document.getElementById('wc-advice').innerText = '...';
 
             let searchTerm = rawInput;
@@ -5744,10 +5754,10 @@ function getSmartAdviceText(temp, weatherCode) {
                         searchTerm = cachedName;
                         isTranslated = true;
                         console.log("使用快取地名:", searchTerm);
-                        document.getElementById('wc-desc').innerText = `搜尋: ${searchTerm} (快取)`;
+                        document.getElementById('target-weather-display').innerText = `搜尋: ${searchTerm} (快取)`;
                     } else {
                         // 無快取，才呼叫 AI
-                        document.getElementById('wc-desc').innerText = '🔍 AI 正在翻譯地名...';
+                        document.getElementById('target-weather-display').innerText = '🔍 AI 正在翻譯地名...';
                         
                         const translatePrompt = `
                             Task: Translate the place name "${rawInput}" into its official English Romanization name for using in a Weather API.
@@ -5762,7 +5772,7 @@ function getSmartAdviceText(temp, weatherCode) {
                                 searchTerm = aiTranslation;
                                 isTranslated = true;
                                 console.log("AI 翻譯結果:", searchTerm);
-                                document.getElementById('wc-desc').innerText = `搜尋: ${searchTerm}...`;
+                                document.getElementById('target-weather-display').innerText = `搜尋: ${searchTerm}...`;
                                 
                                 // [新增] 翻譯成功後，存入快取 (保存 24 小時 = 1440 分鐘)
                                 CACHE_SYSTEM.save(cacheKey, searchTerm, 1440);
@@ -5773,7 +5783,7 @@ function getSmartAdviceText(temp, weatherCode) {
                     }
                 }
 
-                document.getElementById('wc-desc').innerText = '連線氣象衛星...';
+                document.getElementById('target-weather-display').innerText = '連線氣象衛星...';
 
                 // 步驟 3: Geocoding API 查詢
                 // 優先使用翻譯後的英文，若無則用中文
@@ -5821,11 +5831,11 @@ function getSmartAdviceText(temp, weatherCode) {
                         </div>
                     `;
                 }
-                document.getElementById('wc-loc').innerHTML = displayLocHtml;
+                document.getElementById('target-loc-display').innerHTML = displayLocHtml;
 
-                document.getElementById('wc-temp').innerText = `${temp}°C`;
+                document.getElementById('target-temp-display').innerText = `${temp}°C`;
                 // 修正 3: 改用 innerHTML 以支援 SVG 圖示
-                document.getElementById('wc-desc').innerHTML = getWeatherDesc(weatherCode);
+                document.getElementById('target-weather-display').innerHTML = getWeatherDesc(weatherCode);
 
                 // 步驟 5: 溫差對比
                 updateComparison(temp);
@@ -5836,7 +5846,7 @@ function getSmartAdviceText(temp, weatherCode) {
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('wc-desc').innerText = '查詢失敗';
+                document.getElementById('target-weather-display').innerText = '查詢失敗';
                 
                 let errorMsg = error.message;
                 if (errorMsg.includes('Failed to fetch')) {
@@ -6006,7 +6016,7 @@ if (typeof currentTemp !== 'undefined' && typeof targetTemp !== 'undefined') {
                     if (!document.querySelector('.timeline.show')) {
                         resetHeaderToLocal(); 
                     }
-                    const targetTempStr = document.getElementById('wc-temp') ? document.getElementById('wc-temp').innerText : '--°';
+                    const targetTempStr = document.getElementById('target-temp-display') ? document.getElementById('target-temp-display').innerText : '--°';
                     if (targetTempStr !== '--°') updateComparison(parseFloat(targetTempStr));
 
                 } catch (e) {
@@ -6725,7 +6735,7 @@ function resetShareButton(btn) {
                 titleHtml += `</div>`; // Close container
                 titleEl.innerHTML = titleHtml;
 
-                const targetTempStr = document.getElementById('wc-temp').innerText;
+                const targetTempStr = document.getElementById('target-temp-display').innerText;
                 if (targetTempStr !== '--°') {
                     updateComparison(parseFloat(targetTempStr));
                 }
@@ -6747,34 +6757,34 @@ function updateComparison(targetTemp, wmoCode = 0) {
     }
 
     // --- 2. 中區：地名 + 溫度 + Icon ---
-    // 抓取地名 (從被隱藏的標題)
-    let locName = document.getElementById('wc-loc') ? document.getElementById('wc-loc').innerText : "查詢地";
+    // 抓取地名 (從新的顯示元素)
+    let locName = document.getElementById('target-loc-display') ? document.getElementById('target-loc-display').innerText : "查詢地";
     locName = locName.split('\n')[0].trim(); // 去除換行
     if (locName.length > 5) locName = locName.substring(0, 4); // 截斷過長地名
 
-    // 更新文字
-    const centerText = document.getElementById('wc-center-text');
-    if (centerText) {
-        centerText.innerHTML = `${locName} ${targetTemp}°`;
-    }
+    // 更新文字 (移除，因為現在直接在fetchRealtimeWeather中更新)
+    // const centerText = document.getElementById('wc-center-text');
+    // if (centerText) {
+    //     centerText.innerHTML = `${locName} ${targetTemp}°`;
+    // }
 
-    // 更新 Icon (根據 WMO 代碼簡易判斷)
-    const centerIcon = document.getElementById('wc-center-icon');
-    if (centerIcon) {
-        let iconSvg = '';
-        // 簡單判斷 WMO Code (0-3:晴/多雲, 45-48:霧, 51-67:雨, 71+:雪/雷)
-        if (wmoCode <= 3) {
-            // 晴天/多雲 (Sun)
-            iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>`;
-        } else if (wmoCode >= 51) {
-            // 雨天 (Rain)
-            iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16.2A4.5 4.5 0 0 0 3.2 16.2"></path><path d="M8 20l0 2"></path><path d="M12 18l0 4"></path><path d="M16 20l0 2"></path></svg>`;
-        } else {
-            // 陰天/霧 (Cloud)
-            iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>`;
-        }
-        centerIcon.innerHTML = iconSvg;
-    }
+    // 更新 Icon (移除，因為現在使用getWeatherDesc函式)
+    // const centerIcon = document.getElementById('wc-center-icon');
+    // if (centerIcon) {
+    //     let iconSvg = '';
+    //     // 簡單判斷 WMO Code (0-3:晴/多雲, 45-48:霧, 51-67:雨, 71+:雪/雷)
+    //     if (wmoCode <= 3) {
+    //         // 晴天/多雲 (Sun)
+    //         iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>`;
+    //     } else if (wmoCode >= 51) {
+    //         // 雨天 (Rain)
+    //         iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16.2A4.5 4.5 0 0 0 3.2 16.2"></path><path d="M8 20l0 2"></path><path d="M12 18l0 4"></path><path d="M16 20l0 2"></path></svg>`;
+    //     } else {
+    //         // 陰天/霧 (Cloud)
+    //         iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>`;
+    //     }
+    //     centerIcon.innerHTML = iconSvg;
+    // }
 
     // --- 3. 右區：溫差 ---
     if (currentMyTemp !== null) {
