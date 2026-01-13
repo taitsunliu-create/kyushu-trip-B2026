@@ -4308,27 +4308,27 @@ header.is-night {
             <!-- Main Result -->
             <div id="weather-result" style="display:none;">
                 <div class="weather-card-main">
-                    <div class="wc-loc" id="wc-loc">--</div>
+                   <div class="wc-loc" id="wc-loc" style="display: none;">--</div>
                     <div class="wc-temp-big" id="wc-temp">--°</div>
                     <div class="wc-desc" id="wc-desc">載入中...</div>
                 </div>
 
                 <!-- Comparison Row -->
-                <div class="weather-compare-row" style="display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.85rem; color: #6B7280; margin: 10px 0; padding: 8px 12px; background: rgba(255,255,255,0.8); border-radius: 50px; border: 1px solid #E5E7EB; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <div class="weather-compare-row" style="display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.85rem; color: #6B7280; margin: 10px 0; padding: 8px 12px; background: rgba(255,255,255,0.9); border-radius: 50px; border: 1px solid #E5E7EB; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
     
     <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;" onclick="getLocalWeather()">
         <svg class="icon-mini" style="width:14px; height:14px; color:#6B7280;"><use href="#icon-loc"></use></svg>
         <span id="wc-my-temp">--°</span>
     </div>
 
-    <div style="width: 1px; height: 10px; background: #D1D5DB;"></div>
+    <div style="width: 1px; height: 12px; background: #D1D5DB;"></div>
 
     <div style="display: flex; align-items: center; gap: 4px;">
         <svg class="icon-mini" style="width:14px; height:14px; color:#6B7280;"><use href="#icon-earth"></use></svg>
-        <span id="wc-compact-search">查詢地 --°</span>
+        <span id="wc-compact-search" style="color: #374151; font-weight: 500;">查詢地 --°</span>
     </div>
 
-    <div style="width: 1px; height: 10px; background: #D1D5DB;"></div>
+    <div style="width: 1px; height: 12px; background: #D1D5DB;"></div>
 
     <div style="display: flex; align-items: center; gap: 4px;">
         <span id="wc-compact-diff" style="font-weight: 600;">溫差 --</span>
@@ -6682,42 +6682,45 @@ function resetShareButton(btn) {
             }
         }
 
-        /* [修改] 緊湊版溫差計算函式 */
+        /* [修改處 3] 替換原本的 updateComparison 函式 */
 function updateComparison(targetTemp) {
     // 1. 如果還沒抓到目前位置溫度，先觸發抓取
     if (currentMyTemp === null) { 
         getLocalWeather(); 
-        return; 
+        // 注意：這裡不 return，繼續執行以更新中間的地名欄位
     }
 
-    // 2. 計算溫差
-    const diff = targetTemp - currentMyTemp;
-    const absDiff = Math.abs(diff).toFixed(1);
+    // 2. 自動抓取查詢地點名稱 (從被隱藏的 #wc-loc 抓取)
+    let locNameElement = document.getElementById('wc-loc');
+    let locName = locNameElement ? locNameElement.innerText : "查詢地";
     
-    // 3. 自動抓取查詢地點名稱 (從上方主卡片抓取)
-    // split('\n')[0] 是為了過濾掉可能存在的英文副標題，只取第一行中文
-    let searchName = document.getElementById('wc-loc').innerText.split('\n')[0] || "查詢地";
-    // 如果名字太長 (例如: 九州自然動物公園)，截斷顯示以維持版面整齊
-    if (searchName.length > 5) searchName = searchName.substring(0, 4) + "..";
+    // 簡單處理地名：如果有換行符號只取第一行，且避免太長
+    locName = locName.split('\n')[0]; 
+    if (locName.length > 5) locName = locName.substring(0, 4) + "..";
 
-    // 4. 更新 UI - 中間：查詢地欄位
+    // 3. 更新 UI - 中間：查詢地欄位 (格式: 東京 15°)
     const searchEl = document.getElementById('wc-compact-search');
     if(searchEl) {
-        // 格式: 東京 15° (溫度加粗)
-        searchEl.innerHTML = `${searchName} <span style="color:#1F2937; font-weight:700;">${targetTemp}°</span>`;
+        // 這裡將地名與目標溫度整合顯示
+        searchEl.innerHTML = `${locName} <span style="font-weight:700; color:#1F2937;">${targetTemp}°</span>`;
     }
 
-    // 5. 更新 UI - 右側：溫差欄位 (含顏色邏輯)
-    const diffEl = document.getElementById('wc-compact-diff');
-    if(diffEl) {
-        if (Math.abs(diff) < 0.5) {
-            diffEl.innerHTML = `<span style="color:#6B7280;">溫差不大</span>`;
-        } else if (diff > 0) {
-            // 比這裡熱 (紅色)
-            diffEl.innerHTML = `<span style="color:#DC2626;">+${absDiff}° (熱)</span>`;
-        } else {
-            // 比這裡冷 (藍色)
-            diffEl.innerHTML = `<span style="color:#2563EB;">-${absDiff}° (冷)</span>`;
+    // 4. 計算溫差 (只有當兩邊都有溫度時才計算)
+    if (currentMyTemp !== null) {
+        const diff = targetTemp - currentMyTemp;
+        const absDiff = Math.abs(diff).toFixed(1);
+        
+        const diffEl = document.getElementById('wc-compact-diff');
+        if(diffEl) {
+            if (Math.abs(diff) < 0.5) {
+                diffEl.innerHTML = `<span style="color:#9CA3AF;">無溫差</span>`;
+            } else if (diff > 0) {
+                // 比這裡熱 (紅色)
+                diffEl.innerHTML = `<span style="color:#DC2626;">+${absDiff}° (熱)</span>`;
+            } else {
+                // 比這裡冷 (藍色)
+                diffEl.innerHTML = `<span style="color:#2563EB;">-${absDiff}° (冷)</span>`;
+            }
         }
     }
 }
