@@ -5988,6 +5988,10 @@ if (typeof currentTemp !== 'undefined' && typeof targetTemp !== 'undefined') {
                             </div>`;
                     }
                     
+                    // 更新weather-dashboard中的所在地顯示
+                    const currentLocDisplay = document.getElementById('current-loc-display');
+                    if(currentLocDisplay) currentLocDisplay.textContent = displayZh;
+                    
                     // 存檔與比對
                     window.appCache = window.appCache || {};
                     window.appCache['my_location_combined'] = {
@@ -6790,7 +6794,7 @@ function updateComparison(targetTemp, wmoCode = 0) {
     if (currentMyTemp !== null) {
         const diff = targetTemp - currentMyTemp;
         const absDiff = Math.abs(diff).toFixed(1);
-        const diffEl = document.getElementById('wc-diff-area');
+        const diffEl = document.getElementById('temp-diff-display');
         
         if (diffEl) {
             if (diff > 0) {
