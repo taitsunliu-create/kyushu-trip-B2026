@@ -2261,13 +2261,13 @@ header.is-night {
     50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
 }
   
-  /* [新增] 三欄式天氣資訊網格樣式 */
-.weather-grid {
+  /* [新增] 區塊式天氣資訊佈局 */
+.weather-blocks {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr; /* 三等分 */
-    gap: 10px;
+    gap: 15px;
     background: white;
-    padding: 15px 10px;
+    padding: 20px;
     border-radius: 16px;
     margin: 10px 0 20px 0;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
@@ -2275,31 +2275,58 @@ header.is-night {
     border: 1px solid #E5E7EB;
 }
 
-.grid-item {
+.weather-block {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    padding: 15px;
+    border-radius: 12px;
+    background: #F9FAFB;
+    border: 1px solid #F3F4F6;
 }
 
-/* 如果是中間的項目，加上左右邊框分隔線 */
-.grid-item:nth-child(2) {
-    border-left: 1px solid #E5E7EB;
-    border-right: 1px solid #E5E7EB;
+.block-label {
+    font-size: 0.85rem;
+    color: #6B7280;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.grid-label {
-    font-size: 0.8rem;
-    color: #6B7280; /* 灰色標籤 */
-    margin-bottom: 4px;
+.block-location {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 10px;
+    word-break: break-word;
+    line-height: 1.2;
+}
+
+.block-weather {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.block-weather span:first-child {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+.block-weather span:nth-child(2) {
+    font-size: 0.9rem;
+    color: #6B7280;
     font-weight: 500;
 }
 
-.grid-value {
-    font-size: 1.1rem;
+.block-diff {
+    font-size: 1.8rem;
     font-weight: 700;
-    color: #1F2937; /* 深色數值 */
-    white-space: nowrap; /* 防止文字換行 */
+    color: #1F2937;
+    margin-top: 10px;
 }
 
 /* 溫差正負值顏色 */
@@ -4403,33 +4430,30 @@ header.is-night {
 
             <!-- Main Result -->
             <div id="weather-result" style="display:none;">
-                <div id="weather-dashboard" class="weather-grid">
-    <div class="grid-item">
-        <span class="grid-label">所在地</span>
-        <span id="current-loc-display" class="grid-value">定位中...</span>
+                <div id="weather-dashboard" class="weather-blocks">
+    <div class="weather-block">
+        <div class="block-label">所在地</div>
+        <div class="block-location" id="current-loc-display">定位中...</div>
+        <div class="block-weather">
+            <span id="current-temp-display">--°</span>
+            <span id="current-weather-display">--</span>
+            <div id="current-weather-icon" class="weather-icon-small"></div>
+        </div>
     </div>
     
-    <div class="grid-item">
-        <span class="grid-label">查詢地</span>
-        <span id="target-loc-display" class="grid-value">--</span>
-    </div>
-
-    <div class="grid-item">
-        <span class="grid-label">查詢地溫度</span>
-        <span id="target-temp-display" class="grid-value">--°</span>
-    </div>
-
-    <div class="grid-item">
-        <span class="grid-label">天氣狀態</span>
-        <div class="grid-value weather-status">
+    <div class="weather-block">
+        <div class="block-label">查詢地</div>
+        <div class="block-location" id="target-loc-display">--</div>
+        <div class="block-weather">
+            <span id="target-temp-display">--°</span>
             <span id="target-weather-display">--</span>
             <div id="target-weather-icon" class="weather-icon-small"></div>
         </div>
     </div>
 
-    <div class="grid-item">
-        <span class="grid-label">溫差</span>
-        <span id="temp-diff-display" class="grid-value">--</span>
+    <div class="weather-block">
+        <div class="block-label">溫差</div>
+        <div class="block-diff" id="temp-diff-display">--</div>
     </div>
 </div>
 
@@ -5784,6 +5808,12 @@ function getSmartAdviceText(temp, weatherCode) {
             document.getElementById('wc-advice').innerText = '...';
 
             // 重置圖示
+            const targetIconElement = document.getElementById('target-weather-icon');
+            if (targetIconElement) {
+                targetIconElement.className = 'weather-icon-small';
+            }
+
+            // 重置圖示
             const iconElement = document.getElementById('target-weather-icon');
             if (iconElement) {
                 iconElement.className = 'weather-icon-small';
@@ -6058,6 +6088,18 @@ if (typeof currentTemp !== 'undefined' && typeof targetTemp !== 'undefined') {
                     // 更新weather-dashboard中的所在地顯示
                     const currentLocDisplay = document.getElementById('current-loc-display');
                     if(currentLocDisplay) currentLocDisplay.textContent = displayZh;
+                    
+                    // 更新當前位置的天氣顯示
+                    const currentTempDisplay = document.getElementById('current-temp-display');
+                    const currentWeatherDisplay = document.getElementById('current-weather-display');
+                    const currentWeatherIcon = document.getElementById('current-weather-icon');
+                    
+                    if(currentTempDisplay) currentTempDisplay.textContent = tempStr;
+                    if(currentWeatherDisplay) currentWeatherDisplay.textContent = getWeatherDesc(code);
+                    if(currentWeatherIcon) {
+                        const iconClass = getWeatherIconClass(code);
+                        currentWeatherIcon.className = `weather-icon-small ${iconClass}`;
+                    }
                     
                     // 存檔與比對
                     window.appCache = window.appCache || {};
