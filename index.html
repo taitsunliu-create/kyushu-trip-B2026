@@ -4318,7 +4318,7 @@ header.is-night {
             <div id="wc-my-temp" style="font-size: 18px; font-weight: 700; color: #374151;">--°</div>
         </div>
 
-        <div style="background: #5A92E8; color: white; padding: 8px 4px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div id="wc-box-main" style="background: #5A92E8; color: white; padding: 8px 4px; border-radius: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid transparent; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.3s ease;">
             <div id="wc-loc" style="font-size: 14px; font-weight: 500; margin-bottom: 0px; line-height: 1.2;">查詢中</div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
                 <span id="wc-temp" style="font-size: 24px; font-weight: 700;">--°</span>
@@ -5769,6 +5769,37 @@ function getSmartAdviceText(temp, weatherCode) {
                 const temp = weatherData.current_weather.temperature;
                 const weatherCode = weatherData.current_weather.weathercode;
 
+                // --- [專家優化 Start]：依據即時氣溫動態調整背景顏色 ---
+    const boxMain = document.getElementById('wc-box-main');
+    const tempText = document.getElementById('wc-temp');
+    
+    // 清除舊的行內樣式 (重置為動態配色)
+    boxMain.style.color = ''; 
+    
+    if (temp < 15) {
+        // 🥶 寒冷 (藍色系：淺藍底 + 深藍字)
+        boxMain.style.background = '#EFF6FF'; // 淺藍背景
+        boxMain.style.borderColor = '#BFDBFE'; // 藍色邊框
+        boxMain.style.color = '#1E3A8A';       // 深藍文字 (地名)
+        tempText.style.color = '#2563EB';      // 亮藍氣溫
+        // 修正陰影顏色為藍色調
+        boxMain.style.boxShadow = '0 4px 10px rgba(37, 99, 235, 0.15)';
+    } else if (temp >= 15 && temp <= 25) {
+        // 🍃 舒適 (綠色系：淺綠底 + 深綠字)
+        boxMain.style.background = '#ECFDF5'; // 淺綠背景
+        boxMain.style.borderColor = '#6EE7B7'; // 綠色邊框
+        boxMain.style.color = '#064E3B';       // 深綠文字
+        tempText.style.color = '#059669';      // 亮綠氣溫
+        boxMain.style.boxShadow = '0 4px 10px rgba(5, 150, 105, 0.15)';
+    } else {
+        // 🥵 炎熱 (橘色系：淺橘底 + 深橘字)
+        boxMain.style.background = '#FFF7ED'; // 淺橘背景
+        boxMain.style.borderColor = '#FED7AA'; // 橘色邊框
+        boxMain.style.color = '#7C2D12';       // 深褐文字
+        tempText.style.color = '#EA580C';      // 亮橘氣溫
+        boxMain.style.boxShadow = '0 4px 10px rgba(234, 88, 12, 0.15)';
+    }
+    // --- [專家優化 End] ---
                 // Update UI with Vertical English Name (上下分層)
                 let displayLocHtml = rawInput;
                 if (searchTerm && searchTerm.toLowerCase() !== rawInput.toLowerCase()) {
