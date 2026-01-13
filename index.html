@@ -2260,6 +2260,8 @@ header.is-night {
     0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.3; }
     50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
 }
+
+
   </style>
 </head>
 <body>
@@ -4290,54 +4292,69 @@ header.is-night {
                     </div>
                 </div>
             </div>
-           <div class="card" style="padding: 25px 20px; border: 2px solid #3B82F6; box-shadow: 0 4px 12px rgba(37,99,235,0.1);">
-            <div class="card-header" style="border-bottom: none; margin-bottom: 15px; padding-bottom: 0;">
-                <div class="card-title" style="display: flex; align-items: center; gap: 8px; font-size: 1.1rem; color: var(--primary);">
-                    <svg class="icon-mini" style="width: 20px; height: 20px;"><use href="#icon-earth"></use></svg>
-                    即時天氣與穿搭
+            <div class="card">
+            <div class="card-header">
+                <!-- 修正 1: 將 Emoji 🌍 換成簡約 SVG 地球圖示 -->
+                <div class="card-title" style="display: flex; align-items: center; gap: 6px;">
+                    <svg class="icon-mini" style="color: var(--primary);"><use href="#icon-earth"></use></svg>
+                    即時天氣查詢 & 穿衣建議
                 </div>
             </div>
             
-            <div class="weather-search-box" style="display: flex; gap: 8px; margin-bottom: 20px;">
-                <input type="text" id="weather-city-input" class="weather-input" style="flex: 1; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px;" placeholder="輸入城市 (如: 熊本)">
-                <button class="btn-weather-search" onclick="fetchRealtimeWeather()" style="white-space: nowrap; padding: 0 20px;">查詢</button>
+            <div class="weather-search-box">
+                <input type="text" id="weather-city-input" class="weather-input" placeholder="輸入城市 (例如: 熊本, 由布院)">
+                <button class="btn-weather-search" onclick="fetchRealtimeWeather()">查詢</button>
             </div>
 
+            <!-- Main Result -->
             <div id="weather-result" style="display:none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #F3F4F6; border-radius: 12px; padding: 15px 20px; margin-bottom: 15px;">
-                    
-                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                        <div id="wc-temp" style="font-size: 3rem; font-weight: 700; line-height: 1; color: var(--primary);">--°</div>
-                        <div id="wc-desc" style="font-size: 0.9rem; color: #6B7280; margin-top: 5px;">載入中...</div>
-                    </div>
+                <div class="weather-card-main">
+                    <div class="wc-loc" id="wc-loc">--</div>
+                    <div class="wc-temp-big" id="wc-temp">--°</div>
+                    <div class="wc-desc" id="wc-desc">載入中...</div>
+                </div>
 
-                    <div style="text-align: right;">
-                        <div id="wc-loc" style="font-size: 1.2rem; font-weight: 600; color: #1F2937; margin-bottom: 4px;">--</div>
-                        
-                        <div onclick="getLocalWeather()" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--primary); background: #DBEAFE; padding: 4px 8px; border-radius: 6px; cursor: pointer;">
-                            <svg class="icon-mini" style="width: 14px; height: 14px;"><use href="#icon-loc"></use></svg>
-                            <span>我的位置: <span id="wc-my-temp">--°</span></span>
+                <!-- Comparison Row -->
+                <div class="weather-compare-row">
+                    <div class="wc-mini-card" onclick="getLocalWeather()" style="cursor:pointer; background:#F9FAFB;">
+                        <!-- 修正 1: 我的位置圖示 (Pin) -->
+                        <div id="wc-loc-box" class="wc-mini-title" style="display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="getLocalWeather()">
+    <svg class="icon-mini" style="color: #EF4444;"><use href="#icon-loc"></use></svg>
+    <span>我的位置 (點擊更新)</span>
+</div>
+                        <div class="wc-mini-temp" id="wc-my-temp">--°</div>
+                    </div>
+                    <div class="wc-mini-card">
+                        <!-- 修正 2: 溫差對比圖示 (Thermometer) -->
+                        <div class="wc-mini-title" style="display: flex; align-items: center; justify-content: center;">
+                            <svg class="icon-mini" style="color: #3B82F6;"><use href="#icon-temp"></use></svg>
+                            溫差對比
                         </div>
-                        <div id="wc-diff-tag" class="wc-diff-tag" style="display:none; font-size: 0.75rem; margin-top: 4px;">--</div>
+                        <div id="wc-diff-tag" class="wc-diff-tag" style="display:none;">--</div>
+                        <div id="wc-diff-text" style="font-size:0.8rem; color:#666; margin-top:2px;">--</div>
                     </div>
                 </div>
 
-                <div class="advice-box" style="background: #ECFDF5; border: 1px solid #A7F3D0; padding: 12px; border-radius: 8px;">
-                    <strong style="display: flex; align-items: center; gap: 6px; color: #047857; font-size: 0.9rem; margin-bottom: 4px;">
-                        <svg class="icon-mini" style="width: 16px; height: 16px;"><use href="#icon-shirt"></use></svg>
-                        AI 穿衣建議
+                <!-- AI Advice -->
+                <div class="advice-box">
+                    <!-- 修正 3: 穿衣建議圖示 (Shirt) -->
+                    <strong style="display: flex; align-items: center; gap: 4px;">
+                        <svg class="icon-mini" style="color: #059669;"><use href="#icon-shirt"></use></svg>
+                        AI 穿衣建議：
                     </strong>
-                    <div id="wc-advice" style="font-size: 0.9rem; color: #065F46; line-height: 1.4;">分析氣候數據中...</div>
+                    <div style="margin-top: 5px;" id="wc-advice">分析氣候數據中...</div>
                 </div>
                 
-                <div style="font-size: 0.7rem; color: #9CA3AF; text-align: center; margin-top: 10px;">
-                    Open-Meteo API • Gemini AI
+                <div style="font-size: 0.75rem; color: #9CA3AF; text-align: center; margin-top: 15px;">
+                    * 天氣數據來源：Open-Meteo Real-time API<br>
+                    * 穿衣建議由 Google Gemini AI 分析生成
                 </div>
             </div>
-
-            <div id="weather-placeholder" style="text-align: center; padding: 20px; color: #9CA3AF; display: block;">
-                <svg viewBox="0 0 24 24" style="width: 40px; height: 40px; stroke: #D1D5DB; fill: none; stroke-width: 1.5; margin-bottom: 8px;"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>
-                <div style="font-size: 0.9rem;">請輸入城市查詢</div>
+            
+            <!-- Default / Loading State -->
+            <div id="weather-placeholder" style="text-align: center; padding: 40px; color: #9CA3AF;">
+                <svg viewBox="0 0 24 24" style="width: 60px; height: 60px; stroke: #D1D5DB; fill: none; stroke-width: 1.5; margin-bottom: 10px;"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>
+                <div>請輸入城市名稱查詢即時天氣</div>
             </div>
         </div>
 
