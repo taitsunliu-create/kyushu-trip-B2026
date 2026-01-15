@@ -10,6 +10,11 @@
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -4823,10 +4828,10 @@ header.is-night {
         </div>
     </div>
 
-    <!-- TAB 6: 即時天氣 (New) -->
-    <div id="view-weather" class="container">
-        
-    </div>
+    
+    <div id="view-ledger" class="view-section" style="display: none;">
+           <FinanceNote isDarkMode={isDarkMode} />
+        </div>
 
     <!-- 自定義彈出視窗 HTML -->
     <div id="location-modal" class="modal-overlay">
@@ -4970,11 +4975,11 @@ header.is-night {
             旅遊資訊
         </div>
         
-        <div class="nav-item" data-target="view-weather" onclick="switchTab(this)">
+        <div class="nav-item" data-target="view-ledger" onclick="switchTab(this)">
             <span class="nav-icon">
                 <svg class="icon-sprite"><use href="#icon-weather"></use></svg>
             </span>
-            旅遊管家
+            旅程紀錄
         </div>
 
         <div class="nav-item" data-target="view-ai" onclick="switchTab(this)">
@@ -5163,10 +5168,15 @@ const encryptedGeminiKey = "U2FsdGVkX1/64ozwLOVc7Q7oTx058ndDWtXLLJ6Ri7cafbqjyyab
 // 用於 Google Places (分享位置時抓地標名稱)
 const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ=="; 
 
+// --- ★ 新增以下兩行 (請填入第二階段取得的密文) ---
+const encryptedGasUrl = "U2FsdGVkX18pjR8a/nsHUUwzpDZyknKi9KFfDCYWamftOEg7kr7mUoBnTXQMEjbPAjYDH/UFcuVluQT4e2brMOJUiPlwmF82JWrZ92NfE0KEp0zv/EH6Ofc9am0siPmd9SW2pFMT/oM62GT/hSPyigvke58sHNM9pM72Rlm3auAC2l3AccZWSqJCiGQ9PffR"; // 填入您的 URL 密文
+const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
+
 // [修改] 2. 用來暫存解密後的 Key
 let geminiKey = ""; 
 let googleKey = "";
-
+let gasUrl = ""; // ★ 新增：Google Apps Script URL
+let gasToken = ""; // ★ 新增：Google Apps Script Token
 
 // [新增] 對話歷史紀錄 (讓 AI 記住前幾句話)
     let conversationHistory = [];
@@ -5218,12 +5228,18 @@ function getKey(type) {
         // D. 嘗試用同一組密碼解開兩把鑰匙
         const g_key = decrypt(encryptedGeminiKey);
         const p_key = decrypt(encryptedPlacesKey);
+// ★★★ [插入點 1]：順便解密 GAS 資料 ★★★
+        const g_url = decrypt(encryptedGasUrl);
+        const g_token = decrypt(encryptedGasToken);
 
         // E. 驗證 (只要其中一把成功解出 AIza 開頭，就視為密碼正確)
         // 注意：若您只有設其中一個，另一個留空字串也沒關係
         if (g_key.startsWith("AIza") || p_key.startsWith("AIza")) {
             geminiKey = g_key;
             googleKey = p_key;
+            // ★★★ [插入點 2]：密碼驗證成功後，將 GAS 資料存入全域變數 ★★★
+            gasUrl = g_url;
+            gasToken = g_token;
             localStorage.setItem("app_password", password); // 密碼正確，存起來
             
             return type === 'gemini' ? geminiKey : googleKey;
@@ -5239,9 +5255,132 @@ function getKey(type) {
         return null;
     }
 }
-        // Weather Data Configuration
-        // Icons: Using simple SVG strings for white icons
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ [GAS 記帳功能模組] ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
+// 1. API Helper (無 export，直接定義)
+const financeHelper = {
+    callGemini: async (payload, key) => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        try {
+            const res = await fetch(url, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+            return await res.json();
+        } catch(e) { return null; }
+    },
+    parseReceipt: async (base64, key) => {
+        const prompt = "分析收據圖片，回傳JSON:{\"date\":\"YYYY-MM-DD\",\"amount\":數字,\"currency\":\"TWD\"或\"JPY\",\"item\":\"摘要\",\"category\":\"食/衣/住/行/育/樂/他\"}";
+        const payload = { contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }] };
+        const data = await financeHelper.callGemini(payload, key);
+        try { return JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim()); } catch(e){ return null; }
+    },
+    fetchGAS: async () => { // 直接使用全域變數 gasUrl, gasToken
+        if(!gasUrl || !gasToken) return [];
+        try {
+            const res = await fetch(`${gasUrl}?token=${encodeURIComponent(gasToken)}&action=getAll`);
+            const json = await res.json();
+            return json.status==='success' ? json.data.map(r=>{
+                try{ return {...r, user: typeof r.user==='object'?r.user:JSON.parse(r.user)}; }catch(e){ return {...r, user:{name:String(r.user)}}; }
+            }) : [];
+        } catch(e){ return []; }
+    },
+    uploadGAS: async (data) => {
+        await fetch(`${gasUrl}?token=${encodeURIComponent(gasToken)}`, {
+            method: 'POST', mode: 'no-cors', headers: {'Content-Type':'text/plain;charset=utf-8'},
+            body: JSON.stringify(data)
+        });
+    }
+};
+
+// 2. UI Component
+const FinanceNote = ({ isDarkMode }) => {
+    const { Camera, Plus, Loader, Save, X } = LucideReact;
+    const [records, setRecords] = React.useState([]);
+    const [showForm, setShowForm] = React.useState(false);
+    const [loading, setLoading] = React.useState(false);
+    const [processing, setProcessing] = React.useState(false);
+    const [newItem, setNewItem] = React.useState({ date: new Date().toISOString().split('T')[0], amount: '', currency: 'JPY', item: '', category: '食' });
+
+    // 初始載入：確保有 Key 才載入
+    React.useEffect(() => {
+        if (gasUrl) loadRecords();
+    }, []);
+
+    const loadRecords = async () => {
+        setLoading(true);
+        const data = await financeHelper.fetchGAS();
+        setRecords(data);
+        setLoading(false);
+    };
+
+    const handlePhoto = async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        setProcessing(true);
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            // 使用 getKey('gemini') 確保有 Key (若無會跳出 prompt)
+            const gKey = getKey('gemini'); 
+            if(!gKey) { setProcessing(false); return; }
+            
+            const res = await financeHelper.parseReceipt(reader.result.split(',')[1], gKey);
+            if(res) { setNewItem(p=>({...p, ...res})); setShowForm(true); }
+            else alert("辨識失敗");
+            setProcessing(false);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSubmit = async () => {
+        setProcessing(true);
+        // 這裡您可以自定義使用者名稱
+        await financeHelper.uploadGAS({...newItem, type:'finance', user:{name:'Me'}});
+        await new Promise(r=>setTimeout(r,1500));
+        await loadRecords();
+        setShowForm(false);
+        setProcessing(false);
+    };
+
+    const themeClass = isDarkMode ? 'bg-neutral-900 text-white' : 'bg-stone-50 text-stone-800';
+    const cardClass = isDarkMode ? 'bg-neutral-800 border-neutral-700' : 'bg-white shadow-sm border-stone-200';
+
+    return (
+        <div className={`w-full h-full flex flex-col ${themeClass}`}>
+            <div className="p-4 flex gap-2">
+                <button onClick={()=>setShowForm(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2"><Plus size={18}/> 記帳</button>
+                <label className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 cursor-pointer">
+                    <Camera size={18}/> {processing?'...':'掃描'} <input type="file" hidden accept="image/*" onChange={handlePhoto} disabled={processing}/>
+                </label>
+                <button onClick={loadRecords} className="ml-auto p-2 border rounded-full"><Loader size={18} className={loading?'animate-spin':''}/></button>
+            </div>
+
+            {showForm && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                    <div className={`w-full max-w-sm p-6 rounded-xl space-y-3 ${isDarkMode?'bg-neutral-800':'bg-white'}`}>
+                        <h3 className="font-bold text-xl flex justify-between">新增 <button onClick={()=>setShowForm(false)}><X/></button></h3>
+                        <input type="date" className="w-full p-2 rounded border text-black" value={newItem.date} onChange={e=>setNewItem({...newItem, date:e.target.value})}/>
+                        <div className="flex gap-2">
+                            <select className="p-2 rounded border text-black" value={newItem.currency} onChange={e=>setNewItem({...newItem, currency:e.target.value})}><option>JPY</option><option>TWD</option></select>
+                            <input type="number" className="w-full p-2 rounded border text-black" placeholder="金額" value={newItem.amount} onChange={e=>setNewItem({...newItem, amount:e.target.value})}/>
+                        </div>
+                        <input type="text" className="w-full p-2 rounded border text-black" placeholder="項目" value={newItem.item} onChange={e=>setNewItem({...newItem, item:e.target.value})}/>
+                        <select className="w-full p-2 rounded border text-black" value={newItem.category} onChange={e=>setNewItem({...newItem, category:e.target.value})}>
+                            {['食','衣','住','行','育','樂','他'].map(c=><option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <button onClick={handleSubmit} disabled={processing} className="w-full py-3 bg-blue-600 text-white rounded-lg">{processing?'儲存中':'儲存'}</button>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {records.map((r,i)=>(
+                    <div key={i} className={`p-4 rounded-xl flex justify-between items-center border ${cardClass}`}>
+                        <div><div className="font-bold">{r.item}</div><div className="text-xs opacity-60">{r.date.split('T')[0]}</div></div>
+                        <div className="font-mono font-bold">{r.currency} {r.amount}</div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
 
         const tripConfig = {
     'd1': {
