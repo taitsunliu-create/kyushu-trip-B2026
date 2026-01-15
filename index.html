@@ -2266,6 +2266,58 @@ header.is-night {
     50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
 }
 
+/* --- [新增] 夥伴分頁與記帳樣式 Start --- */
+.note-item, .finance-item {
+    background: #fff;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    font-size: 14px;
+}
+.note-meta, .finance-meta {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+}
+.finance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+}
+.amount-display {
+    color: #ef4444; /* 紅色金額 */
+    font-weight: bold;
+}
+/* 簡易彈出視窗 (Modal) */
+.modal-overlay {
+    display: none; /* 預設隱藏 */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 320px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; margin-bottom: 4px; font-size: 13px; color:#666; }
+.form-control {
+    width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
+}
+.btn-group { display: flex; gap: 10px; margin-top: 15px; }
+.btn-cancel { background: #f3f4f6; color: #333; flex: 1; border:none; padding:10px; border-radius:6px;}
+.btn-submit { background: #2563EB; color: #fff; flex: 1; border:none; padding:10px; border-radius:6px;}
+/* --- [新增] 夥伴分頁與記帳樣式 End --- */
 
   </style>
 </head>
@@ -4975,7 +5027,7 @@ header.is-night {
             旅遊資訊
         </div>
         
-        <div class="nav-item" data-target="view-ledger" onclick="switchTab(this)">
+        <div class="nav-item" data-target="view-ledger" onclick="switchTab(this); loadPartnerData()">
             <span class="nav-icon">
                 <svg class="icon-sprite"><use href="#icon-weather"></use></svg>
             </span>
@@ -8913,7 +8965,216 @@ function getSimpleIconSvg(code, pop, uid, isNight = false) {
 
     return `<svg ${commonAttr}>${defs}${path}</svg>`;
 }
+function createJSONOutput(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+/* --- [新增] GAS 串接邏輯 Start --- */
+
+// 1. 設定區 (請替換為您的真實資料)
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbweydoaEyGg09e1maUHo7qqYphKJZ_Avp5jj9OpVdw6i3dw1F4FD2PsoT4cv_Wl6Gwm4A/exec'; 
+const AUTH_TOKEN = 'Hh20082920'; // 必須與 backend.gs 設定的一致
+
+// 模擬當前使用者 (之後可做登入功能，目前先寫死)
+const CURRENT_USER = { name: "爸爸", avatar: "👨🏻" };
+
+// 2. 初始化與讀取
+// 修改原本 switchTab 邏輯：如果您在 HTML onclick 裡呼叫此函式，請確保這裡會被執行
+// 建議您直接在「夥伴」按鈕的 onclick 事件加上 ;loadPartnerData()
+// 例如：onclick="switchTab('view-partner', this); loadPartnerData()"
+
+async function loadPartnerData() {
+    const noteList = document.getElementById('partner-notes-list');
+    const accList = document.getElementById('accounting-list');
+    
+    // 顯示載入中
+    noteList.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">資料同步中...</div>';
+    
+    try {
+        const response = await fetch(GAS_API_URL);
+        const json = await response.json();
+        
+        if(json.status === 'success' || Array.isArray(json)) {
+            // 兼容兩種回傳格式 (直接陣列或包含 status 的物件)
+            const data = json.data || json; 
+            renderPartnerView(data);
+        } else {
+            console.error('Data format error', json);
+        }
+    } catch (e) {
+        noteList.innerHTML = '<div style="color:red; text-align:center;">連線失敗，請稍後再試</div>';
+        console.error(e);
+    }
+}
+
+// 3. 渲染畫面
+function renderPartnerView(data) {
+    const noteList = document.getElementById('partner-notes-list');
+    const accList = document.getElementById('accounting-list');
+    
+    let noteHTML = '';
+    let accHTML = '';
+    
+    data.forEach(item => {
+        // 判斷資料類型 (根據 backend.gs 的回傳欄位，這裡假設有 amount 則為記帳，否則為記事)
+        // 或者根據 item.type (若後端有回傳)
+        
+        // 處理使用者顯示
+        let userDisplay = item.user || '未知';
+        if(typeof item.user === 'string' && item.user.startsWith('{')) {
+             try { let u = JSON.parse(item.user); userDisplay = `${u.avatar} ${u.name}`; } catch(e){}
+        }
+
+        // 時間格式化
+        const dateStr = new Date(item.timestamp || item.date).toLocaleString('zh-TW', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
+
+        if (item.amount !== undefined && item.amount !== '') {
+            // --- 記帳資料 ---
+            // 判斷類別圖示
+            const catMap = {'食':'🍔','住':'🏨','行':'🚗','樂':'🎟️','公':'💰'};
+            const icon = catMap[item.category] || '💸';
+            
+            accHTML += `
+                <div class="finance-item">
+                    <div class="finance-meta">
+                        <span>${dateStr}</span>
+                        <span>${userDisplay}</span>
+                    </div>
+                    <div class="finance-row">
+                        <span style="display:flex; align-items:center; gap:5px;">
+                            <span>${icon}</span> ${item.item}
+                        </span>
+                        <span class="amount-display">¥${Number(item.amount).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            // --- 記事資料 ---
+            noteHTML += `
+                <div class="note-item">
+                    <div class="note-meta">
+                        <span>${userDisplay}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                    <div style="line-height:1.4;">${item.content || item.item}</div>
+                </div>
+            `;
+        }
+    });
+    
+    noteList.innerHTML = noteHTML || '<div style="text-align:center; color:#ccc;">尚無記事</div>';
+    accList.innerHTML = accHTML || '<div style="text-align:center; color:#ccc; padding:10px;">尚無消費紀錄</div>';
+}
+
+// 4. 發送記事功能
+async function addNote() {
+    const input = document.getElementById('note-input');
+    const content = input.value.trim();
+    if(!content) return;
+    
+    input.value = ''; // 清空
+    input.placeholder = '傳送中...';
+    
+    const payload = {
+        token: AUTH_TOKEN,
+        action: 'addNote',
+        user: CURRENT_USER,
+        content: content
+    };
+    
+    await sendToGAS(payload);
+    loadPartnerData(); // 重新讀取
+    input.placeholder = '輸入記事...';
+}
+
+// 5. 記帳相關功能
+function openAccountingModal() {
+    document.getElementById('accounting-modal').style.display = 'flex';
+}
+function closeAccountingModal() {
+    document.getElementById('accounting-modal').style.display = 'none';
+}
+
+async function submitAccounting() {
+    const item = document.getElementById('acc-item').value;
+    const amount = document.getElementById('acc-amount').value;
+    const category = document.getElementById('acc-category').value;
+    
+    if(!item || !amount) { alert('請輸入完整資訊'); return; }
+    
+    // 關閉視窗並顯示載入
+    closeAccountingModal();
+    const btnText = document.querySelector('button[onclick="openAccountingModal()"]');
+    const originText = btnText.innerText;
+    btnText.innerText = '儲存中...';
+    
+    const payload = {
+        token: AUTH_TOKEN,
+        action: 'addFinance',
+        user: CURRENT_USER,
+        item: item,
+        amount: Number(amount),
+        category: category
+    };
+    
+    await sendToGAS(payload);
+    
+    // 重置與重整
+    document.getElementById('acc-item').value = '';
+    document.getElementById('acc-amount').value = '';
+    btnText.innerText = originText;
+    loadPartnerData();
+}
+
+// 共用發送函式
+async function sendToGAS(data) {
+    try {
+        await fetch(GAS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors', // GAS 跨網域限制通常需要 no-cors，但這樣無法讀取回傳值
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        // 因 no-cors 模式無法確認成功與否，這裡直接假設成功
+        // 若您的 GAS 部署為 "Anyone" 且非 no-cors，則可改為正常 fetch 處理
+    } catch (e) {
+        alert('發送失敗，請檢查網路');
+        console.error(e);
+    }
+}
+/* --- [新增] GAS 串接邏輯 End --- */
     </script>
     </div>
-</body>
+    <div id="accounting-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="margin-top:0; text-align:center;">新增一筆消費</h3>
+        
+        <div class="form-group">
+            <label>消費項目</label>
+            <input type="text" id="acc-item" class="form-control" placeholder="例如：便利商店、晚餐">
+        </div>
+        
+        <div class="form-group">
+            <label>金額 (日幣)</label>
+            <input type="number" id="acc-amount" class="form-control" placeholder="0">
+        </div>
+
+        <div class="form-group">
+            <label>類別</label>
+            <select id="acc-category" class="form-control">
+                <option value="食">🍔 餐飲 (食)</option>
+                <option value="住">🏨 住宿 (住)</option>
+                <option value="行">🚗 交通 (行)</option>
+                <option value="樂">🎟️ 門票/購物 (樂)</option>
+                <option value="公">💰 公費儲值</option>
+            </select>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-cancel" onclick="closeAccountingModal()">取消</button>
+            <button class="btn-submit" onclick="submitAccounting()">儲存</button>
+        </div>
+    </div>
+</div>
+    </body>
 </html>
