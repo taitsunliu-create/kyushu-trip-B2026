@@ -5255,75 +5255,81 @@ function getKey(type) {
         return null;
     }
 }
-// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ [GAS 記帳功能模組] ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+// ▼▼▼▼▼▼▼▼ [FinanceNote 元件] 請貼在 Main App 宣告之前 ▼▼▼▼▼▼▼▼
 
-// 1. API Helper (無 export，直接定義)
+// 1. 獨立的 API Helper (直接讀取全域變數 gasUrl, gasToken)
 const financeHelper = {
-    callGemini: async (payload, key) => {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+    fetchGAS: async () => {
+        // 確保全域變數存在
+        if (typeof gasUrl === 'undefined' || !gasUrl) return [];
         try {
-            const res = await fetch(url, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
-            return await res.json();
-        } catch(e) { return null; }
-    },
-    parseReceipt: async (base64, key) => {
-        const prompt = "分析收據圖片，回傳JSON:{\"date\":\"YYYY-MM-DD\",\"amount\":數字,\"currency\":\"TWD\"或\"JPY\",\"item\":\"摘要\",\"category\":\"食/衣/住/行/育/樂/他\"}";
-        const payload = { contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }] };
-        const data = await financeHelper.callGemini(payload, key);
-        try { return JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim()); } catch(e){ return null; }
-    },
-    fetchGAS: async () => { // 直接使用全域變數 gasUrl, gasToken
-        if(!gasUrl || !gasToken) return [];
-        try {
-            const res = await fetch(`${gasUrl}?token=${encodeURIComponent(gasToken)}&action=getAll`);
+            const url = `${gasUrl}?token=${encodeURIComponent(gasToken)}&action=getAll`;
+            const res = await fetch(url);
             const json = await res.json();
-            return json.status==='success' ? json.data.map(r=>{
-                try{ return {...r, user: typeof r.user==='object'?r.user:JSON.parse(r.user)}; }catch(e){ return {...r, user:{name:String(r.user)}}; }
-            }) : [];
-        } catch(e){ return []; }
+            return json.status === 'success' ? json.data : [];
+        } catch (e) { console.error(e); return []; }
     },
     uploadGAS: async (data) => {
-        await fetch(`${gasUrl}?token=${encodeURIComponent(gasToken)}`, {
-            method: 'POST', mode: 'no-cors', headers: {'Content-Type':'text/plain;charset=utf-8'},
+        if (typeof gasUrl === 'undefined' || !gasUrl) return;
+        const url = `${gasUrl}?token=${encodeURIComponent(gasToken)}`;
+        await fetch(url, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(data)
         });
+    },
+    parseReceipt: async (base64, apiKey) => {
+        if (!apiKey) return null;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const prompt = "分析圖片回傳JSON:{\"date\":\"YYYY-MM-DD\",\"amount\":數字,\"currency\":\"TWD\"或\"JPY\",\"item\":\"摘要\",\"category\":\"食/衣/住/行/育/樂/他\"}";
+        try {
+            const res = await fetch(url, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64 } }] }] })
+            });
+            const json = await res.json();
+            const text = json.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+            return JSON.parse(text);
+        } catch (e) { return null; }
     }
 };
 
-// 2. UI Component
+// 2. 記帳 UI 元件
 const FinanceNote = ({ isDarkMode }) => {
-    const { Camera, Plus, Loader, Save, X } = LucideReact;
+    const { Camera, Plus, Loader, X, Save } = LucideReact; // 確保 Lucide 已載入
     const [records, setRecords] = React.useState([]);
     const [showForm, setShowForm] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [processing, setProcessing] = React.useState(false);
     const [newItem, setNewItem] = React.useState({ date: new Date().toISOString().split('T')[0], amount: '', currency: 'JPY', item: '', category: '食' });
 
-    // 初始載入：確保有 Key 才載入
+    // 載入資料 (當元件被渲染時執行)
     React.useEffect(() => {
-        if (gasUrl) loadRecords();
+        // 簡單檢查全域變數是否已準備好
+        if (typeof gasUrl !== 'undefined' && gasUrl) {
+            setLoading(true);
+            financeHelper.fetchGAS().then(data => {
+                setRecords(data);
+                setLoading(false);
+            });
+        }
     }, []);
-
-    const loadRecords = async () => {
-        setLoading(true);
-        const data = await financeHelper.fetchGAS();
-        setRecords(data);
-        setLoading(false);
-    };
 
     const handlePhoto = async (e) => {
         const file = e.target.files[0];
-        if(!file) return;
+        if (!file) return;
         setProcessing(true);
         const reader = new FileReader();
         reader.onloadend = async () => {
-            // 使用 getKey('gemini') 確保有 Key (若無會跳出 prompt)
-            const gKey = getKey('gemini'); 
-            if(!gKey) { setProcessing(false); return; }
-            
-            const res = await financeHelper.parseReceipt(reader.result.split(',')[1], gKey);
-            if(res) { setNewItem(p=>({...p, ...res})); setShowForm(true); }
-            else alert("辨識失敗");
+            // 使用您原本的 getKey 函式來取得目前的 Gemini Key
+            const gKey = getKey ? getKey('gemini') : null;
+            if (gKey) {
+                const res = await financeHelper.parseReceipt(reader.result.split(',')[1], gKey);
+                if (res) { setNewItem(prev => ({ ...prev, ...res })); setShowForm(true); }
+            } else {
+                alert("請先登入解鎖 API Key");
+            }
             setProcessing(false);
         };
         reader.readAsDataURL(file);
@@ -5331,56 +5337,70 @@ const FinanceNote = ({ isDarkMode }) => {
 
     const handleSubmit = async () => {
         setProcessing(true);
-        // 這裡您可以自定義使用者名稱
-        await financeHelper.uploadGAS({...newItem, type:'finance', user:{name:'Me'}});
-        await new Promise(r=>setTimeout(r,1500));
-        await loadRecords();
+        // 上傳資料 (user 欄位可依需求修改)
+        await financeHelper.uploadGAS({ ...newItem, type: 'finance', user: { name: 'Me' } });
+        await new Promise(r => setTimeout(r, 1500)); // 等待 GAS 寫入
+        const data = await financeHelper.fetchGAS(); // 重新整理
+        setRecords(data);
         setShowForm(false);
         setProcessing(false);
     };
 
-    const themeClass = isDarkMode ? 'bg-neutral-900 text-white' : 'bg-stone-50 text-stone-800';
-    const cardClass = isDarkMode ? 'bg-neutral-800 border-neutral-700' : 'bg-white shadow-sm border-stone-200';
+    // 樣式設定
+    const themeText = isDarkMode ? 'text-white' : 'text-stone-800';
+    const themeBg = isDarkMode ? 'bg-neutral-900' : 'bg-stone-50';
+    const cardBg = isDarkMode ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-stone-200 shadow-sm';
 
     return (
-        <div className={`w-full h-full flex flex-col ${themeClass}`}>
-            <div className="p-4 flex gap-2">
-                <button onClick={()=>setShowForm(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2"><Plus size={18}/> 記帳</button>
-                <label className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 cursor-pointer">
-                    <Camera size={18}/> {processing?'...':'掃描'} <input type="file" hidden accept="image/*" onChange={handlePhoto} disabled={processing}/>
+        <div className={`w-full h-full flex flex-col ${themeBg} ${themeText}`}>
+            {/* 工具列 */}
+            <div className="p-4 flex gap-2 shrink-0">
+                <button onClick={() => setShowForm(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2 shadow active:scale-95 transition-transform"><Plus size={18} /> 記帳</button>
+                <label className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 cursor-pointer shadow active:scale-95 transition-transform">
+                    <Camera size={18} /> {processing ? '辨識中...' : '掃描'}
+                    <input type="file" hidden accept="image/*" onChange={handlePhoto} disabled={processing} />
                 </label>
-                <button onClick={loadRecords} className="ml-auto p-2 border rounded-full"><Loader size={18} className={loading?'animate-spin':''}/></button>
+                <button onClick={() => { setLoading(true); financeHelper.fetchGAS().then(d => { setRecords(d); setLoading(false); }) }} className="ml-auto p-2 border rounded-full"><Loader size={18} className={loading ? 'animate-spin' : ''} /></button>
             </div>
 
+            {/* 新增表單 Modal */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                    <div className={`w-full max-w-sm p-6 rounded-xl space-y-3 ${isDarkMode?'bg-neutral-800':'bg-white'}`}>
-                        <h3 className="font-bold text-xl flex justify-between">新增 <button onClick={()=>setShowForm(false)}><X/></button></h3>
-                        <input type="date" className="w-full p-2 rounded border text-black" value={newItem.date} onChange={e=>setNewItem({...newItem, date:e.target.value})}/>
+                <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className={`w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4 ${isDarkMode ? 'bg-neutral-800 border border-neutral-600' : 'bg-white'}`}>
+                        <div className="flex justify-between items-center"><h3 className="font-bold text-xl">新增紀錄</h3><button onClick={() => setShowForm(false)}><X /></button></div>
+                        <input type="date" className="w-full p-3 rounded-lg border bg-transparent" value={newItem.date} onChange={e => setNewItem({ ...newItem, date: e.target.value })} />
                         <div className="flex gap-2">
-                            <select className="p-2 rounded border text-black" value={newItem.currency} onChange={e=>setNewItem({...newItem, currency:e.target.value})}><option>JPY</option><option>TWD</option></select>
-                            <input type="number" className="w-full p-2 rounded border text-black" placeholder="金額" value={newItem.amount} onChange={e=>setNewItem({...newItem, amount:e.target.value})}/>
+                            <select className="p-3 rounded-lg border bg-transparent" value={newItem.currency} onChange={e => setNewItem({ ...newItem, currency: e.target.value })}><option>JPY</option><option>TWD</option></select>
+                            <input type="number" className="w-full p-3 rounded-lg border bg-transparent" placeholder="金額" value={newItem.amount} onChange={e => setNewItem({ ...newItem, amount: e.target.value })} />
                         </div>
-                        <input type="text" className="w-full p-2 rounded border text-black" placeholder="項目" value={newItem.item} onChange={e=>setNewItem({...newItem, item:e.target.value})}/>
-                        <select className="w-full p-2 rounded border text-black" value={newItem.category} onChange={e=>setNewItem({...newItem, category:e.target.value})}>
-                            {['食','衣','住','行','育','樂','他'].map(c=><option key={c} value={c}>{c}</option>)}
-                        </select>
-                        <button onClick={handleSubmit} disabled={processing} className="w-full py-3 bg-blue-600 text-white rounded-lg">{processing?'儲存中':'儲存'}</button>
+                        <input type="text" className="w-full p-3 rounded-lg border bg-transparent" placeholder="項目 (如: 拉麵)" value={newItem.item} onChange={e => setNewItem({ ...newItem, item: e.target.value })} />
+                        <div className="grid grid-cols-4 gap-2">
+                            {['食', '衣', '住', '行', '育', '樂', '禮', '他'].map(c => (
+                                <button key={c} onClick={() => setNewItem({ ...newItem, category: c })} className={`p-2 text-xs rounded border ${newItem.category === c ? 'bg-blue-600 text-white border-blue-600' : 'opacity-70'}`}>{c}</button>
+                            ))}
+                        </div>
+                        <button onClick={handleSubmit} disabled={processing} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow">{processing ? '處理中...' : '儲存'}</button>
                     </div>
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {records.map((r,i)=>(
-                    <div key={i} className={`p-4 rounded-xl flex justify-between items-center border ${cardClass}`}>
-                        <div><div className="font-bold">{r.item}</div><div className="text-xs opacity-60">{r.date.split('T')[0]}</div></div>
-                        <div className="font-mono font-bold">{r.currency} {r.amount}</div>
+            {/* 列表 */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-20">
+                {records.map((r, i) => (
+                    <div key={i} className={`p-4 rounded-xl flex justify-between items-center border ${cardBg}`}>
+                        <div className="flex items-center gap-3">
+                            <div className="text-2xl">{r.category === '食' ? '🍜' : r.category === '行' ? '🚗' : r.category === '住' ? '🏨' : '📝'}</div>
+                            <div><div className="font-bold">{r.item}</div><div className="text-xs opacity-60">{r.date.split('T')[0]}</div></div>
+                        </div>
+                        <div className="font-mono font-bold text-lg">{r.currency} {r.amount}</div>
                     </div>
                 ))}
+                {records.length === 0 && !loading && <div className="text-center opacity-50 mt-10">尚無紀錄</div>}
             </div>
         </div>
     );
 };
+// ▲▲▲▲▲▲▲▲ [FinanceNote 元件] 結束 ▲▲▲▲▲▲▲▲
 
         const tripConfig = {
     'd1': {
