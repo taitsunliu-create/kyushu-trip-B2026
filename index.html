@@ -8820,12 +8820,13 @@ function toggleLedgerInput() {
 
 // B. 傳送資料至 GAS (依據 backend.gs 規範)
 async function handleLedgerSubmit() {
+    
     const url = getKey('gas_url');
     const token = getKey('gas_token');
     // ... 取得 type, user 等邏輯不變 ...
 
     // 【修改重點 1】：找到按鈕並停用它，不要呼叫 showLoading()
-    const submitBtn = event ? event.target : document.querySelector('#view-ledger .btn-primary');
+    const submitBtn =  document.querySelector('#view-ledger .btn-primary');
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = "儲存中...";
