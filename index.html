@@ -5369,8 +5369,10 @@ function switchView(viewId) {
     // 針對特定分頁的初始化
     if (viewId === 'view-ledger') {
         syncLedgerData();
-        // ★ 核心：進入頁面即初始化頭像與身分資訊
-        setTimeout(initAvatarSelector, 50); 
+        // ★ 核心修復：確保進入頁面時，畫出頭像並設定好預設值
+        setTimeout(() => {
+            initAvatarSelector();
+        }, 100); 
     }
 }
 // [結束] 替換 switchView
@@ -8903,7 +8905,6 @@ function initAvatarSelector() {
     const container = document.getElementById('avatar-list');
     if (!container) return;
 
-    // 從上次紀錄回復名稱與頭像
     const lastName = localStorage.getItem('last_user_name') || '爸爸';
     const lastEmoji = localStorage.getItem('last_user_emoji') || '🦁';
     
@@ -8919,12 +8920,12 @@ function initAvatarSelector() {
         </div>
     `).join('');
 
+    // ★ 關鍵：初始化時立即把當前身分塞進隱藏欄位，避免送出失敗
     updateUserInfoFromUI(); 
 }
 
 function selectAvatar(emoji, el) {
     document.getElementById('current-selected-emoji').innerText = emoji;
-    // 切換選中樣式
     document.querySelectorAll('.avatar-item').forEach(item => {
         item.style.borderColor = 'transparent';
         item.style.background = '#f8fafc';
@@ -8941,6 +8942,7 @@ function updateUserInfoFromUI() {
     const avatar = document.getElementById('current-selected-emoji').innerText;
     const infoEl = document.getElementById('selected-user-info');
     if (infoEl) {
+        // 同步更新隱藏欄位的值
         infoEl.value = JSON.stringify({ name: name, avatar: avatar });
     }
     localStorage.setItem('last_user_name', name);
