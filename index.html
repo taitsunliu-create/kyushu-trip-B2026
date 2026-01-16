@@ -5245,15 +5245,17 @@ function getKey(type) {
     // A. 如果記憶體中已經有解好的 Key，直接回傳
     if (type === 'gemini' && geminiKey) return geminiKey;
     if (type === 'places' && googleKey) return googleKey;
-
+    if (type === 'gas_url' && gasUrl) return gasUrl;
+    if (type === 'gas_token' && gasToken) return gasToken;
+    
     // B. 讀取密碼 (兩把鑰匙共用同一個密碼 'app_password')
     let password = localStorage.getItem("app_password");
     
+   // 如果連本機都沒有密碼，才跟使用者要一次
     if (!password) {
-        password = prompt("請輸入 API 金鑰密碼 (將同時解鎖 AI 與地圖功能)：");
+        password = prompt("請輸入 API 金鑰密碼 (輸入一次後將在本機記憶，直到您重設為止)：");
+        if (!password) return null; // 使用者取消
     }
-
-    if (!password) return null; // 使用者按取消
 
     try {
         // C. 內部輔助：單純解密字串
@@ -5269,28 +5271,26 @@ function getKey(type) {
         const g_url = decrypt(encryptedGasUrl);
         const g_token = decrypt(encryptedGasToken);
 
-        // E. 驗證 (只要其中一把成功解出 AIza 開頭，就視為密碼正確)
-        // 注意：若您只有設其中一個，另一個留空字串也沒關係
-        if (g_key.startsWith("AIza") || p_key.startsWith("AIza")) {
+        // 驗證機制 (依據您的習慣，只要成功解開一個代表密碼正確)
+        if (g_key.startsWith("AIza") || g_url.startsWith("https")) {
             geminiKey = g_key;
             googleKey = p_key;
             gasUrl = g_url;
             gasToken = g_token;
 
-            if (type === 'gemini') return geminiKey;
-    if (type === 'places') return googleKey;
-    if (type === 'gas_url') return gasUrl;     // 新增回傳分支
-    if (type === 'gas_token') return gasToken; // 新增回傳分支
-    
-    return null;
+            // 重要：密碼正確，存入本機記憶
+            localStorage.setItem("app_password", password);
+            
+            // 根據需求回傳
+            const map = { 'gemini': geminiKey, 'places': googleKey, 'gas_url': gasUrl, 'gas_token': gasToken };
+            return map[type];
         } else {
-            alert("密碼錯誤，無法解密 API Key。");
-            localStorage.removeItem("app_password"); // 清除錯誤密碼
+            alert("密碼錯誤，請重新嘗試。");
+            localStorage.removeItem("app_password"); // 錯誤就清掉
             return null;
         }
     } catch (e) {
-        console.error("解密失敗", e);
-        alert("解密失敗，請確認密碼。");
+        console.error("解密出錯", e);
         localStorage.removeItem("app_password");
         return null;
     }
