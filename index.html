@@ -4854,13 +4854,13 @@ header.is-night {
                 <input type="text" id="ledger-item" placeholder="項目內容 (如：一蘭拉麵)" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
                 <div style="display: flex; gap: 8px;">
                     <input type="number" id="ledger-amount" placeholder="金額 (JPY)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                    <button onclick="handleLedgerSubmit(event)" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
+                    <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
                 </div>
             </div>
             
             <div id="ledger-note-fields" style="display: none;">
                 <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
-                <button onclick="handleLedgerSubmit(event)" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
+                <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
             </div>
         </div>
     </div>
@@ -6998,22 +6998,21 @@ function updateComparison(targetTemp) {
         }
         
         function showLoading() {
-    // 只有在 AI 分頁才去抓 chatHistory 並畫圖
-    const chatHistory = document.getElementById('chat-content'); 
+    // 【有一說一：新增分頁檢查】
+    // 只有當前 view 為 'view-info' (AI 助手分頁) 時，才執行 AI 思考動畫
     const currentView = document.querySelector('.container.active');
-    
-    // 如果不在 AI 分頁，我們就安靜地結束，但不影響外部呼叫者的執行
-    if (!currentView || currentView.id !== 'view-info' || !chatHistory) {
-        return; 
+    if (!currentView || currentView.id !== 'view-info') {
+        return; // 如果不在 AI 分頁，直接結束函式，不執行後續動作
     }
 
     const row = document.createElement('div');
     row.className = 'chat-row ai loading-row';
     row.id = 'loading-indicator';
-    // ... 其餘畫圖邏輯保持不變 ...
+    
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble ai loading-bubble';
     bubble.innerHTML = 'AI 正在思考中<span class="loading-dots"></span>';
+    
     row.appendChild(bubble);
     chatHistory.appendChild(row);
     chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -8819,34 +8818,32 @@ function toggleLedgerInput() {
 }
 
 // B. 傳送資料至 GAS (依據 backend.gs 規範)
-async function handleLedgerSubmit(event) {
-    
+async function handleLedgerSubmit() {
     const url = getKey('gas_url');
     const token = getKey('gas_token');
-    // ... 取得 type, user 等邏輯不變 ...
+    // ... 前段參數取得邏輯 ...
 
-    // 【修改重點 1】：找到按鈕並停用它，不要呼叫 showLoading()
-    const submitBtn = event ? event.target : document.querySelector('#view-ledger .btn-primary');
+    // [修改位置]：不要呼叫 showLoading()，改用以下代碼
+    const submitBtn = document.querySelector('#view-ledger .btn-primary');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerText = "儲存中...";
+        submitBtn.innerText = "傳送中...";
     }
 
     try {
-        // 【修改重點 2】：直接執行 fetch
-        const response = await fetch(url, {
+        // [原有的 fetch 邏輯]
+        await fetch(url, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
         
-        // ... 清空欄位與 alert 成功邏輯 ...
+        // ... 成功後的清空與同步邏輯 ...
         alert("儲存成功！");
         syncLedgerData();
     } catch (e) {
-        console.error("GAS Error:", e);
-        alert("儲存失敗: " + e.message);
+        alert("儲存失敗: " + e);
     } finally {
-        // 【修改重點 3】：恢復按鈕狀態，不要呼叫 hideLoading()
+        // [修改位置]：恢復按鈕狀態，不要呼叫 hideLoading()
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = "送出紀錄";
