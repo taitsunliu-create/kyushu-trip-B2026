@@ -8820,7 +8820,8 @@ function toggleLedgerInput() {
 }
 
 // B. 傳送資料至 GAS (依據 backend.gs 規範)
-async function handleLedgerSubmit() {
+async function handleLedgerSubmit(event) {
+    if (event) event.preventDefault();
     const url = getKey('gas_url');
     const token = getKey('gas_token');
     // ... 取得 type, user 等邏輯不變 ...
