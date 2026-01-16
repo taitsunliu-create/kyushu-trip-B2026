@@ -5355,29 +5355,24 @@ function getKey(type) {
 }
 
 
-// 📍 位置：約第 1056 行
+// [開始] 替換 switchView
 function switchView(viewId) {
+    // 隱藏所有容器，顯示目標容器
     document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
 
+    // 更新導覽列狀態
     document.querySelectorAll('.nav-item').forEach(item => {
-        const onclickAttr = item.getAttribute('onclick');
-        if (onclickAttr && onclickAttr.includes(viewId)) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
+        item.classList.toggle('active', item.getAttribute('onclick').includes(viewId));
     });
 
-    // 關鍵修復：進入旅程紀錄時，必須「主動」執行初始化
+    // 針對特定分頁的初始化
     if (viewId === 'view-ledger') {
-        syncLedgerData(); 
-        // 必須呼叫下面這行，頭像才會跑出來讓你點
+        syncLedgerData();
+        // ★ 核心修復：確保進入頁面時，畫出頭像並設定好預設值
         setTimeout(() => {
-            if (typeof initAvatarSelector === 'function') {
-                initAvatarSelector();
-            }
-        }, 50);
+            initAvatarSelector();
+        }, 100); 
     }
 }
 // [結束] 替換 switchView
@@ -8903,7 +8898,7 @@ function toggleLedgerInput() {
     document.getElementById('ledger-note-fields').style.display = type === 'note' ? 'block' : 'none';
 }
 
-// 📍 位置：約第 1253 行
+// [開始] 替換身分定義相關邏輯
 const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
 
 function initAvatarSelector() {
@@ -8916,29 +8911,21 @@ function initAvatarSelector() {
     document.getElementById('custom-user-name').value = lastName;
     document.getElementById('current-selected-emoji').innerText = lastEmoji;
 
-    // 動態渲染頭像，並確保初始選中的人有藍色樣式
-    container.innerHTML = AVATAR_OPTIONS.map((emoji) => {
-        const isActive = (emoji === lastEmoji);
-        return `
-            <div class="avatar-item" 
-                 onclick="selectAvatar('${emoji}', this)"
-                 style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; 
-                        border: 2px solid ${isActive ? '#2563EB' : 'transparent'}; 
-                        background: ${isActive ? '#EFF6FF' : '#f8fafc'}; 
-                        flex-shrink: 0; transition: 0.2s; line-height: 1;">
-                ${emoji}
-            </div>
-        `;
-    }).join('');
+    // 動態生成頭像列
+    container.innerHTML = AVATAR_OPTIONS.map((emoji) => `
+        <div class="avatar-item ${emoji === lastEmoji ? 'active' : ''}" 
+             onclick="selectAvatar('${emoji}', this)"
+             style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; border: 2px solid transparent; background: #f8fafc; flex-shrink: 0; transition: 0.2s; line-height: 1;">
+            ${emoji}
+        </div>
+    `).join('');
 
+    // ★ 關鍵：初始化時立即把當前身分塞進隱藏欄位，避免送出失敗
     updateUserInfoFromUI(); 
 }
 
 function selectAvatar(emoji, el) {
-    // 1. 更新上方顯示的大圖示
     document.getElementById('current-selected-emoji').innerText = emoji;
-    
-    // 2. 清除所有人的樣式，只給當前點選的人藍框
     document.querySelectorAll('.avatar-item').forEach(item => {
         item.style.borderColor = 'transparent';
         item.style.background = '#f8fafc';
@@ -8946,9 +8933,8 @@ function selectAvatar(emoji, el) {
     el.style.borderColor = '#2563EB';
     el.style.background = '#EFF6FF';
     
-    // 3. 儲存與同步
-    localStorage.setItem('last_user_emoji', emoji);
     updateUserInfoFromUI();
+    localStorage.setItem('last_user_emoji', emoji);
 }
 
 function updateUserInfoFromUI() {
@@ -8956,7 +8942,7 @@ function updateUserInfoFromUI() {
     const avatar = document.getElementById('current-selected-emoji').innerText;
     const infoEl = document.getElementById('selected-user-info');
     if (infoEl) {
-        // 這是送給試算表最重要的身分字串
+        // 同步更新隱藏欄位的值
         infoEl.value = JSON.stringify({ name: name, avatar: avatar });
     }
     localStorage.setItem('last_user_name', name);
@@ -9058,56 +9044,96 @@ async function syncLedgerData() {
     }
 }
 
+// [完整替換區塊] 解決 GAS 物件傳遞與前端顯示
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
     if (!listContainer) return;
 
     let html = '';
+    let totalJPY = 0;
+    let totalTWD = 0;
+
+    // 時間格式化工具
+    const formatFullDateTime = (isoString) => {
+        if (!isoString) return '';
+        try {
+            const d = new Date(isoString);
+            return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+        } catch (e) { return isoString; }
+    };
+
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
-        // 有一說一：這裡必須相容 backend.gs 傳回來的物件格式
+        // --- 【有一說一：最強相容解析邏輯】 ---
         let user = { name: '未知', avatar: '👤' };
+        
         if (item.user) {
             if (typeof item.user === 'object') {
-                user = { name: item.user.name || '未知', avatar: item.user.avatar || '👤' };
-            } else {
+                // 如果 GAS 已經解析成物件 (您目前的 backend.gs 狀況)
+                user = {
+                    name: item.user.name || '未知',
+                    avatar: item.user.avatar || '👤'
+                };
+            } else if (typeof item.user === 'string') {
                 try {
-                    user = JSON.parse(item.user);
+                    if (item.user.trim().startsWith('{')) {
+                        user = JSON.parse(item.user);
+                    } else {
+                        user = { name: item.user, avatar: '👤' };
+                    }
                 } catch (e) {
                     user = { name: item.user, avatar: '👤' };
                 }
             }
         }
+        // --- 【解析結束】 ---
 
-        const dateStr = new Date(item.timestamp || item.date).toLocaleString();
+        const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
         if (item.type === 'finance') {
+            const jpy = parseFloat(item.amount || 0);
+            const rate = parseFloat(item.rate) || 0.21;
+            const twd = Math.round(jpy * rate);
+            totalJPY += jpy;
+            totalTWD += twd;
+
             html += `
-                <div class="card" style="margin-bottom: 10px; padding: 12px; border-left: 4px solid #ef4444;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 1.5rem;">${user.avatar}</span>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 700;">${item.item}</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">by ${user.name} | ${dateStr}</div>
+                <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #ef4444;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="font-size: 1.5rem;">${user.avatar}</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 1.05rem;">${item.item}</div>
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
+                                    <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${displayDateTime}</span>
+                                    <span style="margin-left: 5px;">by ${user.name}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div style="text-align: right; font-weight: 800; color: #ef4444;">¥${item.amount}</div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 800; color: #ef4444; font-size: 1.1rem;">¥${jpy.toLocaleString()}</div>
+                            <div style="font-size: 0.75rem; color: #9ca3af;">≈ TWD ${twd.toLocaleString()}</div>
+                        </div>
                     </div>
                 </div>`;
         } else {
             html += `
-                <div class="card" style="margin-bottom: 10px; padding: 12px; border-left: 4px solid #2563EB;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
-                        <span>${user.avatar}</span><span style="font-weight: 600;">${user.name}</span>
+                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 1.2rem;">${user.avatar}</span>
+                            <span style="font-size: 0.85rem; font-weight: 600;">${user.name}</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
                     </div>
-                    <div style="white-space: pre-wrap;">${item.content}</div>
+                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
                 </div>`;
         }
     });
 
-    listContainer.innerHTML = html || '<div style="text-align:center; padding:20px;">暫無紀錄</div>';
-
-     
+    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
+    
     // 更新頂部資訊
     const totalDisplay = document.getElementById('ledger-total-amount');
     if (totalDisplay && currentLedgerFilter === 'finance') {
