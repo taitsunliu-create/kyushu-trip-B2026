@@ -6998,11 +6998,13 @@ function updateComparison(targetTemp) {
         }
         
         function showLoading() {
-    // 【有一說一：新增分頁檢查】
-    // 只有當前 view 為 'view-info' (AI 助手分頁) 時，才執行 AI 思考動畫
+        // 只有在 AI 分頁才去抓 chatHistory 並畫圖
+    const chatHistory = document.getElementById('chat-content'); 
     const currentView = document.querySelector('.container.active');
-    if (!currentView || currentView.id !== 'view-info') {
-        return; // 如果不在 AI 分頁，直接結束函式，不執行後續動作
+    
+    // 如果不在 AI 分頁，我們就安靜地結束，但不影響外部呼叫者的執行
+    if (!currentView || currentView.id !== 'view-info' || !chatHistory) {
+        return; 
     }
 
     const row = document.createElement('div');
@@ -8821,29 +8823,30 @@ function toggleLedgerInput() {
 async function handleLedgerSubmit() {
     const url = getKey('gas_url');
     const token = getKey('gas_token');
-    // ... 前段參數取得邏輯 ...
+    // ... 取得 type, user 等邏輯不變 ...
 
-    // [修改位置]：不要呼叫 showLoading()，改用以下代碼
-    const submitBtn = document.querySelector('#view-ledger .btn-primary');
+    // 【修改重點 1】：找到按鈕並停用它，不要呼叫 showLoading()
+    const submitBtn = event ? event.target : document.querySelector('#view-ledger .btn-primary');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerText = "傳送中...";
+        submitBtn.innerText = "儲存中...";
     }
 
     try {
-        // [原有的 fetch 邏輯]
-        await fetch(url, {
+        // 【修改重點 2】：直接執行 fetch
+        const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
         
-        // ... 成功後的清空與同步邏輯 ...
+        // ... 清空欄位與 alert 成功邏輯 ...
         alert("儲存成功！");
         syncLedgerData();
     } catch (e) {
-        alert("儲存失敗: " + e);
+        console.error("GAS Error:", e);
+        alert("儲存失敗: " + e.message);
     } finally {
-        // [修改位置]：恢復按鈕狀態，不要呼叫 hideLoading()
+        // 【修改重點 3】：恢復按鈕狀態，不要呼叫 hideLoading()
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = "送出紀錄";
