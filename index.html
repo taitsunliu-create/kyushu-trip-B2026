@@ -4865,18 +4865,14 @@ header.is-night {
 
     <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
     <div class="card-content" style="padding: 12px;">
-        
         <div id="avatar-selector-container" style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
-            <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">點選頭像並定義名稱：</div>
-            
-            <div id="avatar-list" style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; margin-bottom: 10px; -webkit-overflow-scrolling: touch;">
+            <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">紀錄者身分：</div>
+            <div id="avatar-list" style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; -webkit-overflow-scrolling: touch;">
                 </div>
-
             <div style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
                 <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
-                <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..." 
-                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700; color: #1F2937;"
-                       value="爸爸">
+                <input type="text" id="custom-user-name" placeholder="名稱..." 
+                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700;" value="爸爸">
             </div>
             <input type="hidden" id="selected-user-info" value="">
         </div>
@@ -4888,12 +4884,7 @@ header.is-night {
                 <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
             </div>
         </div>
-
-        <div id="ledger-note-fields" style="display: none;">
-            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
-            <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
         </div>
-    </div>
 </div>
 
     <div id="ledger-list" style="margin-bottom: 80px;"></div>
@@ -5338,40 +5329,7 @@ function getKey(type) {
         return null;
     }
 }
-// 參考 FinanceNote.jsx 的預設頭像
-const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐮', '🐷'];
 
-function initAvatarSelector() {
-    const container = document.getElementById('avatar-list');
-    if (!container) return;
-
-    container.innerHTML = AVATAR_OPTIONS.map((emoji, idx) => `
-        <div class="avatar-item ${idx === 0 ? 'active' : ''}" 
-             onclick="selectAvatar('${emoji}', this)" 
-             style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; border: 2px solid transparent; background: #f8fafc; flex-shrink: 0; transition: 0.2s;">
-            ${emoji}
-        </div>
-    `).join('');
-
-    // 初始載入
-    const firstEmoji = AVATAR_OPTIONS[0];
-    const lastName = localStorage.getItem('last_user_name') || '爸爸';
-    document.getElementById('current-selected-emoji').innerText = firstEmoji;
-    document.getElementById('custom-user-name').value = lastName;
-    updateUserInfo(lastName, firstEmoji);
-}
-
-function selectAvatar(emoji, el) {
-    document.getElementById('current-selected-emoji').innerText = emoji;
-    document.querySelectorAll('.avatar-item').forEach(item => {
-        item.style.borderColor = 'transparent';
-        item.style.background = '#f8fafc';
-    });
-    el.style.borderColor = '#2563EB';
-    el.style.background = '#EFF6FF';
-    
-    updateUserInfo(document.getElementById('custom-user-name').value, emoji);
-}
 
 // 當使用者修改名稱時，同步更新隱藏欄位
 document.getElementById('custom-user-name')?.addEventListener('input', (e) => {
@@ -8931,6 +8889,7 @@ async function handleLedgerSubmit() {
     const currentRateVal = parseFloat(document.getElementById('current-rate-val')?.innerText || 0.21);
     const isFinance = document.getElementById('ledger-type').value === 'finance';
     const userInfo = JSON.parse(document.getElementById('selected-user-info').value);
+    
     const submitBtn = isFinance 
             ? document.querySelector('#ledger-finance-fields .btn-primary')
         : document.querySelector('#ledger-note-fields .btn-primary');
@@ -8940,7 +8899,6 @@ const liveRate = (typeof currentRate !== 'undefined') ? currentRate : parseFloat
         action: 'upload',
         // ... 其他欄位 ...
         rate: liveRate, // ★ 傳送當下匯率給 GAS
-        user: JSON.stringify(userInfo), // 將 {name: "爸爸", avatar: "🦁"} 傳給 GAS
         twdAmount: Math.round(document.getElementById('ledger-amount').value * liveRate) // 也可以直接算好傳過去
     };
     if (submitBtn) {
@@ -9046,6 +9004,32 @@ async function syncLedgerData() {
     } catch (e) {
         console.error("同步失敗", e);
     }
+}
+
+const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯'];
+
+function initAvatarSelector() {
+    const container = document.getElementById('avatar-list');
+    if (!container) return;
+
+    container.innerHTML = AVATAR_OPTIONS.map((emoji, idx) => `
+        <div class="avatar-item" onclick="selectAvatar('${emoji}', this)" 
+             style="font-size: 1.5rem; cursor: pointer; padding: 8px; border: 2px solid transparent; flex-shrink: 0;">
+            ${emoji}
+        </div>
+    `).join('');
+    
+    // 初始化設定
+    updateUserInfo(document.getElementById('custom-user-name').value, '🦁');
+}
+
+function selectAvatar(emoji, el) {
+    document.getElementById('current-selected-emoji').innerText = emoji;
+    updateUserInfo(document.getElementById('custom-user-name').value, emoji);
+}
+
+function updateUserInfo(name, avatar) {
+    document.getElementById('selected-user-info').value = JSON.stringify({ name, avatar });
 }
 
 // C. 更新後的渲染函式 (加入過濾機制)
