@@ -8964,16 +8964,21 @@ function renderLedgerList(data) {
     let total = 0;
     let noteCount = 0;
 
-    // --- 有一說一：時間格式化小工具 ---
-    const formatTime = (isoString) => {
+    // --- 有一說一：包含年份的完整日期時間格式化 ---
+    const formatFullDateTime = (isoString) => {
         if (!isoString) return '';
         try {
-            const date = new Date(isoString);
-            return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
-        } catch (e) { return ''; }
+            const d = new Date(isoString);
+            // 格式化為：2026/01/16 14:30
+            const Y = d.getFullYear();
+            const M = (d.getMonth() + 1).toString().padStart(2, '0');
+            const D = d.getDate().toString().padStart(2, '0');
+            const hh = d.getHours().toString().padStart(2, '0');
+            const mm = d.getMinutes().toString().padStart(2, '0');
+            return `${Y}/${M}/${D} ${hh}:${mm}`;
+        } catch (e) { return isoString; }
     };
 
-    // --- 關鍵修改：過濾資料，只顯示目前選中的模式 (currentLedgerFilter) ---
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
@@ -8982,44 +8987,47 @@ function renderLedgerList(data) {
             user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
         } catch(e) {}
 
-        // 取得具體時間（例如 14:30）
-        const displayTime = formatTime(item.timestamp || item.date);
+        // 使用優化後的完整日期時間
+        const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
         if (item.type === 'finance') {
             total += parseFloat(item.amount || 0);
             html += `
-                <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 4px solid #ef4444;">
+                <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #ef4444;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <span style="font-size: 1.2rem;">${user.avatar}</span>
                             <div>
-                                <div style="font-weight: 500;">${item.item}</div>
-                                <div style="font-size: 0.75rem; color: #888;">
-                                    ${item.date} <span style="margin-left:5px; color:#aaa;">${displayTime}</span>
+                                <div style="font-weight: 700; font-size: 1.05rem; color: #1f2937;">${item.item}</div>
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
+                                    <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">${displayDateTime}</span>
+                                    <span style="margin-left: 5px; opacity: 0.8;">by ${user.name}</span>
                                 </div>
                             </div>
                         </div>
-                        <div style="font-weight: 700; color: #ef4444;">¥${item.amount}</div>
+                        <div style="font-weight: 800; color: #ef4444; font-size: 1.2rem;">¥${Number(item.amount).toLocaleString()}</div>
                     </div>
                 </div>`;
         } else {
             noteCount++;
             html += `
-                <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 4px solid #2563EB;">
-                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
-                        <span style="font-size: 1rem;">${user.avatar}</span>
-                        <div style="font-size: 0.75rem; color: #888;">
-                            ${user.name} · ${item.date} <span style="margin-left:5px; color:#aaa;">${displayTime}</span>
+                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 1.1rem;">${user.avatar}</span>
+                            <span style="font-size: 0.85rem; font-weight: 600; color: #374151;">${user.name}</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #9ca3af; font-family: monospace;">
+                            ${displayDateTime}
                         </div>
                     </div>
-                    <div style="font-size: 0.95rem; color: #333; line-height: 1.5;">${item.content}</div>
+                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
                 </div>`;
         }
     });
 
-    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 40px;">尚無紀錄</div>`;
+    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
     
-    // 更新頂部顯示的總額或則數
     const totalDisplay = document.getElementById('ledger-total-amount');
     if (totalDisplay) {
         totalDisplay.innerText = currentLedgerFilter === 'finance' 
