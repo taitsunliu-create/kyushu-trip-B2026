@@ -4879,16 +4879,19 @@ header.is-night {
         </div>
     </div>
 
-   <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
+  <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
     <div class="card-content" style="padding: 12px;">
         <div id="avatar-selector-container" style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
             <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">紀錄者身分：</div>
-            <div id="avatar-list" style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; -webkit-overflow-scrolling: touch;">
+            
+            <div id="avatar-list" style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; margin-bottom: 10px; -webkit-overflow-scrolling: touch;">
                 </div>
+
             <div style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
                 <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
-                <input type="text" id="custom-user-name" placeholder="名稱..." 
-                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700;" value="爸爸" oninput="updateUserInfoFromUI()">
+                <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..." 
+                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700; color: #1F2937;"
+                       value="爸爸" oninput="updateUserInfoFromUI()">
             </div>
             <input type="hidden" id="selected-user-info" value="">
         </div>
@@ -4900,6 +4903,7 @@ header.is-night {
                 <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
             </div>
         </div>
+
         <div id="ledger-note-fields" style="display: none;">
             <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
             <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
@@ -5351,17 +5355,26 @@ function getKey(type) {
 }
 
 
-// 📍 約第 1050 行
+// [開始] 替換 switchView
 function switchView(viewId) {
+    // 隱藏所有容器，顯示目標容器
     document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
 
+    // 更新導覽列狀態
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.getAttribute('onclick').includes(viewId));
+    });
+
+    // 針對特定分頁的初始化
     if (viewId === 'view-ledger') {
         syncLedgerData();
-        // ★ 必須呼叫這行
-        initAvatarSelector(); 
+        // ★ 核心：進入頁面即初始化頭像與身分資訊
+        setTimeout(initAvatarSelector, 50); 
     }
 }
+// [結束] 替換 switchView
+
         // Weather Data Configuration
         // Icons: Using simple SVG strings for white icons
 
@@ -8883,34 +8896,56 @@ function toggleLedgerInput() {
     document.getElementById('ledger-note-fields').style.display = type === 'note' ? 'block' : 'none';
 }
 
-// 📍 建議放在約第 1250 行
+// [開始] 替換身分定義相關邏輯
 const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
 
 function initAvatarSelector() {
     const container = document.getElementById('avatar-list');
     if (!container) return;
 
-    container.innerHTML = AVATAR_OPTIONS.map((emoji, idx) => `
-        <div class="avatar-item ${idx === 0 ? 'active' : ''}" onclick="selectAvatar('${emoji}', this)">
+    // 從上次紀錄回復名稱與頭像
+    const lastName = localStorage.getItem('last_user_name') || '爸爸';
+    const lastEmoji = localStorage.getItem('last_user_emoji') || '🦁';
+    
+    document.getElementById('custom-user-name').value = lastName;
+    document.getElementById('current-selected-emoji').innerText = lastEmoji;
+
+    // 動態生成頭像列
+    container.innerHTML = AVATAR_OPTIONS.map((emoji) => `
+        <div class="avatar-item ${emoji === lastEmoji ? 'active' : ''}" 
+             onclick="selectAvatar('${emoji}', this)"
+             style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; border: 2px solid transparent; background: #f8fafc; flex-shrink: 0; transition: 0.2s; line-height: 1;">
             ${emoji}
         </div>
     `).join('');
+
     updateUserInfoFromUI(); 
 }
 
 function selectAvatar(emoji, el) {
     document.getElementById('current-selected-emoji').innerText = emoji;
-    document.querySelectorAll('.avatar-item').forEach(item => item.classList.remove('active'));
-    el.classList.add('active');
+    // 切換選中樣式
+    document.querySelectorAll('.avatar-item').forEach(item => {
+        item.style.borderColor = 'transparent';
+        item.style.background = '#f8fafc';
+    });
+    el.style.borderColor = '#2563EB';
+    el.style.background = '#EFF6FF';
+    
     updateUserInfoFromUI();
+    localStorage.setItem('last_user_emoji', emoji);
 }
 
 function updateUserInfoFromUI() {
     const name = document.getElementById('custom-user-name').value || '匿名';
     const avatar = document.getElementById('current-selected-emoji').innerText;
     const infoEl = document.getElementById('selected-user-info');
-    if (infoEl) infoEl.value = JSON.stringify({ name, avatar });
+    if (infoEl) {
+        infoEl.value = JSON.stringify({ name: name, avatar: avatar });
+    }
+    localStorage.setItem('last_user_name', name);
 }
+// [結束] 替換身分定義相關邏輯
 
 // 📍 修改後的 handleLedgerSubmit (約第 1285 行)
 async function handleLedgerSubmit() {
