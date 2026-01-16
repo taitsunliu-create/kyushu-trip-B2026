@@ -6998,18 +6998,25 @@ function updateComparison(targetTemp) {
         }
         
         function showLoading() {
-            const row = document.createElement('div');
-            row.className = 'chat-row ai loading-row';
-            row.id = 'loading-indicator';
-            
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble ai loading-bubble';
-            bubble.innerHTML = 'AI 正在思考中<span class="loading-dots"></span>';
-            
-            row.appendChild(bubble);
-            chatHistory.appendChild(row);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
+    // 【有一說一：新增分頁檢查】
+    // 只有當前 view 為 'view-info' (AI 助手分頁) 時，才執行 AI 思考動畫
+    const currentView = document.querySelector('.container.active');
+    if (!currentView || currentView.id !== 'view-info') {
+        return; // 如果不在 AI 分頁，直接結束函式，不執行後續動作
+    }
+
+    const row = document.createElement('div');
+    row.className = 'chat-row ai loading-row';
+    row.id = 'loading-indicator';
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble ai loading-bubble';
+    bubble.innerHTML = 'AI 正在思考中<span class="loading-dots"></span>';
+    
+    row.appendChild(bubble);
+    chatHistory.appendChild(row);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
 
         function removeLoading() {
             const loading = document.getElementById('loading-indicator');
