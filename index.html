@@ -2261,6 +2261,23 @@ header.is-night {
     50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.6; }
 }
 
+.btn-icon-circle {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-icon-circle:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.95);
+}
 
   </style>
 </head>
@@ -4827,37 +4844,34 @@ header.is-night {
     <div id="view-ledger" class="container">
     <div class="card" style="margin-bottom: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white;">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
-            <div>
-                <div style="font-size: 0.8rem; opacity: 0.9;">本次旅程總支出 (JPY)</div>
+            <div id="ledger-header-info">
+                <div style="font-size: 0.8rem; opacity: 0.9;" id="ledger-view-title">總支出 (JPY)</div>
                 <div id="ledger-total-amount" style="font-size: 1.5rem; font-weight: 700;">¥ 0</div>
             </div>
-            <button onclick="syncLedgerData()" class="btn-primary" style="background: rgba(255,255,255,0.2); border: 1px solid white; width: auto; padding: 5px 12px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
-            </button>
+            
+            <div style="display: flex; gap: 8px;">
+                <button onclick="filterLedgerView('finance')" class="btn-icon-circle" id="btn-view-finance">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                </button>
+                <button onclick="filterLedgerView('note')" class="btn-icon-circle" id="btn-view-note" style="opacity: 0.6;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                </button>
+                <button onclick="syncLedgerData()" class="btn-icon-circle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="card" style="margin-bottom: 15px;">
+    <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
         <div class="card-content">
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                <select id="ledger-user" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                    <option value='{"name":"阿溫","avatar":"🐶"}'>🐶 阿溫</option>
-                    <option value='{"name":"小魚","avatar":"🐱"}'>🐱 小魚</option>
-                </select>
-                <select id="ledger-type" onchange="toggleLedgerInput()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                    <option value="finance">💰 記帳</option>
-                    <option value="note">📝 記事</option>
-                </select>
-            </div>
-
-            <div id="ledger-finance-fields">
-                <input type="text" id="ledger-item" placeholder="項目內容 (如：一蘭拉麵)" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+             <div id="ledger-finance-fields">
+                <input type="text" id="ledger-item" placeholder="項目內容..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
                 <div style="display: flex; gap: 8px;">
                     <input type="number" id="ledger-amount" placeholder="金額 (JPY)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
                     <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
                 </div>
             </div>
-            
             <div id="ledger-note-fields" style="display: none;">
                 <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
                 <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
@@ -4865,9 +4879,7 @@ header.is-night {
         </div>
     </div>
 
-    <div id="ledger-list" style="margin-bottom: 80px;">
-        <div style="text-align: center; color: #999; padding: 20px;">載入中...</div>
-    </div>
+    <div id="ledger-list" style="margin-bottom: 80px;"></div>
 </div>
 
     <!-- 自定義彈出視窗 HTML -->
@@ -5214,7 +5226,8 @@ let gasToken = "";
 // [修改] 2. 用來暫存解密後的 Key
 let geminiKey = ""; 
 let googleKey = "";
-
+let currentLedgerFilter = 'finance'; // 預設顯示記帳視圖
+let rawLedgerData = [];              // 存放從 GAS 抓回來的原始資料快取
 
 // [新增] 對話歷史紀錄 (讓 AI 記住前幾句話)
     let conversationHistory = [];
@@ -8888,6 +8901,31 @@ async function handleLedgerSubmit() {
 }
 
 // C. 抓取並渲染列表 (依據 backend.gs 的 getAll)
+// A. 新增切換視圖函式
+function filterLedgerView(type) {
+    currentLedgerFilter = type;
+    
+    // 更新按鈕透明度（讓使用者知道目前選中哪個）
+    const btnFinance = document.getElementById('btn-view-finance');
+    const btnNote = document.getElementById('btn-view-note');
+    if (btnFinance) btnFinance.style.opacity = type === 'finance' ? '1' : '0.4';
+    if (btnNote) btnNote.style.opacity = type === 'note' ? '1' : '0.4';
+    
+    // 切換輸入區域顯示
+    const finFields = document.getElementById('ledger-finance-fields');
+    const noteFields = document.getElementById('ledger-note-fields');
+    if (finFields) finFields.style.display = type === 'finance' ? 'block' : 'none';
+    if (noteFields) noteFields.style.display = type === 'note' ? 'block' : 'none';
+    
+    // 切換標題文字
+    const title = document.getElementById('ledger-view-title');
+    if (title) title.innerText = type === 'finance' ? '總支出 (JPY)' : '記事總數';
+    
+    // 重新渲染清單
+    renderLedgerList(rawLedgerData);
+}
+
+// B. 更新後的同步函式 (加入快取機制)
 async function syncLedgerData() {
     const url = getKey('gas_url');
     const token = getKey('gas_token');
@@ -8897,42 +8935,69 @@ async function syncLedgerData() {
         const res = await fetch(`${url}?token=${token}&action=getAll`);
         const result = await res.json();
         if (result.status === 'success') {
-            renderLedgerList(result.data);
+            rawLedgerData = result.data; // ★ 有一說一：將資料存入全域變數
+            renderLedgerList(rawLedgerData);
         }
     } catch (e) {
         console.error("同步失敗", e);
     }
 }
 
+// C. 更新後的渲染函式 (加入過濾機制)
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
+    if (!listContainer) return;
+
     let html = '';
     let total = 0;
+    let noteCount = 0;
 
-    data.forEach(item => {
-        const isFinance = item.type === 'finance';
-        const user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
-        if (isFinance) total += parseFloat(item.amount || 0);
+    // ★ 關鍵點：根據目前選擇的 currentLedgerFilter 過濾資料
+    const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
-        html += `
-            <div class="card" style="margin-bottom: 8px; padding: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div style="display: flex; gap: 10px;">
-                        <span style="font-size: 1.2rem;">${user.avatar}</span>
-                        <div>
-                            <div style="font-weight: 500;">${isFinance ? item.item : '📝 旅程記事'}</div>
-                            <div style="font-size: 0.75rem; color: #888;">${item.date} · ${user.name}</div>
+    filteredData.forEach(item => {
+        let user = { name: '未知', avatar: '👤' };
+        try {
+            user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
+        } catch(e) {}
+
+        if (item.type === 'finance') {
+            total += parseFloat(item.amount || 0);
+            html += `
+                <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 4px solid #ef4444;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="font-size: 1.2rem;">${user.avatar}</span>
+                            <div>
+                                <div style="font-weight: 500;">${item.item}</div>
+                                <div style="font-size: 0.75rem; color: #888;">${item.date}</div>
+                            </div>
                         </div>
+                        <div style="font-weight: 700; color: #ef4444;">¥${item.amount}</div>
                     </div>
-                    ${isFinance ? `<div style="font-weight: 700; color: #ef4444;">¥${item.amount}</div>` : ''}
-                </div>
-                ${!isFinance ? `<div style="margin-top: 8px; font-size: 0.9rem; color: #444; border-left: 2px solid #ddd; padding-left: 8px;">${item.content}</div>` : ''}
-            </div>
-        `;
+                </div>`;
+        } else {
+            noteCount++;
+            html += `
+                <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 4px solid #2563EB;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                        <span style="font-size: 1rem;">${user.avatar}</span>
+                        <div style="font-size: 0.75rem; color: #888;">${user.name} · ${item.date}</div>
+                    </div>
+                    <div style="font-size: 0.95rem; color: #333; line-height: 1.5;">${item.content}</div>
+                </div>`;
+        }
     });
 
-    listContainer.innerHTML = html || '<div style="text-align: center; color: #999; padding: 20px;">尚無紀錄</div>';
-    document.getElementById('ledger-total-amount').innerText = `¥ ${total.toLocaleString()}`;
+    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 40px;">尚無紀錄</div>`;
+    
+    // 更新頂部顯示的數字
+    const totalDisplay = document.getElementById('ledger-total-amount');
+    if (totalDisplay) {
+        totalDisplay.innerText = currentLedgerFilter === 'finance' 
+            ? `¥ ${total.toLocaleString()}` 
+            : `${noteCount} 則紀錄`;
+    }
 }
 
     </script>
