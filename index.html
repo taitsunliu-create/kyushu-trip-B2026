@@ -2295,6 +2295,13 @@ header.is-night {
     background: #EFF6FF;
     transform: scale(1.1);
 }
+/* 確保頭像項目的點擊範圍不被擠壓 */
+.avatar-item {
+    flex: 0 0 auto; /* 防止頭像被捲動容器壓縮 */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    z-index: 5; /* 提高層級確保可被點擊 */
+}
   </style>
 </head>
 <body>
@@ -5368,12 +5375,12 @@ function switchView(viewId) {
 
     // 針對特定分頁的初始化
     if (viewId === 'view-ledger') {
-        syncLedgerData();
-        // ★ 核心修復：確保進入頁面時，畫出頭像並設定好預設值
-        setTimeout(() => {
-            initAvatarSelector();
-        }, 100); 
-    }
+    syncLedgerData();
+    // 確保 DOM 已經準備好再初始化頭像選擇器
+    requestAnimationFrame(() => {
+        initAvatarSelector();
+    });
+}
 }
 // [結束] 替換 switchView
 
@@ -9117,7 +9124,7 @@ function renderLedgerList(data) {
                         </div>
                     </div>
                 </div>`;
-        } else {
+        } else if (item.type === 'note'){
             html += `
                 <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
