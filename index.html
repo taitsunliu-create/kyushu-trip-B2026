@@ -4823,10 +4823,52 @@ header.is-night {
         </div>
     </div>
 
-    <!-- TAB 6: 即時天氣 (New) -->
+    <!-- TAB 6: 旅程紀錄 (New) -->
     <div id="view-ledger" class="container">
-        
+    <div class="card" style="margin-bottom: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+            <div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">本次旅程總支出 (JPY)</div>
+                <div id="ledger-total-amount" style="font-size: 1.5rem; font-weight: 700;">¥ 0</div>
+            </div>
+            <button onclick="syncLedgerData()" class="btn-primary" style="background: rgba(255,255,255,0.2); border: 1px solid white; width: auto; padding: 5px 12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
+            </button>
+        </div>
     </div>
+
+    <div class="card" style="margin-bottom: 15px;">
+        <div class="card-content">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <select id="ledger-user" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value='{"name":"阿溫","avatar":"🐶"}'>🐶 阿溫</option>
+                    <option value='{"name":"小魚","avatar":"🐱"}'>🐱 小魚</option>
+                </select>
+                <select id="ledger-type" onchange="toggleLedgerInput()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="finance">💰 記帳</option>
+                    <option value="note">📝 記事</option>
+                </select>
+            </div>
+
+            <div id="ledger-finance-fields">
+                <input type="text" id="ledger-item" placeholder="項目內容 (如：一蘭拉麵)" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="ledger-amount" placeholder="金額 (JPY)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
+                </div>
+            </div>
+            
+            <div id="ledger-note-fields" style="display: none;">
+                <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
+                <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ledger-list" style="margin-bottom: 80px;">
+        <div style="text-align: center; color: #999; padding: 20px;">載入中...</div>
+    </div>
+</div>
 
     <!-- 自定義彈出視窗 HTML -->
     <div id="location-modal" class="modal-overlay">
@@ -5162,7 +5204,13 @@ function clearRainTimers() {
 const encryptedGeminiKey = "U2FsdGVkX1/64ozwLOVc7Q7oTx058ndDWtXLLJ6Ri7cafbqjyyabFrsg2GixFXZV8bGjn7m7O7ZkH4CKCQjIjA=="; 
 // 用於 Google Places (分享位置時抓地標名稱)
 const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ=="; 
+// [安插在其他 ENC_ 變數群組中]
+const encryptedGasUrl = "U2FsdGVkX19AZgT4KRo3W8iwWZ9AUEiZjQE2iV79pCmWx0Cuyq1DCh5d5azDJKjvwaXLAI5tr4Ax28KC/4/udBBvckhgxxbyehWgXpHqxooSJBtuq8y1MLBc04s85t0heXiA8+c++ZE5SRyRpsg9MOrjsy7AyGcouDivrEMmM3hAHm6oCYmZpM3GyDjHpQgH"; // 填入您的 URL 密文
+const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
+// [安插在其他 API_KEY 全域變數群組中]
+let gasUrl = "";
+let gasToken = "";
 // [修改] 2. 用來暫存解密後的 Key
 let geminiKey = ""; 
 let googleKey = "";
@@ -5218,15 +5266,23 @@ function getKey(type) {
         // D. 嘗試用同一組密碼解開兩把鑰匙
         const g_key = decrypt(encryptedGeminiKey);
         const p_key = decrypt(encryptedPlacesKey);
+        const g_url = decrypt(encryptedGasUrl);
+        const g_token = decrypt(encryptedGasToken);
 
         // E. 驗證 (只要其中一把成功解出 AIza 開頭，就視為密碼正確)
         // 注意：若您只有設其中一個，另一個留空字串也沒關係
         if (g_key.startsWith("AIza") || p_key.startsWith("AIza")) {
             geminiKey = g_key;
             googleKey = p_key;
-            localStorage.setItem("app_password", password); // 密碼正確，存起來
-            
-            return type === 'gemini' ? geminiKey : googleKey;
+            gasUrl = g_url;
+            gasToken = g_token;
+
+            if (type === 'gemini') return geminiKey;
+    if (type === 'places') return googleKey;
+    if (type === 'gas_url') return gasUrl;     // 新增回傳分支
+    if (type === 'gas_token') return gasToken; // 新增回傳分支
+    
+    return null;
         } else {
             alert("密碼錯誤，無法解密 API Key。");
             localStorage.removeItem("app_password"); // 清除錯誤密碼
@@ -8747,6 +8803,107 @@ function getSimpleIconSvg(code, pop, uid, isNight = false) {
 
     return `<svg ${commonAttr}>${defs}${path}</svg>`;
 }
+// A. 切換輸入模式
+function toggleLedgerInput() {
+    const type = document.getElementById('ledger-type').value;
+    document.getElementById('ledger-finance-fields').style.display = type === 'finance' ? 'block' : 'none';
+    document.getElementById('ledger-note-fields').style.display = type === 'note' ? 'block' : 'none';
+}
+
+// B. 傳送資料至 GAS (依據 backend.gs 規範)
+async function handleLedgerSubmit() {
+    const url = getKey('gas_url');
+    const token = getKey('gas_token');
+    const type = document.getElementById('ledger-type').value;
+    const user = JSON.parse(document.getElementById('ledger-user').value);
+
+    let payload = {
+        action: 'upload',
+        token: token,
+        type: type,
+        user: JSON.stringify(user),
+        date: new Date().toISOString().split('T')[0]
+    };
+
+    if (type === 'finance') {
+        payload.item = document.getElementById('ledger-item').value;
+        payload.amount = document.getElementById('ledger-amount').value;
+        if (!payload.item || !payload.amount) return alert("請填寫項目與金額");
+    } else {
+        payload.content = document.getElementById('ledger-note-content').value;
+        if (!payload.content) return alert("請填寫筆記內容");
+    }
+
+    try {
+        showLoading(true);
+        // 由於 GAS 的 CORS 特性，使用 POST 傳送 JSON
+        await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        
+        // 清空輸入
+        document.getElementById('ledger-item').value = '';
+        document.getElementById('ledger-amount').value = '';
+        document.getElementById('ledger-note-content').value = '';
+        
+        alert("儲存成功！");
+        syncLedgerData(); // 重新整理列表
+    } catch (e) {
+        alert("儲存失敗: " + e);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// C. 抓取並渲染列表 (依據 backend.gs 的 getAll)
+async function syncLedgerData() {
+    const url = getKey('gas_url');
+    const token = getKey('gas_token');
+    if (!url || !token) return;
+
+    try {
+        const res = await fetch(`${url}?token=${token}&action=getAll`);
+        const result = await res.json();
+        if (result.status === 'success') {
+            renderLedgerList(result.data);
+        }
+    } catch (e) {
+        console.error("同步失敗", e);
+    }
+}
+
+function renderLedgerList(data) {
+    const listContainer = document.getElementById('ledger-list');
+    let html = '';
+    let total = 0;
+
+    data.forEach(item => {
+        const isFinance = item.type === 'finance';
+        const user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
+        if (isFinance) total += parseFloat(item.amount || 0);
+
+        html += `
+            <div class="card" style="margin-bottom: 8px; padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="display: flex; gap: 10px;">
+                        <span style="font-size: 1.2rem;">${user.avatar}</span>
+                        <div>
+                            <div style="font-weight: 500;">${isFinance ? item.item : '📝 旅程記事'}</div>
+                            <div style="font-size: 0.75rem; color: #888;">${item.date} · ${user.name}</div>
+                        </div>
+                    </div>
+                    ${isFinance ? `<div style="font-weight: 700; color: #ef4444;">¥${item.amount}</div>` : ''}
+                </div>
+                ${!isFinance ? `<div style="margin-top: 8px; font-size: 0.9rem; color: #444; border-left: 2px solid #ddd; padding-left: 8px;">${item.content}</div>` : ''}
+            </div>
+        `;
+    });
+
+    listContainer.innerHTML = html || '<div style="text-align: center; color: #999; padding: 20px;">尚無紀錄</div>';
+    document.getElementById('ledger-total-amount').innerText = `¥ ${total.toLocaleString()}`;
+}
+
     </script>
     </div>
 </body>
