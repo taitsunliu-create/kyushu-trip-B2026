@@ -6998,14 +6998,11 @@ function updateComparison(targetTemp) {
         }
         
         function showLoading() {
-        // 只有在 AI 分頁才去抓 chatHistory 並畫圖
-    const chatHistory = document.getElementById('chat-content'); 
-    const currentView = document.querySelector('.container.active');
+    // 【有一說一】直接抓取 AI 歷史紀錄容器
+    const chatHistoryContainer = document.getElementById('chat-history'); 
     
-    // 如果不在 AI 分頁，我們就安靜地結束，但不影響外部呼叫者的執行
-    if (!currentView || currentView.id !== 'view-info' || !chatHistory) {
-        return; 
-    }
+    // 如果抓不到容器（表示不在 AI 分頁），就安靜結束，不要報錯也不要 return 影響別人
+    if (!chatHistoryContainer) return;
 
     const row = document.createElement('div');
     row.className = 'chat-row ai loading-row';
@@ -7016,8 +7013,8 @@ function updateComparison(targetTemp) {
     bubble.innerHTML = 'AI 正在思考中<span class="loading-dots"></span>';
     
     row.appendChild(bubble);
-    chatHistory.appendChild(row);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
+    chatHistoryContainer.appendChild(row);
+    chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
 }
 
         function removeLoading() {
@@ -8820,37 +8817,35 @@ function toggleLedgerInput() {
 }
 
 // B. 傳送資料至 GAS (依據 backend.gs 規範)
-async function handleLedgerSubmit(event) {
-    if (event) event.preventDefault();
-    const url = getKey('gas_url');
-    const token = getKey('gas_token');
-    // ... 取得 type, user 等邏輯不變 ...
+async function handleLedgerSubmit() { // 括號保持空白即可
+    // --- 修改點：直接用 ID 抓取兩個可能的按鈕，不依賴 event ---
+    const financeBtn = document.querySelector('#ledger-finance-fields .btn-primary');
+    const noteBtn = document.querySelector('#ledger-note-fields .btn-primary');
+    const submitBtn = (document.getElementById('ledger-type').value === 'finance') ? financeBtn : noteBtn;
 
-    // 【修改重點 1】：找到按鈕並停用它，不要呼叫 showLoading()
-    const submitBtn = event ? event.target : document.querySelector('#view-ledger .btn-primary');
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = "儲存中...";
     }
 
     try {
-        // 【修改重點 2】：直接執行 fetch
+        const url = getKey('gas_url');
+        const token = getKey('gas_token');
+        // ... 中間取得 payload 的邏輯保持不變 ...
+
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
         
-        // ... 清空欄位與 alert 成功邏輯 ...
         alert("儲存成功！");
         syncLedgerData();
     } catch (e) {
-        console.error("GAS Error:", e);
         alert("儲存失敗: " + e.message);
     } finally {
-        // 【修改重點 3】：恢復按鈕狀態，不要呼叫 hideLoading()
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerText = "送出紀錄";
+            submitBtn.innerText = (document.getElementById('ledger-type').value === 'finance') ? "送出" : "儲存記事";
         }
     }
 }
