@@ -8817,11 +8817,13 @@ function toggleLedgerInput() {
 }
 
 // B. 傳送資料至 GAS (依據 backend.gs 規範)
-async function handleLedgerSubmit() { // 括號保持空白即可
-    // --- 修改點：直接用 ID 抓取兩個可能的按鈕，不依賴 event ---
-    const financeBtn = document.querySelector('#ledger-finance-fields .btn-primary');
-    const noteBtn = document.querySelector('#ledger-note-fields .btn-primary');
-    const submitBtn = (document.getElementById('ledger-type').value === 'finance') ? financeBtn : noteBtn;
+async function handleLedgerSubmit() {
+    // 【有一說一：移除 event 依賴】
+    // 直接根據目前選取的 type 來抓取對應區域的按鈕
+    const isFinance = document.getElementById('ledger-type').value === 'finance';
+    const submitBtn = isFinance 
+        ? document.querySelector('#ledger-finance-fields .btn-primary')
+        : document.querySelector('#ledger-note-fields .btn-primary');
 
     if (submitBtn) {
         submitBtn.disabled = true;
@@ -8831,21 +8833,56 @@ async function handleLedgerSubmit() { // 括號保持空白即可
     try {
         const url = getKey('gas_url');
         const token = getKey('gas_token');
-        // ... 中間取得 payload 的邏輯保持不變 ...
+        
+        if (!url || !token) {
+            alert("請先輸入密碼解鎖權限");
+            return;
+        }
 
-        const response = await fetch(url, {
+        const user = JSON.parse(document.getElementById('ledger-user').value);
+        let payload = {
+            action: 'upload',
+            token: token,
+            type: isFinance ? 'finance' : 'note',
+            user: JSON.stringify(user),
+            date: new Date().toISOString().split('T')[0]
+        };
+
+        if (isFinance) {
+            payload.item = document.getElementById('ledger-item').value;
+            payload.amount = document.getElementById('ledger-amount').value;
+            if (!payload.item || !payload.amount) throw new Error("項目與金額不能為空");
+        } else {
+            payload.content = document.getElementById('ledger-note-content').value;
+            if (!payload.content) throw new Error("筆記內容不能為空");
+        }
+
+        // 執行發送
+        await fetch(url, {
             method: 'POST',
+            mode: 'no-cors', // 確保 GAS 跨域不報錯
             body: JSON.stringify(payload)
         });
         
         alert("儲存成功！");
-        syncLedgerData();
+        
+        // 清空欄位
+        if(isFinance) {
+            document.getElementById('ledger-item').value = '';
+            document.getElementById('ledger-amount').value = '';
+        } else {
+            document.getElementById('ledger-note-content').value = '';
+        }
+        
+        syncLedgerData(); // 重新載入列表
+
     } catch (e) {
+        console.error("儲存過程出錯:", e);
         alert("儲存失敗: " + e.message);
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerText = (document.getElementById('ledger-type').value === 'finance') ? "送出" : "儲存記事";
+            submitBtn.innerText = isFinance ? "送出" : "儲存記事";
         }
     }
 }
