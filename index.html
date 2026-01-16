@@ -8814,45 +8814,33 @@ function toggleLedgerInput() {
 async function handleLedgerSubmit() {
     const url = getKey('gas_url');
     const token = getKey('gas_token');
-    const type = document.getElementById('ledger-type').value;
-    const user = JSON.parse(document.getElementById('ledger-user').value);
+    // ... 前段參數取得邏輯 ...
 
-    let payload = {
-        action: 'upload',
-        token: token,
-        type: type,
-        user: JSON.stringify(user),
-        date: new Date().toISOString().split('T')[0]
-    };
-
-    if (type === 'finance') {
-        payload.item = document.getElementById('ledger-item').value;
-        payload.amount = document.getElementById('ledger-amount').value;
-        if (!payload.item || !payload.amount) return alert("請填寫項目與金額");
-    } else {
-        payload.content = document.getElementById('ledger-note-content').value;
-        if (!payload.content) return alert("請填寫筆記內容");
+    // [修改位置]：不要呼叫 showLoading()，改用以下代碼
+    const submitBtn = document.querySelector('#view-ledger .btn-primary');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "傳送中...";
     }
 
     try {
-        showLoading(true);
-        // 由於 GAS 的 CORS 特性，使用 POST 傳送 JSON
+        // [原有的 fetch 邏輯]
         await fetch(url, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
         
-        // 清空輸入
-        document.getElementById('ledger-item').value = '';
-        document.getElementById('ledger-amount').value = '';
-        document.getElementById('ledger-note-content').value = '';
-        
+        // ... 成功後的清空與同步邏輯 ...
         alert("儲存成功！");
-        syncLedgerData(); // 重新整理列表
+        syncLedgerData();
     } catch (e) {
         alert("儲存失敗: " + e);
     } finally {
-        showLoading(false);
+        // [修改位置]：恢復按鈕狀態，不要呼叫 hideLoading()
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "送出紀錄";
+        }
     }
 }
 
