@@ -8914,6 +8914,7 @@ function updateUserInfoFromUI() {
 
 // 📍 修改後的 handleLedgerSubmit (約第 1285 行)
 async function handleLedgerSubmit() {
+    updateUserInfoFromUI();
     const userInfoRaw = document.getElementById('selected-user-info').value;
     if (!userInfoRaw) {
         alert("請先確認紀錄者身分（點選頭像）");
@@ -9032,10 +9033,20 @@ function renderLedgerList(data) {
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
-        let user = { name: '未知', avatar: '👤' };
-        try {
-            user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
-        } catch(e) {}
+    // 【有一說一：這是最關鍵的解析修正】
+    let user = { name: '匿名', avatar: '👤' };
+    try {
+        if (typeof item.user === 'object' && item.user !== null) {
+            user = item.user;
+        } else if (typeof item.user === 'string' && item.user.startsWith('{')) {
+            user = JSON.parse(item.user);
+        } else if (typeof item.user === 'string' && item.user !== "") {
+            // 如果儲存格只有名字（舊資料），則補上預設頭像
+            user = { name: item.user, avatar: '👤' };
+        }
+    } catch (e) {
+        console.error("解析使用者資訊失敗:", e, item.user);
+    }
 
         const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
