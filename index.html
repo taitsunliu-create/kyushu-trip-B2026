@@ -8930,7 +8930,7 @@ function initAvatarSelector() {
     // 動態生成頭像列
     container.innerHTML = AVATAR_OPTIONS.map((emoji) => `
         <div class="avatar-item ${emoji === lastEmoji ? 'active' : ''}" 
-             onclick="selectAvatar('${emoji}', this)"
+             onclick="selectAvatar('${emoji}', '${name}', this)"
              style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; border: 2px solid transparent; background: #f8fafc; flex-shrink: 0; transition: 0.2s; line-height: 1;">
             ${emoji}
         </div>
@@ -8940,7 +8940,8 @@ function initAvatarSelector() {
     updateUserInfoFromUI(); 
 }
 
-function selectAvatar(emoji, el) {
+function selectAvatar(emoji, name, el) {
+    currentUser = { name: name, avatar: emoji };
     document.getElementById('current-selected-emoji').innerText = emoji;
     document.querySelectorAll('.avatar-item').forEach(item => {
         item.style.borderColor = 'transparent';
