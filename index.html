@@ -5355,6 +5355,7 @@ function getKey(type) {
 }
 
 
+// 📍 位置：約第 1056 行
 function switchView(viewId) {
     document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
@@ -5368,11 +5369,14 @@ function switchView(viewId) {
         }
     });
 
-    // 關鍵修正：進入旅程紀錄時，必須「主動」執行初始化
+    // 關鍵修復：進入旅程紀錄時，必須「主動」執行初始化
     if (viewId === 'view-ledger') {
-        syncLedgerData(); // 同步舊資料
+        syncLedgerData(); 
+        // 必須呼叫下面這行，頭像才會跑出來讓你點
         setTimeout(() => {
-            initAvatarSelector(); // 畫出頭像選擇器
+            if (typeof initAvatarSelector === 'function') {
+                initAvatarSelector();
+            }
         }, 50);
     }
 }
@@ -8899,6 +8903,7 @@ function toggleLedgerInput() {
     document.getElementById('ledger-note-fields').style.display = type === 'note' ? 'block' : 'none';
 }
 
+// 📍 位置：約第 1253 行
 const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
 
 function initAvatarSelector() {
@@ -8911,26 +8916,29 @@ function initAvatarSelector() {
     document.getElementById('custom-user-name').value = lastName;
     document.getElementById('current-selected-emoji').innerText = lastEmoji;
 
-    // 動態渲染頭像
-    container.innerHTML = AVATAR_OPTIONS.map((emoji) => `
-        <div class="avatar-item ${emoji === lastEmoji ? 'active' : ''}" 
-             onclick="selectAvatar('${emoji}', this)"
-             style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; 
-                    border: 2px solid ${emoji === lastEmoji ? '#2563EB' : 'transparent'}; 
-                    background: ${emoji === lastEmoji ? '#EFF6FF' : '#f8fafc'}; 
-                    flex-shrink: 0; transition: 0.2s; line-height: 1;">
-            ${emoji}
-        </div>
-    `).join('');
+    // 動態渲染頭像，並確保初始選中的人有藍色樣式
+    container.innerHTML = AVATAR_OPTIONS.map((emoji) => {
+        const isActive = (emoji === lastEmoji);
+        return `
+            <div class="avatar-item" 
+                 onclick="selectAvatar('${emoji}', this)"
+                 style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; 
+                        border: 2px solid ${isActive ? '#2563EB' : 'transparent'}; 
+                        background: ${isActive ? '#EFF6FF' : '#f8fafc'}; 
+                        flex-shrink: 0; transition: 0.2s; line-height: 1;">
+                ${emoji}
+            </div>
+        `;
+    }).join('');
 
     updateUserInfoFromUI(); 
 }
 
 function selectAvatar(emoji, el) {
-    // 1. 更新大頭圖示
+    // 1. 更新上方顯示的大圖示
     document.getElementById('current-selected-emoji').innerText = emoji;
     
-    // 2. 清除所有人的藍框，只給點選的人藍框
+    // 2. 清除所有人的樣式，只給當前點選的人藍框
     document.querySelectorAll('.avatar-item').forEach(item => {
         item.style.borderColor = 'transparent';
         item.style.background = '#f8fafc';
@@ -8938,7 +8946,7 @@ function selectAvatar(emoji, el) {
     el.style.borderColor = '#2563EB';
     el.style.background = '#EFF6FF';
     
-    // 3. 儲存選擇
+    // 3. 儲存與同步
     localStorage.setItem('last_user_emoji', emoji);
     updateUserInfoFromUI();
 }
@@ -8948,7 +8956,7 @@ function updateUserInfoFromUI() {
     const avatar = document.getElementById('current-selected-emoji').innerText;
     const infoEl = document.getElementById('selected-user-info');
     if (infoEl) {
-        // 這是送給 GAS 的關鍵 JSON
+        // 這是送給試算表最重要的身分字串
         infoEl.value = JSON.stringify({ name: name, avatar: avatar });
     }
     localStorage.setItem('last_user_name', name);
