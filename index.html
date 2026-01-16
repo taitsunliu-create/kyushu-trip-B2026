@@ -5355,13 +5355,10 @@ function getKey(type) {
 }
 
 
-// [完整替換 switchView 函式]
 function switchView(viewId) {
-    // 隱藏所有容器，顯示目標容器
     document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
 
-    // 更新導覽列狀態
     document.querySelectorAll('.nav-item').forEach(item => {
         const onclickAttr = item.getAttribute('onclick');
         if (onclickAttr && onclickAttr.includes(viewId)) {
@@ -5371,15 +5368,12 @@ function switchView(viewId) {
         }
     });
 
-    // 關鍵修復：進入旅程紀錄頁面時，強制啟動頭像選擇器
+    // 關鍵修正：進入旅程紀錄時，必須「主動」執行初始化
     if (viewId === 'view-ledger') {
-        syncLedgerData();
-        // 使用 setTimeout 確保 DOM 渲染後執行
+        syncLedgerData(); // 同步舊資料
         setTimeout(() => {
-            if (typeof initAvatarSelector === 'function') {
-                initAvatarSelector();
-            }
-        }, 100);
+            initAvatarSelector(); // 畫出頭像選擇器
+        }, 50);
     }
 }
 // [結束] 替換 switchView
@@ -8905,7 +8899,6 @@ function toggleLedgerInput() {
     document.getElementById('ledger-note-fields').style.display = type === 'note' ? 'block' : 'none';
 }
 
-// [完整替換身分定義相關邏輯]
 const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
 
 function initAvatarSelector() {
@@ -8918,11 +8911,14 @@ function initAvatarSelector() {
     document.getElementById('custom-user-name').value = lastName;
     document.getElementById('current-selected-emoji').innerText = lastEmoji;
 
-    // 動態生成頭像列，並加上點選後的樣式處理
+    // 動態渲染頭像
     container.innerHTML = AVATAR_OPTIONS.map((emoji) => `
         <div class="avatar-item ${emoji === lastEmoji ? 'active' : ''}" 
              onclick="selectAvatar('${emoji}', this)"
-             style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; border: 2px solid ${emoji === lastEmoji ? '#2563EB' : 'transparent'}; background: ${emoji === lastEmoji ? '#EFF6FF' : '#f8fafc'}; flex-shrink: 0; transition: 0.2s; line-height: 1;">
+             style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; 
+                    border: 2px solid ${emoji === lastEmoji ? '#2563EB' : 'transparent'}; 
+                    background: ${emoji === lastEmoji ? '#EFF6FF' : '#f8fafc'}; 
+                    flex-shrink: 0; transition: 0.2s; line-height: 1;">
             ${emoji}
         </div>
     `).join('');
@@ -8931,9 +8927,10 @@ function initAvatarSelector() {
 }
 
 function selectAvatar(emoji, el) {
+    // 1. 更新大頭圖示
     document.getElementById('current-selected-emoji').innerText = emoji;
     
-    // 清除所有頭像的選中狀態，並設定當前點選的樣式
+    // 2. 清除所有人的藍框，只給點選的人藍框
     document.querySelectorAll('.avatar-item').forEach(item => {
         item.style.borderColor = 'transparent';
         item.style.background = '#f8fafc';
@@ -8941,8 +8938,9 @@ function selectAvatar(emoji, el) {
     el.style.borderColor = '#2563EB';
     el.style.background = '#EFF6FF';
     
-    updateUserInfoFromUI();
+    // 3. 儲存選擇
     localStorage.setItem('last_user_emoji', emoji);
+    updateUserInfoFromUI();
 }
 
 function updateUserInfoFromUI() {
@@ -8950,7 +8948,7 @@ function updateUserInfoFromUI() {
     const avatar = document.getElementById('current-selected-emoji').innerText;
     const infoEl = document.getElementById('selected-user-info');
     if (infoEl) {
-        // 將身分封裝成 JSON 字串存入隱藏欄位
+        // 這是送給 GAS 的關鍵 JSON
         infoEl.value = JSON.stringify({ name: name, avatar: avatar });
     }
     localStorage.setItem('last_user_name', name);
@@ -9052,82 +9050,55 @@ async function syncLedgerData() {
     }
 }
 
-// [完整替換 renderLedgerList 函式]
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
     if (!listContainer) return;
 
     let html = '';
-    let totalJPY = 0;
-    let totalTWD = 0;
-
-    const formatFullDateTime = (isoString) => {
-        if (!isoString) return '';
-        try {
-            const d = new Date(isoString);
-            return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-        } catch (e) { return isoString; }
-    };
-
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
-        // 相容性解析：處理 GAS 傳回的物件或字串
+        // 有一說一：這裡必須相容 backend.gs 傳回來的物件格式
         let user = { name: '未知', avatar: '👤' };
         if (item.user) {
             if (typeof item.user === 'object') {
                 user = { name: item.user.name || '未知', avatar: item.user.avatar || '👤' };
             } else {
                 try {
-                    if (item.user.startsWith('{')) {
-                        user = JSON.parse(item.user);
-                    } else {
-                        user = { name: item.user, avatar: '👤' };
-                    }
+                    user = JSON.parse(item.user);
                 } catch (e) {
                     user = { name: item.user, avatar: '👤' };
                 }
             }
         }
 
-        const displayDateTime = formatFullDateTime(item.timestamp || item.date);
+        const dateStr = new Date(item.timestamp || item.date).toLocaleString();
 
         if (item.type === 'finance') {
-            const jpy = parseFloat(item.amount || 0);
-            const rate = parseFloat(item.rate) || 0.21;
-            const twd = Math.round(jpy * rate);
-            totalJPY += jpy; totalTWD += twd;
-
             html += `
-                <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #ef4444;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="font-size: 1.5rem;">${user.avatar}</span>
-                            <div>
-                                <div style="font-weight: 700;">${item.item}</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">by ${user.name} | ${displayDateTime}</div>
-                            </div>
+                <div class="card" style="margin-bottom: 10px; padding: 12px; border-left: 4px solid #ef4444;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">${user.avatar}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700;">${item.item}</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">by ${user.name} | ${dateStr}</div>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 800; color: #ef4444;">¥${jpy.toLocaleString()}</div>
-                            <div style="font-size: 0.75rem; color: #9ca3af;">≈ TWD ${twd.toLocaleString()}</div>
-                        </div>
+                        <div style="text-align: right; font-weight: 800; color: #ef4444;">¥${item.amount}</div>
                     </div>
                 </div>`;
         } else {
             html += `
-                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
-                        <span>${user.avatar}</span>
-                        <span style="font-weight: 600; font-size: 0.85rem;">${user.name}</span>
-                        <span style="font-size: 0.7rem; color: #9ca3af; margin-left: auto;">${displayDateTime}</span>
+                <div class="card" style="margin-bottom: 10px; padding: 12px; border-left: 4px solid #2563EB;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                        <span>${user.avatar}</span><span style="font-weight: 600;">${user.name}</span>
                     </div>
                     <div style="white-space: pre-wrap;">${item.content}</div>
                 </div>`;
         }
     });
 
-    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
+    listContainer.innerHTML = html || '<div style="text-align:center; padding:20px;">暫無紀錄</div>';
+
      
     // 更新頂部資訊
     const totalDisplay = document.getElementById('ledger-total-amount');
