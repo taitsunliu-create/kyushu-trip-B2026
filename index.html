@@ -4854,13 +4854,13 @@ header.is-night {
                 <input type="text" id="ledger-item" placeholder="項目內容 (如：一蘭拉麵)" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
                 <div style="display: flex; gap: 8px;">
                     <input type="number" id="ledger-amount" placeholder="金額 (JPY)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                    <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
+                    <button onclick="handleLedgerSubmit(event)" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
                 </div>
             </div>
             
             <div id="ledger-note-fields" style="display: none;">
                 <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
-                <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
+                <button onclick="handleLedgerSubmit(event)" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
             </div>
         </div>
     </div>
@@ -8826,7 +8826,7 @@ async function handleLedgerSubmit() {
     // ... 取得 type, user 等邏輯不變 ...
 
     // 【修改重點 1】：找到按鈕並停用它，不要呼叫 showLoading()
-    const submitBtn = document.querySelector('#view-ledger .btn-primary');
+    const submitBtn = event ? event.target : document.querySelector('#view-ledger .btn-primary');
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = "儲存中...";
