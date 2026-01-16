@@ -8819,7 +8819,7 @@ function toggleLedgerInput() {
 }
 
 // B. 傳送資料至 GAS (依據 backend.gs 規範)
-async function handleLedgerSubmit() {
+async function handleLedgerSubmit(event) {
     
     const url = getKey('gas_url');
     const token = getKey('gas_token');
