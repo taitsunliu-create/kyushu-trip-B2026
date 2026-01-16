@@ -5254,6 +5254,18 @@ let rawLedgerData = [];              // 存放從 GAS 抓回來的原始資料�
     `;
 // 3. 解密函式 (會在需要 API 時自動呼叫)
 // [修改] 3. 雙鑰匙解密函式 (傳入 'gemini' 或 'places' 取得對應 Key)
+// --- 有一說一：新增格式化函式 ---
+function formatLedgerTime(isoString) {
+    if (!isoString) return "";
+    try {
+        const date = new Date(isoString);
+        // 回傳如 "14:25" 格式
+        return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+    } catch (e) {
+        return "";
+    }
+}
+
 function getKey(type) {
     // A. 如果記憶體中已經有解好的 Key，直接回傳
     if (type === 'gemini' && geminiKey) return geminiKey;
@@ -8952,7 +8964,16 @@ function renderLedgerList(data) {
     let total = 0;
     let noteCount = 0;
 
-    // ★ 關鍵點：根據目前選擇的 currentLedgerFilter 過濾資料
+    // --- 有一說一：時間格式化小工具 ---
+    const formatTime = (isoString) => {
+        if (!isoString) return '';
+        try {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+        } catch (e) { return ''; }
+    };
+
+    // --- 關鍵修改：過濾資料，只顯示目前選中的模式 (currentLedgerFilter) ---
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
@@ -8960,6 +8981,9 @@ function renderLedgerList(data) {
         try {
             user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
         } catch(e) {}
+
+        // 取得具體時間（例如 14:30）
+        const displayTime = formatTime(item.timestamp || item.date);
 
         if (item.type === 'finance') {
             total += parseFloat(item.amount || 0);
@@ -8970,7 +8994,9 @@ function renderLedgerList(data) {
                             <span style="font-size: 1.2rem;">${user.avatar}</span>
                             <div>
                                 <div style="font-weight: 500;">${item.item}</div>
-                                <div style="font-size: 0.75rem; color: #888;">${item.date}</div>
+                                <div style="font-size: 0.75rem; color: #888;">
+                                    ${item.date} <span style="margin-left:5px; color:#aaa;">${displayTime}</span>
+                                </div>
                             </div>
                         </div>
                         <div style="font-weight: 700; color: #ef4444;">¥${item.amount}</div>
@@ -8982,7 +9008,9 @@ function renderLedgerList(data) {
                 <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 4px solid #2563EB;">
                     <div style="display: flex; gap: 10px; margin-bottom: 5px;">
                         <span style="font-size: 1rem;">${user.avatar}</span>
-                        <div style="font-size: 0.75rem; color: #888;">${user.name} · ${item.date}</div>
+                        <div style="font-size: 0.75rem; color: #888;">
+                            ${user.name} · ${item.date} <span style="margin-left:5px; color:#aaa;">${displayTime}</span>
+                        </div>
                     </div>
                     <div style="font-size: 0.95rem; color: #333; line-height: 1.5;">${item.content}</div>
                 </div>`;
@@ -8991,7 +9019,7 @@ function renderLedgerList(data) {
 
     listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 40px;">尚無紀錄</div>`;
     
-    // 更新頂部顯示的數字
+    // 更新頂部顯示的總額或則數
     const totalDisplay = document.getElementById('ledger-total-amount');
     if (totalDisplay) {
         totalDisplay.innerText = currentLedgerFilter === 'finance' 
