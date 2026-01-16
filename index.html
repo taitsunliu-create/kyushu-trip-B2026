@@ -5305,7 +5305,8 @@ function getKey(type) {
 
             // 重要：密碼正確，存入本機記憶
             localStorage.setItem("app_password", password);
-            
+            // 【安插此行】啟動時自動同步資料
+            syncLedgerData();
             // 根據需求回傳
             const map = { 'gemini': geminiKey, 'places': googleKey, 'gas_url': gasUrl, 'gas_token': gasToken };
             return map[type];
@@ -5318,6 +5319,25 @@ function getKey(type) {
         console.error("解密出錯", e);
         localStorage.removeItem("app_password");
         return null;
+    }
+}
+
+function switchView(viewId) {
+    // 1. 切換所有容器的顯示狀態
+    document.querySelectorAll('.container').forEach(c => {
+        c.classList.remove('active');
+    });
+    
+    // 2. 顯示目標分頁
+    const target = document.getElementById(viewId);
+    if (target) {
+        target.classList.add('active');
+    }
+
+    // 3. 【核心優化】：切換到旅程紀錄時，自動載入最新資料
+    if (viewId === 'view-ledger') {
+        console.log("切換至旅程紀錄，自動同步資料...");
+        syncLedgerData(); 
     }
 }
         // Weather Data Configuration
@@ -8849,7 +8869,14 @@ async function handleLedgerSubmit() {
     const submitBtn = isFinance 
         ? document.querySelector('#ledger-finance-fields .btn-primary')
         : document.querySelector('#ledger-note-fields .btn-primary');
+const liveRate = (typeof currentRate !== 'undefined') ? currentRate : parseFloat(document.getElementById('current-rate-val')?.innerText || 0.21);
 
+    let payload = {
+        action: 'upload',
+        // ... 其他欄位 ...
+        rate: liveRate, // ★ 傳送當下匯率給 GAS
+        twdAmount: Math.round(document.getElementById('ledger-amount').value * liveRate) // 也可以直接算好傳過去
+    };
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = "儲存中...";
@@ -8961,15 +8988,14 @@ function renderLedgerList(data) {
     if (!listContainer) return;
 
     let html = '';
-    let total = 0;
-    let noteCount = 0;
+    let totalJPY = 0;
+    let totalTWD = 0; // 新增台幣總計變數
 
-    // --- 有一說一：包含年份的完整日期時間格式化 ---
+    // 格式化工具：年/月/日 時:分
     const formatFullDateTime = (isoString) => {
         if (!isoString) return '';
         try {
             const d = new Date(isoString);
-            // 格式化為：2026/01/16 14:30
             const Y = d.getFullYear();
             const M = (d.getMonth() + 1).toString().padStart(2, '0');
             const D = d.getDate().toString().padStart(2, '0');
@@ -8979,6 +9005,7 @@ function renderLedgerList(data) {
         } catch (e) { return isoString; }
     };
 
+    // 根據目前的過濾模式（錢幣或筆記本）篩選資料
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
@@ -8987,11 +9014,17 @@ function renderLedgerList(data) {
             user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
         } catch(e) {}
 
-        // 使用優化後的完整日期時間
         const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
         if (item.type === 'finance') {
-            total += parseFloat(item.amount || 0);
+            // --- 安插台幣計算邏輯 ---
+            const jpyAmount = parseFloat(item.amount || 0);
+            const savedRate = parseFloat(item.rate || 0.21); // 抓取當時匯率，預設 0.21
+            const twdAmount = Math.round(jpyAmount * savedRate); // 計算台幣
+
+            totalJPY += jpyAmount;
+            totalTWD += twdAmount;
+
             html += `
                 <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #ef4444;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -9005,21 +9038,23 @@ function renderLedgerList(data) {
                                 </div>
                             </div>
                         </div>
-                        <div style="font-weight: 800; color: #ef4444; font-size: 1.2rem;">¥${Number(item.amount).toLocaleString()}</div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 800; color: #ef4444; font-size: 1.1rem;">¥${jpyAmount.toLocaleString()}</div>
+                            <div style="font-size: 0.75rem; color: #9ca3af; font-weight: 500;">≈ TWD ${twdAmount.toLocaleString()}</div>
+                        </div>
                     </div>
                 </div>`;
         } else {
-            noteCount++;
+            noteCount++; // 假設您外層有定義 noteCount，否則此處可省略
+            // ... 記事部分的 HTML (保持不變) ...
             html += `
                 <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <span style="font-size: 1.1rem;">${user.avatar}</span>
-                            <span style="font-size: 0.85rem; font-weight: 600; color: #374151;">${user.name}</span>
+                            <span style="font-size: 0.85rem; font-weight: 600;">${user.name}</span>
                         </div>
-                        <div style="font-size: 0.75rem; color: #9ca3af; font-family: monospace;">
-                            ${displayDateTime}
-                        </div>
+                        <div style="font-size: 0.75rem; color: #9ca3af; font-family: monospace;">${displayDateTime}</div>
                     </div>
                     <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
                 </div>`;
@@ -9028,11 +9063,17 @@ function renderLedgerList(data) {
 
     listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
     
+    // 更新頂部卡片的總額顯示 (同時顯示日幣與台幣總額)
     const totalDisplay = document.getElementById('ledger-total-amount');
     if (totalDisplay) {
-        totalDisplay.innerText = currentLedgerFilter === 'finance' 
-            ? `¥ ${total.toLocaleString()}` 
-            : `${noteCount} 則紀錄`;
+        if (currentLedgerFilter === 'finance') {
+            totalDisplay.innerHTML = `
+                <div>¥ ${totalJPY.toLocaleString()}</div>
+                <div style="font-size: 0.8rem; font-weight: 400; opacity: 0.8;">約 TWD ${totalTWD.toLocaleString()}</div>
+            `;
+        } else {
+            totalDisplay.innerText = `${filteredData.length} 則紀錄`;
+        }
     }
 }
 
