@@ -6960,7 +6960,16 @@ function updateComparison(targetTemp) {
             document.getElementById(targetId).classList.add('active');
             
             window.scrollTo(0, 0);
-        }
+        // 如果切換到「旅程紀錄」分頁，強制初始化頭像選單
+    if (targetId === 'view-ledger') {
+        // 使用 setTimeout 確保 DOM 已經完全顯示後再執行
+        setTimeout(() => {
+            if (typeof initAvatarSelector === 'function') {
+                initAvatarSelector();
+            }
+        }, 50);
+    }
+}
 
         function toggleTimeline(id, toggleElement) {
             const timeline = document.getElementById(id);
@@ -9098,45 +9107,50 @@ function renderLedgerList(data) {
 
         const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
-        if (item.type === 'finance') {
-            const jpy = parseFloat(item.amount || 0);
-            const rate = parseFloat(item.rate) || 0.21;
-            const twd = Math.round(jpy * rate);
-            totalJPY += jpy;
-            totalTWD += twd;
+        // 在 renderLedgerList 函式內，找到 if (item.type === 'finance') ...
+// 請將整個 if-else 區塊替換為：
 
-            html += `
-                <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #ef4444;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="font-size: 1.5rem;">${user.avatar}</span>
-                            <div>
-                                <div style="font-weight: 700; font-size: 1.05rem;">${item.item}</div>
-                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
-                                    <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${displayDateTime}</span>
-                                    <span style="margin-left: 5px;">by ${user.name}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 800; color: #ef4444; font-size: 1.1rem;">¥${jpy.toLocaleString()}</div>
-                            <div style="font-size: 0.75rem; color: #9ca3af;">≈ TWD ${twd.toLocaleString()}</div>
+if (item.type === 'finance') {
+    // 記帳顯示模式
+    const jpy = parseFloat(item.amount || 0);
+    const rate = parseFloat(item.rate) || 0.21;
+    const twd = Math.round(jpy * rate);
+    totalJPY += jpy;
+    
+    html += `
+        <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #EF4444;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span style="font-size: 1.5rem;">${user.avatar}</span>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.05rem;">${item.item}</div>
+                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
+                            <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${displayDateTime}</span>
+                            <span style="margin-left: 5px;">by ${user.name}</span>
                         </div>
                     </div>
-                </div>`;
-        } else if (item.type === 'note'){
-            html += `
-                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 1.2rem;">${user.avatar}</span>
-                            <span style="font-size: 0.85rem; font-weight: 600;">${user.name}</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
-                    </div>
-                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
-                </div>`;
-        }
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 800; color: #EF4444; font-size: 1.1rem;">¥${jpy.toLocaleString()}</div>
+                    <div style="font-size: 0.75rem; color: #9ca3af;">≈ TWD ${twd.toLocaleString()}</div>
+                </div>
+            </div>
+        </div>`;
+
+} else if (item.type === 'note') {
+    // ★★★ [關鍵修正] 補上記事模式的頭像顯示邏輯 ★★★
+    html += `
+        <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="font-size: 1.2rem;">${user.avatar}</span>
+                    <span style="font-size: 0.85rem; font-weight: 600;">${user.name}</span>
+                </div>
+                <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
+            </div>
+            <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
+        </div>`;
+}
     });
 
     listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
