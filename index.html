@@ -9042,7 +9042,7 @@ async function syncLedgerData() {
     }
 }
 
-// [完整替換區塊] 修正 JSON 解析與顯示邏輯
+// [完整替換區塊] 解決 GAS 物件傳遞與前端顯示
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
     if (!listContainer) return;
@@ -9060,40 +9060,38 @@ function renderLedgerList(data) {
         } catch (e) { return isoString; }
     };
 
-    // 匯率優先級：紀錄內 > 畫面即時 > 0.21
-    const getRate = (itemRate) => {
-        const liveRate = document.getElementById('current-rate-val')?.innerText;
-        return parseFloat(itemRate) || parseFloat(liveRate) || 0.21;
-    };
-
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
-        // --- 【有一說一：核心解析邏輯開始】 ---
+        // --- 【有一說一：最強相容解析邏輯】 ---
         let user = { name: '未知', avatar: '👤' };
+        
         if (item.user) {
-            try {
-                if (typeof item.user === 'object') {
-                    user = item.user;
-                } else if (typeof item.user === 'string' && item.user.trim().startsWith('{')) {
-                    // 若是 JSON 字串則解析
-                    user = JSON.parse(item.user);
-                } else {
-                    // 若是舊有的純文字資料
+            if (typeof item.user === 'object') {
+                // 如果 GAS 已經解析成物件 (您目前的 backend.gs 狀況)
+                user = {
+                    name: item.user.name || '未知',
+                    avatar: item.user.avatar || '👤'
+                };
+            } else if (typeof item.user === 'string') {
+                try {
+                    if (item.user.trim().startsWith('{')) {
+                        user = JSON.parse(item.user);
+                    } else {
+                        user = { name: item.user, avatar: '👤' };
+                    }
+                } catch (e) {
                     user = { name: item.user, avatar: '👤' };
                 }
-            } catch (e) {
-                console.error("解析使用者錯誤:", e);
-                user = { name: item.user, avatar: '👤' };
             }
         }
-        // --- 【核心解析邏輯結束】 ---
+        // --- 【解析結束】 ---
 
         const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
         if (item.type === 'finance') {
             const jpy = parseFloat(item.amount || 0);
-            const rate = getRate(item.rate);
+            const rate = parseFloat(item.rate) || 0.21;
             const twd = Math.round(jpy * rate);
             totalJPY += jpy;
             totalTWD += twd;
@@ -9106,7 +9104,7 @@ function renderLedgerList(data) {
                             <div>
                                 <div style="font-weight: 700; font-size: 1.05rem;">${item.item}</div>
                                 <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
-                                    <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">${displayDateTime}</span>
+                                    <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${displayDateTime}</span>
                                     <span style="margin-left: 5px;">by ${user.name}</span>
                                 </div>
                             </div>
@@ -9125,7 +9123,7 @@ function renderLedgerList(data) {
                             <span style="font-size: 1.2rem;">${user.avatar}</span>
                             <span style="font-size: 0.85rem; font-weight: 600;">${user.name}</span>
                         </div>
-                        <div style="font-size: 0.75rem; color: #9ca3af; font-family: monospace;">${displayDateTime}</div>
+                        <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
                     </div>
                     <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
                 </div>`;
@@ -9136,19 +9134,13 @@ function renderLedgerList(data) {
     
     // 更新頂部資訊
     const totalDisplay = document.getElementById('ledger-total-amount');
-    const titleDisplay = document.getElementById('ledger-view-title');
-    
-    if (totalDisplay) {
-        if (currentLedgerFilter === 'finance') {
-            titleDisplay.innerText = "總支出 (JPY)";
-            totalDisplay.innerHTML = `
-                <div>¥ ${totalJPY.toLocaleString()}</div>
-                <div style="font-size: 0.8rem; font-weight: 400; opacity: 0.8;">約 TWD ${totalTWD.toLocaleString()}</div>
-            `;
-        } else {
-            titleDisplay.innerText = "旅程記事";
-            totalDisplay.innerText = `${filteredData.length} 則紀錄`;
-        }
+    if (totalDisplay && currentLedgerFilter === 'finance') {
+        totalDisplay.innerHTML = `
+            <div>¥ ${totalJPY.toLocaleString()}</div>
+            <div style="font-size: 0.8rem; font-weight: 400; opacity: 0.8;">約 TWD ${totalTWD.toLocaleString()}</div>
+        `;
+    } else if (totalDisplay) {
+        totalDisplay.innerText = `${filteredData.length} 則紀錄`;
     }
 }
 
