@@ -2279,6 +2279,22 @@ header.is-night {
     transform: scale(0.95);
 }
 
+.avatar-item {
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: #f8fafc;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    line-height: 1;
+}
+.avatar-item.active {
+    border-color: #2563EB;
+    background: #EFF6FF;
+    transform: scale(1.1);
+}
   </style>
 </head>
 <body>
@@ -4863,7 +4879,7 @@ header.is-night {
         </div>
     </div>
 
-    <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
+   <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
     <div class="card-content" style="padding: 12px;">
         <div id="avatar-selector-container" style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
             <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">紀錄者身分：</div>
@@ -4872,7 +4888,7 @@ header.is-night {
             <div style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
                 <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
                 <input type="text" id="custom-user-name" placeholder="名稱..." 
-                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700;" value="爸爸">
+                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700;" value="爸爸" oninput="updateUserInfoFromUI()">
             </div>
             <input type="hidden" id="selected-user-info" value="">
         </div>
@@ -4884,7 +4900,11 @@ header.is-night {
                 <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
             </div>
         </div>
+        <div id="ledger-note-fields" style="display: none;">
+            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
+            <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
         </div>
+    </div>
 </div>
 
     <div id="ledger-list" style="margin-bottom: 80px;"></div>
@@ -5331,34 +5351,15 @@ function getKey(type) {
 }
 
 
-// 當使用者修改名稱時，同步更新隱藏欄位
-document.getElementById('custom-user-name')?.addEventListener('input', (e) => {
-    const name = e.target.value || '匿名';
-    const emoji = document.getElementById('current-selected-emoji').innerText;
-    updateUserInfo(name, emoji);
-    localStorage.setItem('last_user_name', name); // 記住上次輸入的名字
-});
-
-function updateUserInfo(name, avatar) {
-    document.getElementById('selected-user-info').value = JSON.stringify({ name, avatar });
-}
-
+// 📍 約第 1050 行
 function switchView(viewId) {
-    // 1. 切換所有容器的顯示狀態
-    document.querySelectorAll('.container').forEach(c => {
-        c.classList.remove('active');
-    });
-    
-    // 2. 顯示目標分頁
-    const target = document.getElementById(viewId);
-    if (target) {
-        target.classList.add('active');
-    }
+    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
 
-    // 3. 【核心優化】：切換到旅程紀錄時，自動載入最新資料
     if (viewId === 'view-ledger') {
-        console.log("切換至旅程紀錄，自動同步資料...");
-        syncLedgerData(); 
+        syncLedgerData();
+        // ★ 必須呼叫這行
+        initAvatarSelector(); 
     }
 }
         // Weather Data Configuration
@@ -8882,84 +8883,83 @@ function toggleLedgerInput() {
     document.getElementById('ledger-note-fields').style.display = type === 'note' ? 'block' : 'none';
 }
 
-// B. 傳送資料至 GAS (依據 backend.gs 規範)
+// 📍 建議放在約第 1250 行
+const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
+
+function initAvatarSelector() {
+    const container = document.getElementById('avatar-list');
+    if (!container) return;
+
+    container.innerHTML = AVATAR_OPTIONS.map((emoji, idx) => `
+        <div class="avatar-item ${idx === 0 ? 'active' : ''}" onclick="selectAvatar('${emoji}', this)">
+            ${emoji}
+        </div>
+    `).join('');
+    updateUserInfoFromUI(); 
+}
+
+function selectAvatar(emoji, el) {
+    document.getElementById('current-selected-emoji').innerText = emoji;
+    document.querySelectorAll('.avatar-item').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+    updateUserInfoFromUI();
+}
+
+function updateUserInfoFromUI() {
+    const name = document.getElementById('custom-user-name').value || '匿名';
+    const avatar = document.getElementById('current-selected-emoji').innerText;
+    const infoEl = document.getElementById('selected-user-info');
+    if (infoEl) infoEl.value = JSON.stringify({ name, avatar });
+}
+
+// 📍 修改後的 handleLedgerSubmit (約第 1285 行)
 async function handleLedgerSubmit() {
-    // 【有一說一：移除 event 依賴】
-    // 直接根據目前選取的 type 來抓取對應區域的按鈕
-    const currentRateVal = parseFloat(document.getElementById('current-rate-val')?.innerText || 0.21);
-    const isFinance = document.getElementById('ledger-type').value === 'finance';
-    const userInfo = JSON.parse(document.getElementById('selected-user-info').value);
+    const userInfoRaw = document.getElementById('selected-user-info').value;
+    if (!userInfoRaw) {
+        alert("請先確認紀錄者身分（點選頭像）");
+        return;
+    }
+
+    const url = getKey('gas_url');
+    const token = getKey('gas_token');
+    const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || (document.getElementById('ledger-finance-fields').style.display !== 'none');
     
-    const submitBtn = isFinance 
-            ? document.querySelector('#ledger-finance-fields .btn-primary')
-        : document.querySelector('#ledger-note-fields .btn-primary');
-const liveRate = (typeof currentRate !== 'undefined') ? currentRate : parseFloat(document.getElementById('current-rate-val')?.innerText || 0.21);
+    // 匯率抓取：優先用畫面上即時抓到的，否則用 0.21
+    const liveRateText = document.getElementById('current-rate-val')?.innerText;
+    const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
 
     let payload = {
         action: 'upload',
-        // ... 其他欄位 ...
-        rate: liveRate, // ★ 傳送當下匯率給 GAS
-        twdAmount: Math.round(document.getElementById('ledger-amount').value * liveRate) // 也可以直接算好傳過去
+        token: token,
+        type: isFinance ? 'finance' : 'note',
+        user: userInfoRaw, 
+        date: new Date().toISOString().split('T')[0],
+        rate: liveRate
     };
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerText = "儲存中...";
+
+    if (isFinance) {
+        payload.item = document.getElementById('ledger-item').value;
+        payload.amount = document.getElementById('ledger-amount').value;
+        if (!payload.item || !payload.amount) { alert("請填寫項目與金額"); return; }
+    } else {
+        payload.content = document.getElementById('ledger-note-content').value;
+        if (!payload.content) { alert("請填寫內容"); return; }
     }
 
+    showLoading();
     try {
-        const url = getKey('gas_url');
-        const token = getKey('gas_token');
-        
-        if (!url || !token) {
-            alert("請先輸入密碼解鎖權限");
-            return;
-        }
-
-        const user = JSON.parse(document.getElementById('ledger-user').value);
-        let payload = {
-            action: 'upload',
-            token: token,
-            type: isFinance ? 'finance' : 'note',
-            user: JSON.stringify(user),
-            date: new Date().toISOString().split('T')[0]
-        };
-
-        if (isFinance) {
-            payload.item = document.getElementById('ledger-item').value;
-            payload.amount = document.getElementById('ledger-amount').value;
-            if (!payload.item || !payload.amount) throw new Error("項目與金額不能為空");
-        } else {
-            payload.content = document.getElementById('ledger-note-content').value;
-            if (!payload.content) throw new Error("筆記內容不能為空");
-        }
-
-        // 執行發送
-        await fetch(url, {
-            method: 'POST',
-            mode: 'no-cors', // 確保 GAS 跨域不報錯
-            body: JSON.stringify(payload)
-        });
-        
+        const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+        const result = await resp.json();
         alert("儲存成功！");
-        
-        // 清空欄位
-        if(isFinance) {
-            document.getElementById('ledger-item').value = '';
-            document.getElementById('ledger-amount').value = '';
-        } else {
-            document.getElementById('ledger-note-content').value = '';
-        }
-        
-        syncLedgerData(); // 重新載入列表
-
+        // 清空輸入框
+        document.getElementById('ledger-item').value = '';
+        document.getElementById('ledger-amount').value = '';
+        document.getElementById('ledger-note-content').value = '';
+        syncLedgerData();
     } catch (e) {
-        console.error("儲存過程出錯:", e);
         alert("儲存失敗: " + e.message);
     } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerText = isFinance ? "送出" : "儲存記事";
-        }
+        hideLoading();
     }
 }
 
@@ -9004,32 +9004,6 @@ async function syncLedgerData() {
     } catch (e) {
         console.error("同步失敗", e);
     }
-}
-
-const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯'];
-
-function initAvatarSelector() {
-    const container = document.getElementById('avatar-list');
-    if (!container) return;
-
-    container.innerHTML = AVATAR_OPTIONS.map((emoji, idx) => `
-        <div class="avatar-item" onclick="selectAvatar('${emoji}', this)" 
-             style="font-size: 1.5rem; cursor: pointer; padding: 8px; border: 2px solid transparent; flex-shrink: 0;">
-            ${emoji}
-        </div>
-    `).join('');
-    
-    // 初始化設定
-    updateUserInfo(document.getElementById('custom-user-name').value, '🦁');
-}
-
-function selectAvatar(emoji, el) {
-    document.getElementById('current-selected-emoji').innerText = emoji;
-    updateUserInfo(document.getElementById('custom-user-name').value, emoji);
-}
-
-function updateUserInfo(name, avatar) {
-    document.getElementById('selected-user-info').value = JSON.stringify({ name, avatar });
 }
 
 // C. 更新後的渲染函式 (加入過濾機制)
