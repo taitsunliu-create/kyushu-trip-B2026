@@ -2279,29 +2279,6 @@ header.is-night {
     transform: scale(0.95);
 }
 
-.avatar-item {
-    font-size: 1.8rem;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    background: #f8fafc;
-    flex-shrink: 0;
-    transition: all 0.2s;
-    line-height: 1;
-}
-.avatar-item.active {
-    border-color: #2563EB;
-    background: #EFF6FF;
-    transform: scale(1.1);
-}
-/* 確保頭像項目的點擊範圍不被擠壓 */
-.avatar-item {
-    flex: 0 0 auto; /* 防止頭像被捲動容器壓縮 */
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    z-index: 5; /* 提高層級確保可被點擊 */
-}
   </style>
 </head>
 <body>
@@ -4886,37 +4863,21 @@ header.is-night {
         </div>
     </div>
 
-  <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
-    <div class="card-content" style="padding: 12px;">
-        <div id="avatar-selector-container" style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
-            <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">紀錄者身分：</div>
-            
-            <div id="avatar-list" style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; margin-bottom: 10px; -webkit-overflow-scrolling: touch;">
+    <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
+        <div class="card-content">
+             <div id="ledger-finance-fields">
+                <input type="text" id="ledger-item" placeholder="項目內容..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="ledger-amount" placeholder="金額 (JPY)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
                 </div>
-
-            <div style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
-                <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
-                <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..." 
-                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700; color: #1F2937;"
-                       value="爸爸" oninput="updateUserInfoFromUI()">
             </div>
-            <input type="hidden" id="selected-user-info" value="">
-        </div>
-
-        <div id="ledger-finance-fields">
-            <input type="text" id="ledger-item" placeholder="項目內容..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-            <div style="display: flex; gap: 8px;">
-                <input type="number" id="ledger-amount" placeholder="金額 (JPY)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
+            <div id="ledger-note-fields" style="display: none;">
+                <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
+                <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
             </div>
-        </div>
-
-        <div id="ledger-note-fields" style="display: none;">
-            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
-            <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
         </div>
     </div>
-</div>
 
     <div id="ledger-list" style="margin-bottom: 80px;"></div>
 </div>
@@ -5344,8 +5305,7 @@ function getKey(type) {
 
             // 重要：密碼正確，存入本機記憶
             localStorage.setItem("app_password", password);
-            // 【安插此行】啟動時自動同步資料
-            syncLedgerData();
+            
             // 根據需求回傳
             const map = { 'gemini': geminiKey, 'places': googleKey, 'gas_url': gasUrl, 'gas_token': gasToken };
             return map[type];
@@ -5360,30 +5320,6 @@ function getKey(type) {
         return null;
     }
 }
-
-
-// [開始] 替換 switchView
-function switchView(viewId) {
-    // 隱藏所有容器，顯示目標容器
-    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
-
-    // 更新導覽列狀態
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.toggle('active', item.getAttribute('onclick').includes(viewId));
-    });
-
-    // 針對特定分頁的初始化
-    if (viewId === 'view-ledger') {
-    syncLedgerData();
-    // 確保 DOM 已經準備好再初始化頭像選擇器
-    requestAnimationFrame(() => {
-        initAvatarSelector();
-    });
-}
-}
-// [結束] 替換 switchView
-
         // Weather Data Configuration
         // Icons: Using simple SVG strings for white icons
 
@@ -6960,16 +6896,7 @@ function updateComparison(targetTemp) {
             document.getElementById(targetId).classList.add('active');
             
             window.scrollTo(0, 0);
-        // 如果切換到「旅程紀錄」分頁，強制初始化頭像選單
-    if (targetId === 'view-ledger') {
-        // 使用 setTimeout 確保 DOM 已經完全顯示後再執行
-        setTimeout(() => {
-            if (typeof initAvatarSelector === 'function') {
-                initAvatarSelector();
-            }
-        }, 50);
-    }
-}
+        }
 
         function toggleTimeline(id, toggleElement) {
             const timeline = document.getElementById(id);
@@ -8914,107 +8841,74 @@ function toggleLedgerInput() {
     document.getElementById('ledger-note-fields').style.display = type === 'note' ? 'block' : 'none';
 }
 
-// [開始] 替換身分定義相關邏輯
-const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
-
-function initAvatarSelector() {
-    const container = document.getElementById('avatar-list');
-    if (!container) return;
-
-    const lastName = localStorage.getItem('last_user_name') || '爸爸';
-    const lastEmoji = localStorage.getItem('last_user_emoji') || '🦁';
-    
-    document.getElementById('custom-user-name').value = lastName;
-    document.getElementById('current-selected-emoji').innerText = lastEmoji;
-
-    // 動態生成頭像列
-    container.innerHTML = AVATAR_OPTIONS.map((emoji) => `
-        <div class="avatar-item ${emoji === lastEmoji ? 'active' : ''}" 
-             onclick="selectAvatar('${emoji}', '${name}', this)"
-             style="font-size: 1.8rem; cursor: pointer; padding: 10px; border-radius: 50%; border: 2px solid transparent; background: #f8fafc; flex-shrink: 0; transition: 0.2s; line-height: 1;">
-            ${emoji}
-        </div>
-    `).join('');
-
-    // ★ 關鍵：初始化時立即把當前身分塞進隱藏欄位，避免送出失敗
-    updateUserInfoFromUI(); 
-}
-
-function selectAvatar(emoji, name, el) {
-    currentUser = { name: name, avatar: emoji };
-    document.getElementById('current-selected-emoji').innerText = emoji;
-    document.querySelectorAll('.avatar-item').forEach(item => {
-        item.style.borderColor = 'transparent';
-        item.style.background = '#f8fafc';
-    });
-    el.style.borderColor = '#2563EB';
-    el.style.background = '#EFF6FF';
-    
-    updateUserInfoFromUI();
-    localStorage.setItem('last_user_emoji', emoji);
-}
-
-function updateUserInfoFromUI() {
-    const name = document.getElementById('custom-user-name').value || '匿名';
-    const avatar = document.getElementById('current-selected-emoji').innerText;
-    const infoEl = document.getElementById('selected-user-info');
-    if (infoEl) {
-        // 同步更新隱藏欄位的值
-        infoEl.value = JSON.stringify({ name: name, avatar: avatar });
-    }
-    localStorage.setItem('last_user_name', name);
-}
-// [結束] 替換身分定義相關邏輯
-
-// 📍 修改後的 handleLedgerSubmit (約第 1285 行)
+// B. 傳送資料至 GAS (依據 backend.gs 規範)
 async function handleLedgerSubmit() {
-    updateUserInfoFromUI();
-    const userInfoRaw = document.getElementById('selected-user-info').value;
-    if (!userInfoRaw) {
-        alert("請先確認紀錄者身分（點選頭像）");
-        return;
+    // 【有一說一：移除 event 依賴】
+    // 直接根據目前選取的 type 來抓取對應區域的按鈕
+    const isFinance = document.getElementById('ledger-type').value === 'finance';
+    const submitBtn = isFinance 
+        ? document.querySelector('#ledger-finance-fields .btn-primary')
+        : document.querySelector('#ledger-note-fields .btn-primary');
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "儲存中...";
     }
 
-    const url = getKey('gas_url');
-    const token = getKey('gas_token');
-    const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || (document.getElementById('ledger-finance-fields').style.display !== 'none');
-    
-    // 匯率抓取：優先用畫面上即時抓到的，否則用 0.21
-    const liveRateText = document.getElementById('current-rate-val')?.innerText;
-    const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
-
-    let payload = {
-        action: 'upload',
-        token: token,
-        type: isFinance ? 'finance' : 'note',
-        user: userInfoRaw, 
-        date: new Date().toISOString().split('T')[0],
-        rate: liveRate
-    };
-
-    if (isFinance) {
-        payload.item = document.getElementById('ledger-item').value;
-        payload.amount = document.getElementById('ledger-amount').value;
-        if (!payload.item || !payload.amount) { alert("請填寫項目與金額"); return; }
-    } else {
-        payload.content = document.getElementById('ledger-note-content').value;
-        if (!payload.content) { alert("請填寫內容"); return; }
-    }
-
-    showLoading();
     try {
-        const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
-        const result = await resp.json();
+        const url = getKey('gas_url');
+        const token = getKey('gas_token');
+        
+        if (!url || !token) {
+            alert("請先輸入密碼解鎖權限");
+            return;
+        }
+
+        const user = JSON.parse(document.getElementById('ledger-user').value);
+        let payload = {
+            action: 'upload',
+            token: token,
+            type: isFinance ? 'finance' : 'note',
+            user: JSON.stringify(user),
+            date: new Date().toISOString().split('T')[0]
+        };
+
+        if (isFinance) {
+            payload.item = document.getElementById('ledger-item').value;
+            payload.amount = document.getElementById('ledger-amount').value;
+            if (!payload.item || !payload.amount) throw new Error("項目與金額不能為空");
+        } else {
+            payload.content = document.getElementById('ledger-note-content').value;
+            if (!payload.content) throw new Error("筆記內容不能為空");
+        }
+
+        // 執行發送
+        await fetch(url, {
+            method: 'POST',
+            mode: 'no-cors', // 確保 GAS 跨域不報錯
+            body: JSON.stringify(payload)
+        });
+        
         alert("儲存成功！");
-        // 清空輸入框
-        document.getElementById('ledger-item').value = '';
-        document.getElementById('ledger-amount').value = '';
-        document.getElementById('ledger-note-content').value = '';
-        syncLedgerData();
+        
+        // 清空欄位
+        if(isFinance) {
+            document.getElementById('ledger-item').value = '';
+            document.getElementById('ledger-amount').value = '';
+        } else {
+            document.getElementById('ledger-note-content').value = '';
+        }
+        
+        syncLedgerData(); // 重新載入列表
+
     } catch (e) {
+        console.error("儲存過程出錯:", e);
         alert("儲存失敗: " + e.message);
     } finally {
-        hideLoading();
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = isFinance ? "送出" : "儲存記事";
+        }
     }
 }
 
@@ -9061,110 +8955,82 @@ async function syncLedgerData() {
     }
 }
 
-// [完整替換區塊] 解決 GAS 物件傳遞與前端顯示
+// C. 更新後的渲染函式 (加入過濾機制)
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
     if (!listContainer) return;
 
     let html = '';
-    let totalJPY = 0;
-    let totalTWD = 0;
+    let total = 0;
+    let noteCount = 0;
 
-    // 時間格式化工具
-    const formatFullDateTime = (isoString) => {
-        if (!isoString) return '';
-        try {
-            const d = new Date(isoString);
-            return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-        } catch (e) { return isoString; }
-    };
-
+    // ★ 關鍵點：根據目前選擇的 currentLedgerFilter 過濾資料
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
-        // --- 【有一說一：最強相容解析邏輯】 ---
         let user = { name: '未知', avatar: '👤' };
-        
-        if (item.user) {
-            if (typeof item.user === 'object') {
-                // 如果 GAS 已經解析成物件 (您目前的 backend.gs 狀況)
-                user = {
-                    name: item.user.name || '未知',
-                    avatar: item.user.avatar || '👤'
-                };
-            } else if (typeof item.user === 'string') {
-                try {
-                    if (item.user.trim().startsWith('{')) {
-                        user = JSON.parse(item.user);
-                    } else {
-                        user = { name: item.user, avatar: '👤' };
+        try {
+            // 1. 解開紀錄中原本儲存的使用者資料 (可能是舊版無 ID 的資料)
+            const savedUser = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
+            
+            if (savedUser) {
+                // 2. 抓取現在最新的使用者設定檔
+                const currentUsers = JSON.parse(localStorage.getItem('trip_users')) || [];
+                
+                // 3. ★關鍵修正★：雙重比對機制
+                // 先嘗試比對 ID (最準確)，如果資料太舊沒有 ID，就比對 Name (名稱)
+                const foundUser = currentUsers.find(u => {
+                    // 情況 A：雙方都有 ID -> 用 ID 比對
+                    if (u.id && savedUser.id) {
+                        return u.id === savedUser.id;
                     }
-                } catch (e) {
-                    user = { name: item.user, avatar: '👤' };
-                }
+                    // 情況 B：舊資料沒 ID -> 用名稱比對 (補救措施)
+                    return u.name === savedUser.name;
+                });
+
+                // 4. 找到了就用新的 (foundUser)，沒找到才用舊的 (savedUser)
+                user = foundUser || savedUser;
             }
+        } catch(e) {
+            // 解析失敗時不做處理，維持預設值
         }
-        // --- 【解析結束】 ---
 
-        const displayDateTime = formatFullDateTime(item.timestamp || item.date);
-
-        // 在 renderLedgerList 函式內，找到 if (item.type === 'finance') ...
-// 請將整個 if-else 區塊替換為：
-
-if (item.type === 'finance') {
-    // 記帳顯示模式
-    const jpy = parseFloat(item.amount || 0);
-    const rate = parseFloat(item.rate) || 0.21;
-    const twd = Math.round(jpy * rate);
-    totalJPY += jpy;
-    
-    html += `
-        <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #EF4444;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <span style="font-size: 1.5rem;">${user.avatar}</span>
-                    <div>
-                        <div style="font-weight: 700; font-size: 1.05rem;">${item.item}</div>
-                        <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
-                            <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${displayDateTime}</span>
-                            <span style="margin-left: 5px;">by ${user.name}</span>
+        if (item.type === 'finance') {
+            total += parseFloat(item.amount || 0);
+            html += `
+                <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 4px solid #ef4444;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="font-size: 1.2rem;">${user.avatar}</span>
+                            <div>
+                                <div style="font-weight: 500;">${item.item}</div>
+                                <div style="font-size: 0.75rem; color: #888;">${item.date}</div>
+                            </div>
                         </div>
+                        <div style="font-weight: 700; color: #ef4444;">¥${item.amount}</div>
                     </div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: 800; color: #EF4444; font-size: 1.1rem;">¥${jpy.toLocaleString()}</div>
-                    <div style="font-size: 0.75rem; color: #9ca3af;">≈ TWD ${twd.toLocaleString()}</div>
-                </div>
-            </div>
-        </div>`;
-
-} else if (item.type === 'note') {
-    // ★★★ [關鍵修正] 補上記事模式的頭像顯示邏輯 ★★★
-    html += `
-        <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="font-size: 1.2rem;">${user.avatar}</span>
-                    <span style="font-size: 0.85rem; font-weight: 600;">${user.name}</span>
-                </div>
-                <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
-            </div>
-            <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
-        </div>`;
-}
+                </div>`;
+        } else {
+            noteCount++;
+            html += `
+                <div class="card" style="margin-bottom: 8px; padding: 12px; border-left: 4px solid #2563EB;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                        <span style="font-size: 1rem;">${user.avatar}</span>
+                        <div style="font-size: 0.75rem; color: #888;">${user.name} · ${item.date}</div>
+                    </div>
+                    <div style="font-size: 0.95rem; color: #333; line-height: 1.5;">${item.content}</div>
+                </div>`;
+        }
     });
 
-    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
+    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 40px;">尚無紀錄</div>`;
     
-    // 更新頂部資訊
+    // 更新頂部顯示的數字
     const totalDisplay = document.getElementById('ledger-total-amount');
-    if (totalDisplay && currentLedgerFilter === 'finance') {
-        totalDisplay.innerHTML = `
-            <div>¥ ${totalJPY.toLocaleString()}</div>
-            <div style="font-size: 0.8rem; font-weight: 400; opacity: 0.8;">約 TWD ${totalTWD.toLocaleString()}</div>
-        `;
-    } else if (totalDisplay) {
-        totalDisplay.innerText = `${filteredData.length} 則紀錄`;
+    if (totalDisplay) {
+        totalDisplay.innerText = currentLedgerFilter === 'finance' 
+            ? `¥ ${total.toLocaleString()}` 
+            : `${noteCount} 則紀錄`;
     }
 }
 
