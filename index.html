@@ -8968,29 +8968,11 @@ function renderLedgerList(data) {
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
     filteredData.forEach(item => {
-        // --- 修正開始：使用者資料讀取邏輯 ---
-        let user = { name: '未知', avatar: '👤' }; // 預設值
+        let user = { name: '未知', avatar: '👤' };
         try {
-            // 1. 取得紀錄中的舊資料
-            const savedUser = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
-            
-            if (savedUser) {
-                // 2. 讀取最新的設定檔
-                const currentUsers = JSON.parse(localStorage.getItem('trip_users')) || [];
-                
-                // 3. 雙重比對：先對 ID，若舊資料沒 ID 則對名稱
-                const foundUser = currentUsers.find(u => 
-                    (u.id && savedUser.id && u.id === savedUser.id) || 
-                    (u.name === savedUser.name)
-                );
-                
-                // 4. 優先使用找到的新設定，否則用舊資料
-                user = foundUser || savedUser;
-            }
-        } catch(e) {
-            console.error('User data error:', e);
-        }
-        // --- 修正結束 ---
+            user = typeof item.user === 'string' ? JSON.parse(item.user) : item.user;
+        } catch(e) {}
+
         if (item.type === 'finance') {
             total += parseFloat(item.amount || 0);
             html += `
