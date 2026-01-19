@@ -4864,61 +4864,73 @@ header.is-night {
     </div>
 
     <!-- TAB 6: 旅程紀錄 (New) -->
-    <div id="view-ledger" class="container">
-    <div class="card" style="margin-bottom: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white;">
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
-            <div id="ledger-header-info">
-                <div style="font-size: 0.8rem; opacity: 0.9;" id="ledger-view-title">總支出 (JPY)</div>
-                <div id="ledger-total-amount" style="font-size: 1.5rem; font-weight: 700;">¥ 0</div>
-            </div>
-            
-            <div style="display: flex; gap: 8px;">
-                <button onclick="filterLedgerView('finance')" class="btn-icon-circle" id="btn-view-finance">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                </button>
-                <button onclick="filterLedgerView('note')" class="btn-icon-circle" id="btn-view-note" style="opacity: 0.6;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                </button>
-                <button onclick="syncLedgerData()" class="btn-icon-circle">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-  <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
-    <div class="card-content" style="padding: 12px;">
-        <div id="avatar-selector-container" style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
-            <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">紀錄者身分：</div>
-            
-            <div id="avatar-list" style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; margin-bottom: 10px; -webkit-overflow-scrolling: touch;">
+    <div id="view-ledger" class="view-content hidden h-full flex flex-col relative animate-fadeIn bg-stone-50/50">
+    
+    <div class="shrink-0 px-4 py-3 bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-0 z-10">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer select-none" onclick="LedgerApp.handleUserSetup()">
+                <div id="user-avatar" class="w-10 h-10 rounded-full flex items-center justify-center bg-stone-100 border text-xl shadow-sm transition-transform active:scale-95">👤</div>
+                <div>
+                    <div id="user-name" class="text-sm font-bold text-[#5D737E]">訪客</div>
+                    <div class="text-[10px] text-stone-400">點擊設定身分</div>
                 </div>
-
-            <div style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
-                <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
-                <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..." 
-                       style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700; color: #1F2937;"
-                       value="爸爸" oninput="updateUserInfoFromUI()">
             </div>
-            <input type="hidden" id="selected-user-info" value="">
-        </div>
-
-        <div id="ledger-finance-fields">
-            <input type="text" id="ledger-item" placeholder="項目內容..." style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-            <div style="display: flex; gap: 8px;">
-                <input type="number" id="ledger-amount" placeholder="金額 (JPY)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 80px; margin: 0;">送出</button>
+            <div class="flex items-center gap-2">
+                <button onclick="LedgerApp.syncData()" id="btn-sync" class="p-2 rounded-lg border bg-stone-50 text-stone-500 hover:text-[#5D737E] transition-all active:scale-95">
+                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                </button>
+                <div class="flex p-1 rounded-lg border bg-stone-50 border-stone-200">
+                    <button onclick="LedgerApp.setMode('finance')" id="tab-finance" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all bg-[#5D737E] text-white shadow-md">
+                        <i data-lucide="dollar-sign" class="w-3 h-3 inline"></i> 記帳
+                    </button>
+                    <button onclick="LedgerApp.setMode('note')" id="tab-note" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all text-stone-500 hover:bg-stone-200">
+                        <i data-lucide="message-square" class="w-3 h-3 inline"></i> 記事
+                    </button>
+                </div>
             </div>
-        </div>
-
-        <div id="ledger-note-fields" style="display: none;">
-            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
-            <button onclick="handleLedgerSubmit()" class="btn-primary" style="width: 100%; margin: 0;">儲存記事</button>
         </div>
     </div>
-</div>
 
-    <div id="ledger-list" style="margin-bottom: 80px;"></div>
+    <div id="ledger-list" class="flex-1 overflow-y-auto p-4 space-y-3 pb-32 scroll-smooth">
+        <div class="flex flex-col items-center justify-center py-20 opacity-40 text-stone-500">
+            <i data-lucide="wallet" class="w-12 h-12 mb-2 stroke-1"></i>
+            <p class="text-sm">載入中...</p>
+        </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 w-full px-4 py-3 bg-white/90 backdrop-blur-xl border-t border-stone-200 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div id="preview-area" class="flex gap-2 overflow-x-auto pb-2 hidden scrollbar-hide"></div>
+        
+        <div class="flex items-end gap-2">
+            <input type="file" id="file-input" accept="image/*" multiple class="hidden" onchange="LedgerApp.handleImageSelect(this)">
+            
+            <button onclick="document.getElementById('file-input').click()" class="p-3 rounded-xl border bg-stone-50 text-stone-500 hover:bg-stone-100 transition-all active:scale-95 flex-shrink-0">
+                <i data-lucide="camera" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex-1 bg-stone-50 border border-stone-300 rounded-xl flex items-center px-3 py-2 transition-all focus-within:ring-2 focus-within:ring-[#5D737E]/20 focus-within:border-[#5D737E]">
+                <input type="number" id="input-amount" placeholder="$" class="w-20 bg-transparent outline-none font-mono font-bold text-[#5D737E] border-r border-stone-200 mr-2 pr-2">
+                <textarea id="input-desc" rows="1" placeholder="項目說明..." class="flex-1 bg-transparent outline-none resize-none text-sm leading-6 max-h-24"></textarea>
+            </div>
+
+            <button onclick="LedgerApp.handleSubmit()" id="btn-send" class="p-3 rounded-xl bg-[#5D737E] text-white shadow-lg shadow-[#5D737E]/30 transition-all active:scale-95 hover:bg-[#4A606A] flex-shrink-0">
+                <i data-lucide="send" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-receipt" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-stone-50">
+                <h3 class="font-bold text-[#5D737E] flex items-center gap-2"><i data-lucide="scan-line" class="w-4 h-4"></i> 確認明細</h3>
+                <button onclick="document.getElementById('modal-receipt').classList.add('hidden')" class="p-1 rounded-full hover:bg-stone-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="receipt-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-stone-50/30"></div>
+            <div class="p-4 border-t bg-white">
+                <button onclick="LedgerApp.confirmBatchImport()" id="btn-batch-confirm" class="w-full py-3 bg-[#5D737E] text-white rounded-xl font-bold shadow-lg active:scale-95 transition-all">確認匯入</button>
+            </div>
+        </div>
+    </div>
 </div>
 
     <!-- 自定義彈出視窗 HTML -->
@@ -5345,7 +5357,7 @@ function getKey(type) {
             // 重要：密碼正確，存入本機記憶
             localStorage.setItem("app_password", password);
             // 【安插此行】啟動時自動同步資料
-            syncLedgerData();
+            //syncLedgerData();
             // 根據需求回傳
             const map = { 'gemini': geminiKey, 'places': googleKey, 'gas_url': gasUrl, 'gas_token': gasToken };
             return map[type];
@@ -9162,6 +9174,331 @@ function renderLedgerList(data) {
     }
 }
 
+// ==========================================
+// 記帳模組 (LedgerApp)
+// ==========================================
+const LedgerApp = (function() {
+    let CONFIG = { GAS_URL: "", GAS_TOKEN: "", GEMINI_API_KEY: "" };
+    const STATE = {
+        user: JSON.parse(localStorage.getItem('finance_user')) || null,
+        records: JSON.parse(localStorage.getItem('finance_records')) || [],
+        mode: 'finance', images: [], receiptItems: []
+    };
+    const AVATARS = ['🐶', '🐱', '🐰', '🦊', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷'];
+    let isInitialized = false;
+
+    // --- 初始化 ---
+    function init(apiConfig) {
+        // 接收外部傳入的金鑰
+        if (apiConfig) {
+            CONFIG.GAS_URL = apiConfig.gasUrl;
+            CONFIG.GAS_TOKEN = apiConfig.token;
+            CONFIG.GEMINI_API_KEY = apiConfig.geminiKey;
+        }
+
+        // 避免重複綁定事件
+        if (!isInitialized) {
+            renderHeader();
+            renderList();
+            updateInputUI();
+            
+            // Textarea 自動高度
+            const txt = document.getElementById('input-desc');
+            if(txt) txt.addEventListener('input', function() { 
+                this.style.height='auto'; 
+                this.style.height=this.scrollHeight+'px'; 
+            });
+            isInitialized = true;
+        }
+
+        // 若已有使用者且有金鑰，執行背景同步
+        if (STATE.user && CONFIG.GAS_URL) {
+            syncData(true);
+        }
+    }
+
+    // --- UI 渲染 ---
+    function renderHeader() {
+        const uName = document.getElementById('user-name');
+        const uAvt = document.getElementById('user-avatar');
+        if(!uName) return;
+        
+        if (STATE.user) {
+            uName.innerText = STATE.user.name;
+            uAvt.innerText = STATE.user.avatar;
+        }
+        
+        // 切換 Tab 樣式
+        const btnF = document.getElementById('tab-finance');
+        const btnN = document.getElementById('tab-note');
+        const activeClass = "px-3 py-1.5 rounded-md text-xs font-bold transition-all bg-[#5D737E] text-white shadow-md";
+        const noteActiveClass = "px-3 py-1.5 rounded-md text-xs font-bold transition-all bg-orange-500 text-white shadow-md";
+        const inactiveClass = "px-3 py-1.5 rounded-md text-xs font-bold transition-all text-stone-500 hover:bg-stone-200";
+
+        if (STATE.mode === 'finance') {
+            btnF.className = activeClass;
+            btnN.className = inactiveClass;
+            document.getElementById('input-amount').style.display = 'block';
+            document.getElementById('input-desc').placeholder = '輸入消費項目...';
+        } else {
+            btnN.className = noteActiveClass;
+            btnF.className = inactiveClass;
+            document.getElementById('input-amount').style.display = 'none';
+            document.getElementById('input-desc').placeholder = '輸入記事內容...';
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    function renderList() {
+        const container = document.getElementById('ledger-list');
+        if(!container) return;
+        
+        const filtered = STATE.records.filter(r => r.type === STATE.mode)
+            .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)); // 舊->新 (對話式)
+        
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 opacity-40 text-stone-500"><i data-lucide="${STATE.mode==='finance'?'wallet':'sticky-note'}" class="w-12 h-12 mb-2"></i><p class="text-sm">尚無紀錄</p></div>`;
+        } else {
+            container.innerHTML = filtered.map(item => {
+                const isMe = STATE.user && item.user.name === STATE.user.name;
+                const time = new Date(item.timestamp).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+                
+                // 內容區塊
+                const content = item.type === 'finance' 
+                    ? `<div class="flex justify-between items-start gap-4 min-w-[180px]">
+                        <div>
+                            <div class="font-bold text-stone-800">${item.content||'未製品項'}</div>
+                            <div class="flex items-center gap-1 mt-1 text-[10px] text-stone-400">
+                                <span>${time}</span>
+                                ${item.synced?'<i data-lucide="check" class="w-3 h-3 text-green-500"></i>':'<i data-lucide="refresh-cw" class="w-3 h-3 text-orange-400 animate-spin"></i>'}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-mono font-bold text-[#5D737E] text-lg">¥${Number(item.amount).toLocaleString()}</div>
+                            <div class="text-[10px] text-stone-400">≈ NT$ ${(Number(item.amount)*0.22).toFixed(0)}</div>
+                        </div>
+                       </div>`
+                    : `<div class="whitespace-pre-wrap text-sm text-stone-800">${item.content}</div>
+                       <div class="flex justify-end gap-1 mt-1 text-[10px] text-stone-400">
+                            <span>${time}</span>
+                            ${item.synced?'<i data-lucide="check" class="w-3 h-3 text-green-500"></i>':'<i data-lucide="refresh-cw" class="w-3 h-3 text-orange-400 animate-spin"></i>'}
+                       </div>`;
+                
+                const img = item.image ? `<img src="${item.image}" class="w-full rounded-lg mt-2 border border-black/5">` : '';
+                
+                return `<div class="flex gap-2 mb-4 ${isMe?'flex-row-reverse':''} animate-fadeIn">
+                            <div class="flex flex-col items-center gap-1 shrink-0">
+                                <div class="w-9 h-9 rounded-full bg-stone-100 border flex items-center justify-center text-sm">${item.user.avatar}</div>
+                            </div>
+                            <div class="max-w-[80%] ${isMe?'items-end':'items-start'}">
+                                <div class="p-3 rounded-2xl shadow-sm border ${item.type==='finance'?'bg-white border-stone-200':'bg-orange-50 border-orange-100'}">
+                                    ${content}${img}
+                                </div>
+                                ${isMe?`<button onclick="LedgerApp.deleteRecord(${item.id})" class="text-xs text-red-300 hover:text-red-500 mt-1 px-1 opacity-50 hover:opacity-100 transition-opacity">刪除</button>`:''}
+                            </div>
+                        </div>`;
+            }).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function updateInputUI() {
+        const pv = document.getElementById('preview-area');
+        if(!pv) return;
+        if (STATE.images.length > 0) {
+            pv.classList.remove('hidden');
+            pv.innerHTML = STATE.images.map((img, i) => `<div class="relative w-16 h-16 shrink-0 group"><img src="${img}" class="w-full h-full object-cover rounded-lg border"><button onclick="LedgerApp.removeImage(${i})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md active:scale-90"><i data-lucide="x" class="w-3 h-3"></i></button></div>`).join('');
+            if(window.lucide) lucide.createIcons();
+        } else { pv.classList.add('hidden'); }
+    }
+
+    // --- 互動邏輯 ---
+    function handleUserSetup() {
+        const n = prompt("輸入您的暱稱", STATE.user?.name||"");
+        if(n) { 
+            STATE.user={name:n, avatar:AVATARS[Math.floor(Math.random()*AVATARS.length)]}; 
+            localStorage.setItem('finance_user', JSON.stringify(STATE.user)); 
+            renderHeader(); renderList(); 
+        }
+    }
+
+    function setMode(m) { STATE.mode=m; renderHeader(); renderList(); }
+
+    async function handleImageSelect(input) {
+        if (!input.files.length) return;
+        const promises = Array.from(input.files).map(f => new Promise(r => { const rd=new FileReader(); rd.onload=e=>r(e.target.result); rd.readAsDataURL(f); }));
+        const imgs = await Promise.all(promises);
+        
+        // 若為記帳模式且有 Key，啟動 Gemini 辨識
+        if (CONFIG.GEMINI_API_KEY && STATE.mode === 'finance') {
+            document.getElementById('modal-receipt').classList.remove('hidden');
+            document.getElementById('receipt-list').innerHTML = `<div class="text-center py-8"><i data-lucide="loader" class="w-8 h-8 animate-spin mx-auto text-[#5D737E]"></i><p class="mt-2 text-sm text-stone-500">AI 分析中...</p></div>`; 
+            if(window.lucide) lucide.createIcons();
+            
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG.GEMINI_API_KEY}`, {
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "分析發票回傳JSON:{items:[{name,amount}]}" }, { inlineData: { mimeType: "image/jpeg", data: imgs[0].split(",")[1] } }] }], generationConfig: { responseMimeType: "application/json" } })
+                });
+                const data = await res.json();
+                const json = JSON.parse(data.candidates[0].content.parts[0].text);
+                
+                STATE.receiptItems = (json.items || []).map(i => ({ name: i.name, amount: i.amount, image: imgs[0], selected: true }));
+                if(!STATE.receiptItems.length) STATE.receiptItems.push({name:'消費總額', amount: json.total||0, image: imgs[0], selected: true});
+                
+                renderReceiptModal();
+            } catch (e) { 
+                console.error(e); alert("辨識失敗，轉為普通圖片附件"); 
+                document.getElementById('modal-receipt').classList.add('hidden'); 
+                STATE.images.push(...imgs); updateInputUI(); 
+            }
+        } else { 
+            STATE.images.push(...imgs); updateInputUI(); 
+        }
+        input.value = '';
+    }
+
+    function renderReceiptModal() {
+        document.getElementById('receipt-list').innerHTML = STATE.receiptItems.map((item, i) => 
+            `<div class="flex items-center gap-2 p-2 bg-white rounded-lg border">
+                <input type="checkbox" ${item.selected?'checked':''} onchange="LedgerApp.toggle(${i})" class="w-5 h-5 accent-[#5D737E]">
+                <input value="${item.name}" onchange="LedgerApp.update(${i},'name',this.value)" class="flex-1 border-b border-transparent focus:border-[#5D737E] outline-none bg-transparent font-bold text-sm">
+                <input type="number" value="${item.amount}" onchange="LedgerApp.update(${i},'amount',this.value)" class="w-20 border-b border-transparent focus:border-[#5D737E] outline-none bg-transparent font-mono text-right">
+            </div>`
+        ).join('');
+    }
+    
+    function toggle(i) { STATE.receiptItems[i].selected = !STATE.receiptItems[i].selected; }
+    function update(i, f, v) { STATE.receiptItems[i][f] = v; }
+    
+    function confirmBatchImport() {
+        STATE.receiptItems.filter(i=>i.selected).forEach((item,idx) => 
+            setTimeout(() => addRecord({content:item.name, amount:item.amount, image:item.image, type:'finance'}), idx*100)
+        );
+        document.getElementById('modal-receipt').classList.add('hidden'); STATE.receiptItems=[];
+    }
+
+    function handleSubmit() {
+        if (!STATE.user) { handleUserSetup(); return; }
+        const amt = document.getElementById('input-amount').value, desc = document.getElementById('input-desc').value;
+        
+        if (STATE.mode === 'finance' && !amt) return alert("請輸入金額");
+        if (STATE.mode === 'note' && !desc && !STATE.images.length) return;
+
+        if (STATE.images.length) {
+            STATE.images.forEach((img, i) => addRecord({content:i===0?desc:(desc+` (附件 ${i+1})`), amount:amt, image:img, type:STATE.mode}));
+        } else {
+            addRecord({content:desc, amount:amt, image:null, type:STATE.mode});
+        }
+        
+        document.getElementById('input-amount').value=''; 
+        document.getElementById('input-desc').value=''; 
+        STATE.images=[]; updateInputUI();
+    }
+
+    function addRecord(data) {
+        const rec = { id: Date.now()+Math.random(), user: STATE.user, timestamp: new Date().toISOString(), synced: false, ...data, amount: parseFloat(data.amount)||0 };
+        STATE.records.push(rec); 
+        localStorage.setItem('finance_records', JSON.stringify(STATE.records)); 
+        renderList();
+        
+        if(CONFIG.GAS_URL) {
+            fetch(CONFIG.GAS_URL, { 
+                method: 'POST', 
+                headers: {"Content-Type": "text/plain;charset=utf-8"},
+                body: JSON.stringify({ ...rec, action: 'add', token: CONFIG.GAS_TOKEN }) 
+            }).then(() => { 
+                rec.synced=true; 
+                localStorage.setItem('finance_records', JSON.stringify(STATE.records)); 
+                renderList(); 
+            });
+        }
+    }
+    
+    function deleteRecord(id) {
+        if(!confirm("刪除此紀錄?")) return;
+        STATE.records = STATE.records.filter(r => r.id !== id); 
+        localStorage.setItem('finance_records', JSON.stringify(STATE.records)); 
+        renderList();
+        if(CONFIG.GAS_URL) fetch(CONFIG.GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id, token: CONFIG.GAS_TOKEN }) });
+    }
+
+    async function syncData(bg) {
+        if(!CONFIG.GAS_URL) return;
+        const btn = document.getElementById('btn-sync');
+        if(!bg && btn) btn.querySelector('i').classList.add('animate-spin');
+        
+        try {
+            const res = await fetch(`${CONFIG.GAS_URL}?action=getAll&token=${encodeURIComponent(CONFIG.GAS_TOKEN)}`);
+            const json = await res.json();
+            if (json.status === 'success') {
+                const sIds = new Set(json.data.map(d=>d.id));
+                STATE.records = [
+                    ...json.data.map(d=>({...d, user: (typeof d.user==='string' && d.user.startsWith('{'))?JSON.parse(d.user):d.user, synced:true})), 
+                    ...STATE.records.filter(r=>!r.synced && !sIds.has(r.id))
+                ];
+                localStorage.setItem('finance_records', JSON.stringify(STATE.records)); 
+                renderList();
+            }
+        } catch(e){console.error(e);}
+        if(!bg && btn) btn.querySelector('i').classList.remove('animate-spin');
+    }
+
+    return { init, handleUserSetup, setMode, handleImageSelect, removeImage: i=>{STATE.images.splice(i,1);updateInputUI()}, handleSubmit, deleteRecord, syncData, confirmBatchImport, toggle, update };
+})();
+
+// ==========================================
+// 頁面切換與整合邏輯 (新增)
+// ==========================================
+function showView(viewId) {
+    // 1. 隱藏所有視圖 (所有 class 有 view-content 的元素)
+    document.querySelectorAll('.view-content').forEach(el => {
+        el.classList.add('hidden');
+    });
+
+    // 2. 顯示目標視圖
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.classList.remove('hidden');
+    }
+
+    // 3. 更新底部導航列的顏色
+    document.querySelectorAll('.nav-item').forEach(el => {
+        // 檢查該按鈕的 onclick 屬性是否包含目前的 viewId
+        if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(viewId)) {
+            el.classList.add('text-[#5D737E]'); // 選中顏色
+            el.classList.remove('text-stone-400');
+        } else {
+            el.classList.remove('text-[#5D737E]');
+            el.classList.add('text-stone-400'); // 未選中顏色
+        }
+    });
+
+    // 4. ★ 記帳功能的關鍵整合點
+    if (viewId === 'view-ledger') {
+        // 呼叫您原本寫好的 getKey 來觸發解密或取得金鑰
+        const checkKey = getKey('gas_url'); 
+
+        // 如果解密成功 (getKey 會自動填入全域變數)
+        if (checkKey && typeof LedgerApp !== 'undefined') {
+            console.log("初始化記帳模組...");
+            LedgerApp.init({
+                gasUrl: gasUrl,       // 來自您的全域變數
+                token: gasToken,      // 來自您的全域變數
+                geminiKey: geminiKey  // 來自您的全域變數
+            });
+        } else {
+            console.warn("尚未輸入密碼，記帳功能暫時無法連網");
+        }
+    }
+}
+
+// 預設顯示首頁 (防止畫面空白)
+document.addEventListener("DOMContentLoaded", () => {
+    showView('view-home');
+});
     </script>
     </div>
 </body>
