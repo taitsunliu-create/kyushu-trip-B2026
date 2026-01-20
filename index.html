@@ -8982,54 +8982,60 @@ async function handleLedgerSubmit() {
     const liveRateText = document.getElementById('current-rate-val')?.innerText;
     const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
 
-    // --- [修正代碼開始] ---
+    // --- [修正代碼 Start] ---
     
-    // 1. 取得數值並預先計算台幣
+    // 1. 取得數值
     const rawAmount = document.getElementById('ledger-amount').value;
     const amountVal = parseFloat(rawAmount) || 0;
-    // 修正：使用您程式上方已經定義好的 liveRate
-    const rateVal = parseFloat(liveRate) || 1; 
-    const amountTwdVal = Math.round(amountVal * rateVal); // 自動算台幣
+    
+    // 2. 修正匯率讀取 (確保是數字，若 liveRate 未定義則預設 0.21)
+    // 請確認您的全域變數 liveRate 是否有正確抓到值，若無請檢查 fetchRate 函式
+    const rateVal = (typeof liveRate !== 'undefined' && liveRate) ? parseFloat(liveRate) : 0.21; 
+    
+    // 3. 計算台幣 (四捨五入)
+    const amountTwdVal = Math.round(amountVal * rateVal);
 
-    // 2. 建立完整的傳送資料包 (Payload)
+    // 4. 建立 Payload
     let payload = {
         action: 'upload',
         token: token,
         type: isFinance ? 'finance' : 'note',
         
-        // [新增] 唯一 ID (解決試算表讀取錯位問題)
+        // [修正] ID 生成
         id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
         
-        // [關鍵修正] 使用上方已定義的 userInfoRaw (它已經是 JSON 字串，不需要再轉換)
-        user: userInfoRaw,
+        // [修正] User 必須直接傳送 userInfoRaw (因為它是 JSON 字串)
+        // 您的 userInfoRaw 已經是 '{"name":"...","avatar":"..."}' 格式
+        user: userInfoRaw, 
         
         date: new Date().toISOString().split('T')[0],
         rate: rateVal,
         
-        // [新增] 台幣金額 (解決試算表該欄位空白問題)
+        // [修正] 補上台幣金額
         amountTwd: amountTwdVal,
         
         timestamp: new Date().toISOString()
     };
 
-    // 3. 根據類型填入剩餘欄位並驗證
+    // 5. 根據類型填入欄位
     if (isFinance) {
-        payload.item = document.getElementById('ledger-item').value;
-        payload.amount = amountVal; // 傳送數字型態
+        // [修正] 確保抓取正確的 ID (您的 HTML ID 是 ledger-item)
+        payload.item = document.getElementById('ledger-item').value; 
+        payload.amount = amountVal;
         
+        // 檢查必填
         if (!payload.item || !rawAmount) {
             alert("請填寫項目與金額");
             return;
         }
     } else {
-        // 筆記模式
         payload.content = document.getElementById('ledger-note-content').value;
         if (!payload.content) {
             alert("請填寫內容");
             return;
         }
     }
-    // --- [修正代碼結束] ---
+    // --- [修正代碼 End] ---
 
     showLoading();
     try {
