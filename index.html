@@ -8965,135 +8965,137 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [修正版] 處理記帳送出 (加入 await 強制等待與防呆)
+// [修正版] 處理記帳送出 (鐵壁防禦版：解決時間差與變數未定義問題)
 async function handleLedgerSubmit() {
-    // ---------------------------------------------------------
-    // 1. [強制等待] 解決頭像名稱讀取不到的問題
-    // ---------------------------------------------------------
-    // 先執行 UI 更新
-    updateUserInfoFromUI();
-    
-    // 給一點點緩衝時間讓 DOM 確保更新完成 (雖然通常不需要，但在某些舊手機上有用)
-    await new Promise(r => setTimeout(r, 50));
-
-    // 嘗試抓取 UI 上的值
-    let userInfoRaw = document.getElementById('selected-user-info').value;
-    
-    // [最終防呆] 如果真的還是抓不到，直接硬抓 DOM 元素
-    if (!userInfoRaw || userInfoRaw === "{}" || userInfoRaw === "") {
-        const activeUserEl = document.querySelector('.user-icon.active');
-        if (activeUserEl) {
-            const name = activeUserEl.querySelector('.user-name').innerText;
-            const avatar = activeUserEl.querySelector('.avatar').innerText;
-            userInfoRaw = JSON.stringify({ name: name, avatar: avatar });
-        } else {
-            // 真的沒選人，給預設值
-            userInfoRaw = JSON.stringify({ name: '匿名', avatar: '👤' });
-        }
-    }
-
-    // ---------------------------------------------------------
-    // 2. [強制等待] 解決匯率為 0 的問題 (使用 await)
-    // ---------------------------------------------------------
-    let rateVal = 0.21; // 預設值，萬一所有網路都斷線
-    
-    // 檢查手動輸入
-    const manualRate = document.getElementById('calc-rate');
-    if (manualRate && parseFloat(manualRate.value) > 0) {
-        rateVal = parseFloat(manualRate.value);
-    } else {
-        // 如果沒有手動輸入，我們嘗試 "等待" 抓取匯率
-        // 這裡假設您有一個 fetchRate 或類似函式，我們直接寫一段簡單的邏輯
-        try {
-            // 先看快取
-            const cached = localStorage.getItem('live_exchange_rate_cache');
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (parsed.rate > 0) rateVal = parsed.rate;
-            } else {
-                // 如果沒快取，這裡可以選擇是否要即時 await fetch (會慢一點點但準確)
-                // 為了流暢度，通常建議讀取全域變數，但既然您要求 await，我們確認變數存在
-                if (typeof currentRate !== 'undefined' && currentRate > 0) {
-                    rateVal = currentRate;
-                }
-            }
-        } catch (e) {
-            console.log("匯率讀取異常，使用預設值");
-        }
-    }
-
-    // ---------------------------------------------------------
-    // 3. 準備送出資料
-    // ---------------------------------------------------------
-    const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || (document.getElementById('ledger-finance-fields').style.display !== 'none');
-    
-    // 取得輸入金額
-    const rawAmount = document.getElementById('ledger-amount').value;
-    const amountVal = parseFloat(rawAmount) || 0;
-    
-    // 計算台幣 (四雪五入)
-    const amountTwdVal = amountVal > 0 ? Math.round(amountVal * rateVal) : 0;
-
-    // 構建 Payload
-    let payload = {
-        action: 'upload',
-        token: getKey('gas_token'), // 記得確認 getKey 函式存在
-        type: isFinance ? 'finance' : 'note',
-        id: crypto.randomUUID(), // 使用 UUID 確保唯一
-        user: userInfoRaw,       // 這裡現在一定是正確的 JSON 字串
-        date: new Date().toISOString().split('T')[0],
-        timestamp: new Date().toISOString(),
-        rate: rateVal,           // 送出正確匯率
-        amountTwd: amountTwdVal  // 送出正確台幣金額
-    };
-
-    // 根據類型填入內容
-    if (isFinance) {
-        const itemVal = document.getElementById('ledger-item').value;
-        payload.item = itemVal || '未命名項目'; 
-        payload.amount = amountVal;
-        
-        if (!rawAmount) { alert("請填寫金額"); return; }
-    } else {
-        payload.content = document.getElementById('ledger-note-content').value || '無內容';
-    }
-
-    // ---------------------------------------------------------
-    // 4. 開始傳送 (使用 await 等待結果)
-    // ---------------------------------------------------------
-    const url = getKey('gas_url');
-    showLoading(); // 顯示轉圈圈
+    // 步驟 0: 顯示讀取中，防止使用者連點
+    showLoading();
 
     try {
-        // 這裡原本可能沒有 await，導致還沒傳完就執行下面的清空
+        // ---------------------------------------------------------
+        // 1. [強制等待] 讓 UI 點擊事件跑完 (關鍵！解決頭像抓不到)
+        // ---------------------------------------------------------
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // ---------------------------------------------------------
+        // 2. [暴力抓取] 直接從畫面上找「誰是紅色的 (active)」
+        // ---------------------------------------------------------
+        // 不相信 hidden input，直接看畫面
+        const activeUserEl = document.querySelector('.user-icon.active'); 
+        let finalUserPayload = "";
+
+        if (activeUserEl) {
+            const name = activeUserEl.querySelector('.user-name').innerText.trim();
+            const avatar = activeUserEl.querySelector('.avatar').innerText.trim();
+            finalUserPayload = JSON.stringify({ name: name, avatar: avatar });
+        } else {
+            // 如果真的沒人亮燈，嘗試讀取隱藏欄位，再不行就給預設值
+            const hiddenVal = document.getElementById('selected-user-info').value;
+            if (hiddenVal && hiddenVal !== "{}" && hiddenVal.includes("name")) {
+                finalUserPayload = hiddenVal;
+            } else {
+                finalUserPayload = JSON.stringify({ name: '匿名', avatar: '👤' });
+            }
+        }
+        
+        console.log("最終確認使用者資料:", finalUserPayload); // Debug 用
+
+        // ---------------------------------------------------------
+        // 3. [匯率鎖死] 確保絕對不會是 0
+        // ---------------------------------------------------------
+        let finalRate = 0.21; // 最後一道防線
+
+        // 第一優先：看使用者有沒有手動改匯率欄位
+        const manualRateEl = document.getElementById('calc-rate');
+        const manualRateVal = manualRateEl ? parseFloat(manualRateEl.value) : 0;
+
+        if (manualRateVal > 0) {
+            finalRate = manualRateVal;
+        } else {
+            // 第二優先：讀取全域變數 (如果有的話)
+            if (typeof currentRate !== 'undefined' && currentRate > 0) {
+                finalRate = currentRate;
+            } else {
+                // 第三優先：讀取 LocalStorage 快取
+                const cached = localStorage.getItem('live_exchange_rate_cache');
+                if (cached) {
+                    try {
+                        const parsed = JSON.parse(cached);
+                        if (parsed.rate > 0) finalRate = parsed.rate;
+                    } catch(e) {}
+                }
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 4. 計算與資料包裝
+        // ---------------------------------------------------------
+        const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
+                          (document.getElementById('ledger-finance-fields').style.display !== 'none');
+
+        const rawAmount = document.getElementById('ledger-amount').value;
+        const amountVal = parseFloat(rawAmount) || 0;
+        
+        // 計算台幣：只有當金額大於 0 才計算，且最少為 1 (避免小數點問題顯示為0)
+        const amountTwdVal = amountVal > 0 ? Math.max(1, Math.round(amountVal * finalRate)) : 0;
+
+        let payload = {
+            action: 'upload',
+            token: getKey('gas_token'), 
+            type: isFinance ? 'finance' : 'note',
+            id: (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('id' + Date.now()),
+            user: finalUserPayload,       // 使用剛剛暴力抓取的值
+            date: new Date().toISOString().split('T')[0],
+            timestamp: new Date().toISOString(),
+            rate: finalRate,              // 使用確保非 0 的匯率
+            amountTwd: amountTwdVal       // 使用計算後的台幣
+        };
+
+        if (isFinance) {
+            const itemVal = document.getElementById('ledger-item').value;
+            payload.item = itemVal || '未命名項目';
+            payload.amount = amountVal;
+            
+            if (!rawAmount) { 
+                alert("請填寫金額"); 
+                hideLoading();
+                return; 
+            }
+        } else {
+            payload.content = document.getElementById('ledger-note-content').value || '無內容';
+        }
+
+        // ---------------------------------------------------------
+        // 5. 發送資料 (Await)
+        // ---------------------------------------------------------
+        const url = getKey('gas_url');
         const resp = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(payload) // 確保轉成字串
+            body: JSON.stringify(payload)
         });
         
-        const result = await resp.json(); // 等待後端回應
-        
+        const result = await resp.json();
+
         if (result.status === 'success' || result.result === 'success') {
             alert("✅ 儲存成功！");
             
-            // 只有成功才清空欄位
+            // 清空欄位
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
             
-            // 重新抓取列表 (如果有的話)
+            // 重新整理列表
             if (typeof syncLedgerData === 'function') {
-                await syncLedgerData(); 
+                await syncLedgerData();
             }
         } else {
-            alert("⚠️ 儲存回傳異常: " + JSON.stringify(result));
+            alert("⚠️ 儲存發生問題: " + (result.message || JSON.stringify(result)));
         }
 
     } catch (e) {
         console.error(e);
-        alert("❌ 連線失敗: " + e.message);
+        alert("❌ 系統錯誤: " + e.message);
     } finally {
-        hideLoading(); // 關閉轉圈圈
+        hideLoading();
     }
 }
 
