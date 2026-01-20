@@ -8965,82 +8965,85 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// 📍 修改後的 handleLedgerSubmit (約第 1285 行)
+// [修正版] 處理記帳送出 (修復匯率為0與使用者資料遺失問題)
 async function handleLedgerSubmit() {
-    updateUserInfoFromUI();
+    // 1. [強制同步] 送出前再次確認 UI 上的使用者身分
+    updateUserInfoFromUI(); 
     const userInfoRaw = document.getElementById('selected-user-info').value;
-    if (!userInfoRaw) {
-        alert("請先確認紀錄者身分（點選頭像）");
-        return;
-    }
+    
+    // 防呆：如果真的抓不到，給一個預設值
+    const finalUserPayload = userInfoRaw || JSON.stringify({ name: '匿名', avatar: '👤' });
 
     const url = getKey('gas_url');
     const token = getKey('gas_token');
     const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || (document.getElementById('ledger-finance-fields').style.display !== 'none');
-    
-    // 匯率抓取：優先用畫面上即時抓到的，否則用 0.21
-    const liveRateText = document.getElementById('current-rate-val')?.innerText;
-    const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
 
-    // --- [修正代碼開始] ---
+    // 2. [修復匯率] 強健的匯率獲取邏輯
+    let rateVal = 0.21; // 最終防線預設值
     
-    // 1. 取得數值並預先計算台幣
+    // 優先 A: 讀取使用者手動輸入的 (如果有)
+    const manualRateInput = document.getElementById('calc-rate');
+    if (manualRateInput && parseFloat(manualRateInput.value) > 0) {
+        rateVal = parseFloat(manualRateInput.value);
+    } else {
+        // 優先 B: 讀取 LocalStorage 快取
+        const cachedRate = localStorage.getItem('live_exchange_rate_cache');
+        if (cachedRate) {
+            try {
+                const parsed = JSON.parse(cachedRate);
+                if (parsed.rate && parsed.rate > 0) rateVal = parsed.rate;
+            } catch(e) {}
+        }
+    }
+    
+    console.log("目前使用匯率:", rateVal); // Debug用
+
+    // 3. 數值計算
     const rawAmount = document.getElementById('ledger-amount').value;
     const amountVal = parseFloat(rawAmount) || 0;
-    // 修正：使用您程式上方已經定義好的 liveRate
-    const rateVal = parseFloat(liveRate) || 1; 
-    const amountTwdVal = Math.round(amountVal * rateVal); // 自動算台幣
+    // 確保台幣金額至少為 1 (除非日幣輸入0)
+    const amountTwdVal = amountVal > 0 ? Math.max(1, Math.round(amountVal * rateVal)) : 0;
 
-    // 2. 建立完整的傳送資料包 (Payload)
+    // 4. 建立 Payload
     let payload = {
         action: 'upload',
         token: token,
         type: isFinance ? 'finance' : 'note',
-        
-        // [新增] 唯一 ID (解決試算表讀取錯位問題)
-        id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
-        
-        // [關鍵修正] 使用上方已定義的 userInfoRaw (它已經是 JSON 字串，不需要再轉換)
-        user: userInfoRaw,
-        
+        id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()), 
+        user: finalUserPayload, // 確保送出的是 JSON 字串
         date: new Date().toISOString().split('T')[0],
-        rate: rateVal,
-        
-        // [新增] 台幣金額 (解決試算表該欄位空白問題)
-        amountTwd: amountTwdVal,
-        
+        rate: rateVal,          // 傳送正確匯率
+        amountTwd: amountTwdVal,// 傳送計算後的台幣
         timestamp: new Date().toISOString()
     };
 
-    // 3. 根據類型填入剩餘欄位並驗證
+    // 5. 欄位驗證
     if (isFinance) {
-        payload.item = document.getElementById('ledger-item').value;
-        payload.amount = amountVal; // 傳送數字型態
+        const itemVal = document.getElementById('ledger-item').value;
+        // [關鍵] 確保 item 有值，若無則給預設文字，避免 undefined
+        payload.item = itemVal || '未命名項目'; 
+        payload.amount = amountVal;
         
-        if (!payload.item || !rawAmount) {
-            alert("請填寫項目與金額");
-            return;
+        if (!rawAmount) { 
+            alert("請填寫金額"); 
+            return; 
         }
     } else {
-        // 筆記模式
-        payload.content = document.getElementById('ledger-note-content').value;
-        if (!payload.content) {
-            alert("請填寫內容");
-            return;
-        }
+        payload.content = document.getElementById('ledger-note-content').value || '無內容';
     }
-    // --- [修正代碼結束] ---
 
     showLoading();
     try {
         const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
         const result = await resp.json();
         alert("儲存成功！");
-        // 清空輸入框
+        
+        // 清空欄位
         document.getElementById('ledger-item').value = '';
         document.getElementById('ledger-amount').value = '';
         document.getElementById('ledger-note-content').value = '';
-        syncLedgerData();
+        
+        syncLedgerData(); // 重新整理列表
     } catch (e) {
         alert("儲存失敗: " + e.message);
     } finally {
@@ -9091,10 +9094,13 @@ async function syncLedgerData() {
     }
 }
 
-// [完整替換區塊] 解決 GAS 物件傳遞與前端顯示
+// [修正版] 渲染列表 (修復 item undefined 與 頭像顯示問題)
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
     if (!listContainer) return;
+
+    // 排序：新的在上面
+    data.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
 
     let html = '';
     let totalJPY = 0;
@@ -9105,91 +9111,109 @@ function renderLedgerList(data) {
         if (!isoString) return '';
         try {
             const d = new Date(isoString);
-            return `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+            // 簡單格式: MM/DD HH:mm
+            return `${(d.getMonth() + 1)}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
         } catch (e) { return isoString; }
     };
 
     const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
+    if (filteredData.length === 0) {
+        listContainer.innerHTML = `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
+        // 即使沒資料也要歸零上方顯示
+        updateTotalDisplay(0, 0); 
+        return;
+    }
+
     filteredData.forEach(item => {
-        // --- 【有一說一：最強相容解析邏輯】 ---
-        let user = { name: '未知', avatar: '👤' };
+        // 1. [強化解析] 使用者資料解析邏輯
+        let displayUser = { name: '未知', avatar: '👤' };
         
+        // 嘗試各種可能的資料結構
         if (item.user) {
             if (typeof item.user === 'object') {
-                // 如果 GAS 已經解析成物件 (您目前的 backend.gs 狀況)
-                user = {
-                    name: item.user.name || '未知',
-                    avatar: item.user.avatar || '👤'
-                };
+                displayUser = item.user;
             } else if (typeof item.user === 'string') {
                 try {
+                    // 如果是 JSON 字串就 parse，否則當作一般字串處理
                     if (item.user.trim().startsWith('{')) {
-                        user = JSON.parse(item.user);
+                        displayUser = JSON.parse(item.user);
                     } else {
-                        user = { name: item.user, avatar: '👤' };
+                        // 舊資料相容：假設字串就是名字
+                        displayUser = { name: item.user, avatar: '👤' };
                     }
                 } catch (e) {
-                    user = { name: item.user, avatar: '👤' };
+                    displayUser = { name: item.user, avatar: '👤' };
                 }
             }
         }
-        // --- 【解析結束】 ---
 
         const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
         if (item.type === 'finance') {
             const jpy = parseFloat(item.amount || 0);
-            const rate = parseFloat(item.rate) || 0.21;
-            const twd = Math.round(jpy * rate);
+            // 優先顯示後端存的 amountTwd，如果沒有才前端重算
+            const twd = item.amountTwd ? parseInt(item.amountTwd) : Math.round(jpy * (item.rate || 0.21));
+            
             totalJPY += jpy;
             totalTWD += twd;
 
+            // [關鍵修正] 多重欄位檢查，解決 undefined
+            // GAS 有時會把欄位吃掉或改名，這裡同時檢查 item, content, description, desc
+            const displayTitle = item.item || item.content || item.description || item.desc || '無標題';
+
             html += `
-                <div class="card" style="margin-bottom: 12px; padding: 12px; border-left: 4px solid #ef4444;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="font-size: 1.5rem;">${user.avatar}</span>
+                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #EF4444; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="display: flex; gap: 12px;">
+                            <div style="display:flex; flex-direction:column; align-items:center; min-width:40px;">
+                                <span style="font-size: 1.8rem; line-height: 1;">${displayUser.avatar || '👤'}</span>
+                                <span style="font-size: 0.7rem; color: #6B7280; margin-top:2px; font-weight:500;">${displayUser.name || '成員'}</span>
+                            </div>
                             <div>
-                                <div style="font-weight: 700; font-size: 1.05rem;">${item.item}</div>
-                                <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
-                                    <span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${displayDateTime}</span>
-                                    <span style="margin-left: 5px;">by ${user.name}</span>
-                                </div>
+                                <div style="font-weight: 700; font-size: 1.1rem; color: #1F2937; margin-bottom: 4px;">${displayTitle}</div>
+                                <div style="font-size: 0.8rem; color: #9CA3AF;">${displayDateTime}</div>
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-weight: 800; color: #ef4444; font-size: 1.1rem;">¥${jpy.toLocaleString()}</div>
-                            <div style="font-size: 0.75rem; color: #9ca3af;">≈ TWD ${twd.toLocaleString()}</div>
+                            <div style="font-weight: 700; font-size: 1.2rem; color: #EF4444;">¥${jpy.toLocaleString()}</div>
+                            <div style="font-size: 0.85rem; color: #6B7280;">≈ NT$${twd.toLocaleString()}</div>
                         </div>
                     </div>
                 </div>`;
-        } else if (item.type === 'note'){
+        } else {
+            // 筆記模式
+            const noteContent = item.content || item.item || '無內容';
             html += `
-                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB;">
+                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB; background: white; border-radius: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 1.2rem;">${user.avatar}</span>
-                            <span style="font-size: 0.85rem; font-weight: 600;">${user.name}</span>
+                            <span style="font-size: 1.4rem;">${displayUser.avatar || '👤'}</span>
+                            <span style="font-size: 0.85rem; font-weight: 600; color:#374151;">${displayUser.name}</span>
                         </div>
                         <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
                     </div>
-                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.item || item.content}</div>
+                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${noteContent}</div>
                 </div>`;
         }
     });
 
-    listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
-    
-    // 更新頂部資訊
+    listContainer.innerHTML = html;
+    updateTotalDisplay(totalJPY, totalTWD);
+}
+
+// 輔助函式：更新上方總金額
+function updateTotalDisplay(jpy, twd) {
     const totalDisplay = document.getElementById('ledger-total-amount');
     if (totalDisplay && currentLedgerFilter === 'finance') {
         totalDisplay.innerHTML = `
-            <div>¥ ${totalJPY.toLocaleString()}</div>
-            <div style="font-size: 0.8rem; font-weight: 400; opacity: 0.8;">約 TWD ${totalTWD.toLocaleString()}</div>
+            <div>¥ ${jpy.toLocaleString()}</div>
+            <div style="font-size: 0.85rem; opacity: 0.8; font-weight: 400;">≈ NT$ ${twd.toLocaleString()}</div>
         `;
     } else if (totalDisplay) {
-        totalDisplay.innerText = `${filteredData.length} 則紀錄`;
+        // 筆記模式顯示則數
+        const count = document.querySelectorAll('#ledger-list .card').length;
+        totalDisplay.innerHTML = `<div>${count} 則筆記</div>`;
     }
 }
 
