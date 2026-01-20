@@ -8982,56 +8982,60 @@ async function handleLedgerSubmit() {
     const liveRateText = document.getElementById('current-rate-val')?.innerText;
     const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
 
-    // --- [修正代碼 Start] ---
+    // --- [修正代碼開始] ---
     
-    // 1. 預先處理數值與匯率 (確保是數字)
+    // 1. 取得數值並預先計算台幣
     const rawAmount = document.getElementById('ledger-amount').value;
     const amountVal = parseFloat(rawAmount) || 0;
-    const rateVal = liveRate; // 使用上方邏輯抓到的匯率
-    
-    // 2. 自動計算台幣 (日幣 * 匯率，四捨五入)
-    const amountTwdVal = Math.round(amountVal * rateVal);
+    const rateVal = parseFloat(liveRate) || 1; 
+    const amountTwdVal = Math.round(amountVal * rateVal); // 自動算台幣
 
-    // 3. 建構完整的 payload (補齊後端需要的欄位)
+    // 2. 準備使用者資料 (強制轉為 JSON 字串，解決 [object Object] 問題)
+    // 這裡我們重新抓取 currentUser 確保資料是最新的物件，然後轉字串
+    const userString = JSON.stringify({
+        name: currentUser ? currentUser.name : '未知',
+        avatar: currentUser ? currentUser.avatar : '👤'
+    });
+
+    // 3. 建立完整的傳送資料包 (Payload)
     let payload = {
         action: 'upload',
         token: token,
         type: isFinance ? 'finance' : 'note',
         
-        // [關鍵修正 1] 補上 ID，讓每一筆資料都有身分證
+        // [新增] 唯一 ID (解決試算表讀取錯位問題)
         id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
         
-        // [關鍵修正 2] 確保 User 是 JSON 字串格式 (您的 backend.gs 需要 parse 它)
-        user: userInfoRaw, 
+        // [修正] 使用者資料 (傳送 JSON 字串)
+        user: userString,
         
         date: new Date().toISOString().split('T')[0],
         rate: rateVal,
         
-        // [關鍵修正 3] 補上台幣金額欄位，讓試算表能寫入
+        // [新增] 台幣金額 (解決試算表該欄位空白問題)
         amountTwd: amountTwdVal,
         
-        // 補上時間戳記
         timestamp: new Date().toISOString()
     };
 
-    // 4. 根據模式填入內容
+    // 4. 根據類型填入剩餘欄位並驗證
     if (isFinance) {
         payload.item = document.getElementById('ledger-item').value;
-        payload.amount = amountVal; // 傳送數字
+        payload.amount = amountVal; // 傳送數字型態
         
         if (!payload.item || !rawAmount) {
             alert("請填寫項目與金額");
             return;
         }
     } else {
-        // 記事模式 (雖然沒有金額，但保持結構一致)
+        // 筆記模式
         payload.content = document.getElementById('ledger-note-content').value;
         if (!payload.content) {
             alert("請填寫內容");
             return;
         }
     }
-    // --- [修正代碼 End] ---
+    // --- [修正代碼結束] ---
 
     showLoading();
     try {
