@@ -8982,23 +8982,56 @@ async function handleLedgerSubmit() {
     const liveRateText = document.getElementById('current-rate-val')?.innerText;
     const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
 
+    // --- [修正代碼 Start] ---
+    
+    // 1. 預先處理數值與匯率 (確保是數字)
+    const rawAmount = document.getElementById('ledger-amount').value;
+    const amountVal = parseFloat(rawAmount) || 0;
+    const rateVal = liveRate; // 使用上方邏輯抓到的匯率
+    
+    // 2. 自動計算台幣 (日幣 * 匯率，四捨五入)
+    const amountTwdVal = Math.round(amountVal * rateVal);
+
+    // 3. 建構完整的 payload (補齊後端需要的欄位)
     let payload = {
         action: 'upload',
         token: token,
         type: isFinance ? 'finance' : 'note',
+        
+        // [關鍵修正 1] 補上 ID，讓每一筆資料都有身分證
+        id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
+        
+        // [關鍵修正 2] 確保 User 是 JSON 字串格式 (您的 backend.gs 需要 parse 它)
         user: userInfoRaw, 
+        
         date: new Date().toISOString().split('T')[0],
-        rate: liveRate
+        rate: rateVal,
+        
+        // [關鍵修正 3] 補上台幣金額欄位，讓試算表能寫入
+        amountTwd: amountTwdVal,
+        
+        // 補上時間戳記
+        timestamp: new Date().toISOString()
     };
 
+    // 4. 根據模式填入內容
     if (isFinance) {
         payload.item = document.getElementById('ledger-item').value;
-        payload.amount = document.getElementById('ledger-amount').value;
-        if (!payload.item || !payload.amount) { alert("請填寫項目與金額"); return; }
+        payload.amount = amountVal; // 傳送數字
+        
+        if (!payload.item || !rawAmount) {
+            alert("請填寫項目與金額");
+            return;
+        }
     } else {
+        // 記事模式 (雖然沒有金額，但保持結構一致)
         payload.content = document.getElementById('ledger-note-content').value;
-        if (!payload.content) { alert("請填寫內容"); return; }
+        if (!payload.content) {
+            alert("請填寫內容");
+            return;
+        }
     }
+    // --- [修正代碼 End] ---
 
     showLoading();
     try {
