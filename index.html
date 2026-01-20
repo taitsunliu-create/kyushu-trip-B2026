@@ -8987,17 +8987,11 @@ async function handleLedgerSubmit() {
     // 1. 取得數值並預先計算台幣
     const rawAmount = document.getElementById('ledger-amount').value;
     const amountVal = parseFloat(rawAmount) || 0;
+    // 修正：使用您程式上方已經定義好的 liveRate
     const rateVal = parseFloat(liveRate) || 1; 
     const amountTwdVal = Math.round(amountVal * rateVal); // 自動算台幣
 
-    // 2. 準備使用者資料 (強制轉為 JSON 字串，解決 [object Object] 問題)
-    // 這裡我們重新抓取 currentUser 確保資料是最新的物件，然後轉字串
-    const userString = JSON.stringify({
-        name: currentUser ? currentUser.name : '未知',
-        avatar: currentUser ? currentUser.avatar : '👤'
-    });
-
-    // 3. 建立完整的傳送資料包 (Payload)
+    // 2. 建立完整的傳送資料包 (Payload)
     let payload = {
         action: 'upload',
         token: token,
@@ -9006,8 +9000,8 @@ async function handleLedgerSubmit() {
         // [新增] 唯一 ID (解決試算表讀取錯位問題)
         id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
         
-        // [修正] 使用者資料 (傳送 JSON 字串)
-        user: userString,
+        // [關鍵修正] 使用上方已定義的 userInfoRaw (它已經是 JSON 字串，不需要再轉換)
+        user: userInfoRaw,
         
         date: new Date().toISOString().split('T')[0],
         rate: rateVal,
@@ -9018,7 +9012,7 @@ async function handleLedgerSubmit() {
         timestamp: new Date().toISOString()
     };
 
-    // 4. 根據類型填入剩餘欄位並驗證
+    // 3. 根據類型填入剩餘欄位並驗證
     if (isFinance) {
         payload.item = document.getElementById('ledger-item').value;
         payload.amount = amountVal; // 傳送數字型態
