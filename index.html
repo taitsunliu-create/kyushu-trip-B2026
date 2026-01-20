@@ -8982,55 +8982,40 @@ async function handleLedgerSubmit() {
     const liveRateText = document.getElementById('current-rate-val')?.innerText;
     const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
 
-   // --- [修正代碼 Start: 資料打包與計算] ---
+    // --- [修正代碼開始] ---
     
-    // 1. 取得金額與匯率 (加入防呆，避免變數未定義導致錯誤)
+    // 1. 取得數值並預先計算台幣
     const rawAmount = document.getElementById('ledger-amount').value;
     const amountVal = parseFloat(rawAmount) || 0;
-    
-    // 優先使用 liveRate，若無則使用 DOM 元素值，再沒有就預設 0.21
-    let currentRate = 0.21;
-    if (typeof liveRate !== 'undefined' && liveRate) {
-        currentRate = parseFloat(liveRate);
-    } else {
-        const rateInput = document.getElementById('finance-rate'); // 假設您有這個隱藏或顯示的欄位
-        if (rateInput) currentRate = parseFloat(rateInput.value) || 0.21;
-    }
-    
-    // 2. 計算台幣
-    const amountTwdVal = Math.round(amountVal * currentRate);
+    // 修正：使用您程式上方已經定義好的 liveRate
+    const rateVal = parseFloat(liveRate) || 1; 
+    const amountTwdVal = Math.round(amountVal * rateVal); // 自動算台幣
 
-    // 3. 準備 User 字串 (確保是 JSON 字串格式)
-    // 如果 userInfoRaw 是空的，就給一個預設的 JSON 字串
-    const finalUserString = (typeof userInfoRaw !== 'undefined' && userInfoRaw) 
-        ? userInfoRaw 
-        : JSON.stringify({ name: '未知', avatar: '👤' });
-
-    // 4. 建立 Payload
+    // 2. 建立完整的傳送資料包 (Payload)
     let payload = {
         action: 'upload',
         token: token,
         type: isFinance ? 'finance' : 'note',
         
-        // 生成 UUID
+        // [新增] 唯一 ID (解決試算表讀取錯位問題)
         id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
         
-        // 傳送 JSON 字串，後端 JSON.parse 才會成功
-        user: finalUserString,
+        // [關鍵修正] 使用上方已定義的 userInfoRaw (它已經是 JSON 字串，不需要再轉換)
+        user: userInfoRaw,
         
         date: new Date().toISOString().split('T')[0],
-        rate: currentRate,
+        rate: rateVal,
         
-        // 傳送計算好的台幣金額
+        // [新增] 台幣金額 (解決試算表該欄位空白問題)
         amountTwd: amountTwdVal,
         
         timestamp: new Date().toISOString()
     };
 
-    // 5. 填入個別欄位
+    // 3. 根據類型填入剩餘欄位並驗證
     if (isFinance) {
         payload.item = document.getElementById('ledger-item').value;
-        payload.amount = amountVal;
+        payload.amount = amountVal; // 傳送數字型態
         
         if (!payload.item || !rawAmount) {
             alert("請填寫項目與金額");
@@ -9044,7 +9029,7 @@ async function handleLedgerSubmit() {
             return;
         }
     }
-    // --- [修正代碼 End] ---
+    // --- [修正代碼結束] ---
 
     showLoading();
     try {
