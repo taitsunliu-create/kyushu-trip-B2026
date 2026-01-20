@@ -8982,18 +8982,29 @@ async function handleLedgerSubmit() {
     const liveRateText = document.getElementById('current-rate-val')?.innerText;
     const liveRate = (typeof currentRate !== 'undefined') ? currentRate : (parseFloat(liveRateText) || 0.21);
 
-    // --- [修正代碼 Start] ---
+   // --- [修正代碼 Start: 資料打包與計算] ---
     
-    // 1. 取得數值
+    // 1. 取得金額與匯率 (加入防呆，避免變數未定義導致錯誤)
     const rawAmount = document.getElementById('ledger-amount').value;
     const amountVal = parseFloat(rawAmount) || 0;
     
-    // 2. 修正匯率讀取 (確保是數字，若 liveRate 未定義則預設 0.21)
-    // 請確認您的全域變數 liveRate 是否有正確抓到值，若無請檢查 fetchRate 函式
-    const rateVal = (typeof liveRate !== 'undefined' && liveRate) ? parseFloat(liveRate) : 0.21; 
+    // 優先使用 liveRate，若無則使用 DOM 元素值，再沒有就預設 0.21
+    let currentRate = 0.21;
+    if (typeof liveRate !== 'undefined' && liveRate) {
+        currentRate = parseFloat(liveRate);
+    } else {
+        const rateInput = document.getElementById('finance-rate'); // 假設您有這個隱藏或顯示的欄位
+        if (rateInput) currentRate = parseFloat(rateInput.value) || 0.21;
+    }
     
-    // 3. 計算台幣 (四捨五入)
-    const amountTwdVal = Math.round(amountVal * rateVal);
+    // 2. 計算台幣
+    const amountTwdVal = Math.round(amountVal * currentRate);
+
+    // 3. 準備 User 字串 (確保是 JSON 字串格式)
+    // 如果 userInfoRaw 是空的，就給一個預設的 JSON 字串
+    const finalUserString = (typeof userInfoRaw !== 'undefined' && userInfoRaw) 
+        ? userInfoRaw 
+        : JSON.stringify({ name: '未知', avatar: '👤' });
 
     // 4. 建立 Payload
     let payload = {
@@ -9001,34 +9012,32 @@ async function handleLedgerSubmit() {
         token: token,
         type: isFinance ? 'finance' : 'note',
         
-        // [修正] ID 生成
+        // 生成 UUID
         id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
         
-        // [修正] User 必須直接傳送 userInfoRaw (因為它是 JSON 字串)
-        // 您的 userInfoRaw 已經是 '{"name":"...","avatar":"..."}' 格式
-        user: userInfoRaw, 
+        // 傳送 JSON 字串，後端 JSON.parse 才會成功
+        user: finalUserString,
         
         date: new Date().toISOString().split('T')[0],
-        rate: rateVal,
+        rate: currentRate,
         
-        // [修正] 補上台幣金額
+        // 傳送計算好的台幣金額
         amountTwd: amountTwdVal,
         
         timestamp: new Date().toISOString()
     };
 
-    // 5. 根據類型填入欄位
+    // 5. 填入個別欄位
     if (isFinance) {
-        // [修正] 確保抓取正確的 ID (您的 HTML ID 是 ledger-item)
-        payload.item = document.getElementById('ledger-item').value; 
+        payload.item = document.getElementById('ledger-item').value;
         payload.amount = amountVal;
         
-        // 檢查必填
         if (!payload.item || !rawAmount) {
             alert("請填寫項目與金額");
             return;
         }
     } else {
+        // 筆記模式
         payload.content = document.getElementById('ledger-note-content').value;
         if (!payload.content) {
             alert("請填寫內容");
