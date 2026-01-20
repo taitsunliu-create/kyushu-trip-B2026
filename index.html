@@ -9174,7 +9174,7 @@ function renderLedgerList(data) {
                         </div>
                         <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
                     </div>
-                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.content}</div>
+                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${item.item || item.content}</div>
                 </div>`;
         }
     });
