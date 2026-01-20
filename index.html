@@ -8965,8 +8965,9 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// --- [修正版 handleLedgerSubmit] ---
+// --- [請完整複製並替換 handleLedgerSubmit 函式] ---
 async function handleLedgerSubmit() {
+    // 1. 鎖定按鈕避免重複送出
     const btn = document.querySelector('.ledger-submit');
     if (btn) {
         btn.disabled = true;
@@ -8974,35 +8975,39 @@ async function handleLedgerSubmit() {
     }
 
     try {
-        // [修正點 1] Token 取得邏輯：
-        // 優先讀取 localStorage，如果沒有，則使用全域變數 token (您原本的設定)
+        // [關鍵修正] 直接在此定義系統 Token，確保絕對讀得到，不受外部變數影響
+        const SYSTEM_TOKEN = 'GAS_TOKEN_FCWI'; 
+
+        // 2. 取得 Token (邏輯：優先讀 localStorage -> 其次讀外部變數 -> 最後使用 SYSTEM_TOKEN)
         let authToken = localStorage.getItem('site_auth_token');
-        if (!authToken && typeof token !== 'undefined') {
-            authToken = token;
-        }
-
-        if (!authToken) {
-            throw new Error("未偵測到 Token，請確認程式碼最上方的 token 設定");
-        }
-
-        // [修正點 2] User 取得邏輯：
-        // 優先讀取 localStorage，如果沒有，嘗試使用全域變數 currentUser
-        let finalUserString = localStorage.getItem('site_user_info');
         
-        if (!finalUserString) {
-            if (typeof currentUser !== 'undefined' && currentUser) {
-                // 如果有全域 currentUser 物件，將其轉為字串
-                finalUserString = JSON.stringify(currentUser);
+        if (!authToken) {
+            // 嘗試讀取外部可能存在的 token 變數，若讀不到就用 SYSTEM_TOKEN
+            if (typeof token !== 'undefined' && token) {
+                authToken = token;
             } else {
-                // 最後手段：使用預設值
-                finalUserString = JSON.stringify({ name: '未知', avatar: '👤' });
+                authToken = SYSTEM_TOKEN;
             }
         }
 
-        // 3. 準備數值與匯率
+        // 3. 取得使用者資訊 (邏輯：優先讀 localStorage -> 其次讀外部變數 -> 最後用預設值)
+        let finalUserString = localStorage.getItem('site_user_info');
+        
+        if (!finalUserString) {
+            // 嘗試讀取外部可能存在的 currentUser
+            if (typeof currentUser !== 'undefined' && currentUser) {
+                finalUserString = JSON.stringify(currentUser);
+            } else {
+                // 若真的都抓不到，就顯示預設頭像，確保程式不崩潰
+                finalUserString = JSON.stringify({ name: '旅客', avatar: '👤' });
+            }
+        }
+
+        // 4. 準備數值與匯率
         const rawAmount = document.getElementById('ledger-amount').value;
         const amountVal = rawAmount ? parseFloat(rawAmount) : 0;
         
+        // 匯率防呆：優先讀 liveRate -> 若無則預設 0.21
         let currentRate = 0.21;
         if (typeof liveRate !== 'undefined' && liveRate) {
             currentRate = parseFloat(liveRate);
@@ -9010,14 +9015,16 @@ async function handleLedgerSubmit() {
 
         const amountTwdVal = Math.round(amountVal * currentRate);
 
-        // 4. 建立 Payload
+        // 5. 建立完整資料包 (Payload)
         let payload = {
             action: 'upload',
-            token: authToken, // 使用修正後的 authToken
+            token: authToken, // 使用剛剛確保一定有的 Token
             type: isFinance ? 'finance' : 'note',
             
+            // 生成唯一 ID
             id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
             
+            // 使用者資料
             user: finalUserString,
             
             date: new Date().toISOString().split('T')[0],
@@ -9026,7 +9033,7 @@ async function handleLedgerSubmit() {
             timestamp: new Date().toISOString()
         };
 
-        // 5. 根據類型填入欄位
+        // 6. 填入內容並驗證
         if (isFinance) {
             payload.item = document.getElementById('ledger-item').value;
             payload.amount = amountVal;
@@ -9045,11 +9052,11 @@ async function handleLedgerSubmit() {
             }
         }
 
-        // 6. 發送請求
+        // 7. 發送請求
         console.log("正在傳送 Payload:", payload);
         await sendRequest(payload);
         
-        // 7. 成功後清空與重整
+        // 8. 成功後清空表單
         if (isFinance) {
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
@@ -9057,6 +9064,7 @@ async function handleLedgerSubmit() {
             document.getElementById('ledger-note-content').value = '';
         }
         
+        // 重新讀取列表
         await fetchLedgerData();
 
     } catch (error) {
