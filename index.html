@@ -8966,10 +8966,9 @@ function updateUserInfoFromUI() {
 // [結束] 替換身分定義相關邏輯
 
 // --- [請完整複製並替換 handleLedgerSubmit 函式] ---
-// --- 這個版本完全獨立，不依賴外部變數，保證能送出 ---
-
+// --- [修正版 handleLedgerSubmit：獨立運作模式] ---
 async function handleLedgerSubmit() {
-    // 1. 鎖定按鈕
+    // 1. 鎖定按鈕 (防止連點)
     const btn = document.querySelector('.ledger-submit');
     if (btn) {
         btn.disabled = true;
@@ -8977,68 +8976,57 @@ async function handleLedgerSubmit() {
     }
 
     try {
-        // [強制修正 1] Token 取得邏輯
-        // 先抓 localStorage，如果沒有，直接使用您的預設 Token，確保絕對不會報錯
-        let authToken = localStorage.getItem('site_auth_token');
-        if (!authToken) {
-            authToken = 'GAS_TOKEN_FCWI'; // 直接寫入您的 Token，不再依賴外部變數
-        }
+        // [強制修正 1] Token 直接寫死在函式內，解決讀取不到的問題
+        // 這是最保險的做法，完全避開變數作用域的問題
+        const AUTH_TOKEN = 'GAS_TOKEN_FCWI'; 
 
-        // [強制修正 2] User 取得邏輯
-        // 確保 user 最終一定是 "JSON 字串"，而不是 [object Object]
+        // [強制修正 2] 確保 User 是 JSON 字串
+        // 先抓 localStorage，抓不到就用預設值，不管外部變數
         let finalUserString = localStorage.getItem('site_user_info');
-        
-        // 如果 localStorage 沒資料，我們嘗試抓全域變數，再沒有就給預設值
         if (!finalUserString) {
-            if (typeof currentUser !== 'undefined' && currentUser) {
-                finalUserString = JSON.stringify(currentUser);
-            } else {
-                finalUserString = JSON.stringify({ name: '旅客', avatar: '👤' });
-            }
+            // 如果真的沒有，直接給預設值，避免 [object Object] 錯誤
+            finalUserString = JSON.stringify({ name: '旅客', avatar: '👤' });
         }
 
-        // 3. 準備數值
-        const rawAmount = document.getElementById('ledger-amount').value;
-        const amountVal = rawAmount ? parseFloat(rawAmount) : 0;
-        
-        // [強制修正 3] 匯率與台幣計算
-        // 嘗試抓取 liveRate，抓不到就用 0.21
+        // [強制修正 3] 匯率防呆 (預設 0.21)
         let currentRate = 0.21;
+        // 嘗試讀取全域匯率，讀不到就維持 0.21
         if (typeof liveRate !== 'undefined' && liveRate) {
             currentRate = parseFloat(liveRate);
         }
+
+        // 2. 取得輸入值
+        const rawAmount = document.getElementById('ledger-amount').value;
+        const amountVal = rawAmount ? parseFloat(rawAmount) : 0;
         
-        // 算出台幣
+        // 計算台幣
         const amountTwdVal = Math.round(amountVal * currentRate);
 
-        // 4. 建立資料包 (Payload)
+        // 3. 建立資料包
         let payload = {
             action: 'upload',
-            token: authToken,
+            token: AUTH_TOKEN, // 使用上面定義的常數
             type: isFinance ? 'finance' : 'note',
             
             // 產生 ID
             id: (window.crypto && window.crypto.randomUUID) ? crypto.randomUUID() : ('id-' + new Date().getTime()),
             
-            // 放入處理好的 User 字串
-            user: finalUserString,
+            user: finalUserString, // 傳送 JSON 字串
             
             date: new Date().toISOString().split('T')[0],
             rate: currentRate,
-            
-            // 放入算好的台幣
             amountTwd: amountTwdVal,
-            
             timestamp: new Date().toISOString()
         };
 
-        // 5. 欄位驗證
+        // 4. 根據模式填入內容
         if (isFinance) {
             payload.item = document.getElementById('ledger-item').value;
             payload.amount = amountVal;
             
             if (!payload.item || !rawAmount) {
                 alert("請填寫項目與金額");
+                // 恢復按鈕
                 if (btn) { btn.disabled = false; btn.textContent = '確認送出'; }
                 return;
             }
@@ -9046,16 +9034,17 @@ async function handleLedgerSubmit() {
             payload.content = document.getElementById('ledger-note-content').value;
             if (!payload.content) {
                 alert("請填寫內容");
+                // 恢復按鈕
                 if (btn) { btn.disabled = false; btn.textContent = '確認送出'; }
                 return;
             }
         }
 
-        // 6. 發送請求
-        console.log("正在傳送 Payload:", payload);
+        // 5. 發送
+        console.log("正在傳送:", payload);
         await sendRequest(payload);
         
-        // 7. 清空與重整
+        // 6. 清空表單
         if (isFinance) {
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
@@ -9063,13 +9052,14 @@ async function handleLedgerSubmit() {
             document.getElementById('ledger-note-content').value = '';
         }
         
-        // 重新讀取列表
+        // 重新讀取
         await fetchLedgerData();
 
     } catch (error) {
-        console.error("送出失敗:", error);
-        alert("傳送發生錯誤: " + error.message);
+        console.error("錯誤:", error);
+        alert("傳送失敗: " + error.message);
     } finally {
+        // 解鎖按鈕
         if (btn) {
             btn.disabled = false;
             btn.textContent = '確認送出';
@@ -9120,55 +9110,45 @@ async function syncLedgerData() {
     }
 }
 
-// --- [請完整複製並替換 renderLedgerList 函式] ---
+// --- [修正版 renderLedgerList：解決 undefined] ---
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
     if (!listContainer) return;
 
     listContainer.innerHTML = '';
     
-    // 過濾資料：根據目前的頁籤 (finance 或 note)
+    // 過濾資料
     const filtered = data.filter(item => {
-        // 相容性處理：舊資料可能沒有 type 欄位，嘗試用欄位特徵判斷
         const itemType = item.type || (item.amount ? 'finance' : 'note');
         return itemType === currentLedgerFilter;
     });
 
     let html = '';
-    
-    // 計算總金額 (僅記帳模式)
     let totalJPY = 0;
     let totalTWD = 0;
 
     filtered.forEach(item => {
-        // 1. 解析使用者資料 (處理可能是字串或物件的情況)
+        // 解析 User 資料
         let user = { name: '未知', avatar: '👤' };
-        if (item.user) {
-            if (typeof item.user === 'object') {
+        try {
+            if (item.user && typeof item.user === 'string') {
+                user = JSON.parse(item.user);
+            } else if (item.user && typeof item.user === 'object') {
                 user = item.user;
-            } else {
-                try {
-                    user = JSON.parse(item.user);
-                } catch (e) {
-                    user.name = String(item.user);
-                }
             }
-        }
+        } catch (e) { console.error("User解析失敗", e); }
 
-        // 2. 格式化時間
         const dateObj = new Date(item.timestamp || item.date);
         const displayDateTime = dateObj.toLocaleString('zh-TW', {
             month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
         });
 
-        // 3. 根據類型產生 HTML
         if (currentLedgerFilter === 'finance') {
-            // [修正] 這裡優先讀取 item.item (記帳項目)，若無則讀取 content
-            const itemName = item.item || item.content || '無項目名稱';
+            // [關鍵修正] 這裡增加了 item.item 的讀取，如果沒有才讀 content
+            const itemName = item.item || item.content || '未命名項目';
             const jpy = parseInt(item.amount || 0);
-            
-            // [修正] 優先讀取後端回傳的 amountTwd，若無則現場算
             const rate = parseFloat(item.rate || 0.21);
+            // [關鍵修正] 優先讀取後端回傳的 amountTwd
             const twd = item.amountTwd ? parseInt(item.amountTwd) : Math.round(jpy * rate);
 
             totalJPY += jpy;
@@ -9212,7 +9192,7 @@ function renderLedgerList(data) {
 
     listContainer.innerHTML = html || `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
     
-    // 更新頂部資訊 (總金額)
+    // 更新總金額顯示
     const totalDisplay = document.getElementById('ledger-total-amount');
     if (totalDisplay && currentLedgerFilter === 'finance') {
         totalDisplay.innerHTML = `
