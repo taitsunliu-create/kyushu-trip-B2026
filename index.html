@@ -9002,31 +9002,22 @@ async function handleLedgerSubmit() {
         const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
                           (document.getElementById('ledger-finance-fields').style.display !== 'none');
 
-        // [修正重點] 如果是筆記模式 (Note)，強制金額為 "0"
-        // 這樣後端收到 0，就不會顯示金額
-        const finalAmountJpy = isFinance ? String(amountJpy) : "0";
-        const finalAmountTwd = isFinance ? String(amountTwd) : "0";
-
+        // 3. [傳輸格式大改] 改用 application/x-www-form-urlencoded
+        // 這能確保後端用 e.parameter 絕對接得到，不用管 postData
         const payloadData = {
             action: 'upload',
             token: typeof getKey === 'function' ? getKey('gas_token') : '',
             type: isFinance ? 'finance' : 'note',
             id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
-            
-            user: userJsonString,
-            
+            user: userJsonString, // 這現在是個純字串
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
             rate: String(finalRate),
+            twdAmount: String(amountTwd), // 轉字串保險
+            item: document.getElementById('ledger-item')?.value || '',
+            amount: String(amountJpy),
+            content: document.getElementById('ledger-note-content')?.value || ''
             
-            // ★★★ 修正點 1：使用判斷過後的變數 ★★★
-            twdAmount: finalAmountTwd, 
-            
-            item: document.getElementById('ledger-item')?.value || '', 
-            content: document.getElementById('ledger-note-content')?.value || '',
-            
-            // ★★★ 修正點 2：使用判斷過後的變數 ★★★
-            amount: finalAmountJpy
         };
 
         if (isFinance && amountJpy <= 0) {
@@ -9171,7 +9162,7 @@ function renderLedgerList(data) {
             totalJPY += jpy;
             totalTWD += twd;
 
-           
+            //const displayTitle = item.item || item.content || '無標題';
             const displayTitle =  item.content || item.item || '無標題';
 
             html += `
