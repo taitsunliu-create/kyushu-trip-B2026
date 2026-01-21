@@ -9156,7 +9156,7 @@ function renderLedgerList(data) {
         if (item.type === 'finance') {
             const jpy = parseFloat(item.amount || 0);
             // 優先顯示後端存的 TWD，若無則前端重算
-            const twd = item.amountTwd ? parseInt(item.amountTwd) : Math.round(jpy * (item.rate || 0.21));
+            const twd = item.twdAmount ? parseInt(item.twdAmount) : Math.round(jpy * (item.rate || 0.21));
             
             totalJPY += jpy;
             totalTWD += twd;
