@@ -8965,105 +8965,116 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [核彈級修正] 強制純文字表單送出 (解決所有 JSON 解析與傳輸問題)
+// [最終確認版] 處理記帳送出
 async function handleLedgerSubmit() {
-    showLoading();
+    showLoading(); 
+
+    // ★ Debug 1: 在 Console 印出版本號，請按 F12 看看有沒有出現這行
+    console.log("【正在執行版本：v2026-Final】"); 
 
     try {
-        // 1. [資料準備] 抓取使用者與頭像
+        // ============================================================
+        // 1. 抓取使用者資料 (暴力強制版)
+        // ============================================================
         const nameInput = document.getElementById('custom-user-name');
         const avatarDisplay = document.getElementById('current-selected-emoji');
-        
-        const userName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : '匿名';
-        const userAvatar = (avatarDisplay && avatarDisplay.innerText.trim()) ? avatarDisplay.innerText.trim() : '🦁';
-        
-        // ★ 關鍵：建立一個 "純字串" 的 JSON，不要讓它變成物件
-        const userJsonString = JSON.stringify({ name: userName, avatar: userAvatar });
 
-        // 2. [匯率準備]
+        // A. 取得原始值
+        let rawName = nameInput ? nameInput.value : '';
+        
+        // B. 強制轉型 (不管它是 undefined, null 還是什麼，先轉成字串再說)
+        let safeName = String(rawName).trim();
+
+        // C. 最終防呆 (如果是 "undefined" 字串或空的，就變 "匿名")
+        if (!safeName || safeName === 'undefined' || safeName === 'null') {
+            safeName = '匿名';
+        }
+
+        // D. 頭像同理
+        let safeAvatar = avatarDisplay ? avatarDisplay.innerText.trim() : '🦁';
+
+        // ★ Debug 2: 彈出視窗讓您親眼確認 (確認沒問題後可註解掉)
+        // alert(`檢查點：\n名字=${safeName}\n頭像=${safeAvatar}`);
+
+        // E. 建立 JSON (這時候 safeName 一定是字串，絕對不會被過濾掉)
+        const userJsonString = JSON.stringify({ 
+            name: safeName, 
+            avatar: safeAvatar 
+        });
+
+        // ============================================================
+        // 2. 準備其他資料 (保持不變)
+        // ============================================================
         let finalRate = 0.21;
         const manualRateEl = document.getElementById('calc-rate');
         if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
             finalRate = parseFloat(manualRateEl.value);
         } else {
-            const cached = localStorage.getItem('live_exchange_rate_cache');
-            if (cached) {
-                try {
+            try {
+                const cached = localStorage.getItem('live_exchange_rate_cache');
+                if (cached) {
                     const parsed = JSON.parse(cached);
                     if (parsed.rate > 0) finalRate = parsed.rate;
-                } catch(e) {}
-            }
+                }
+            } catch(e) {}
         }
 
         const rawAmount = document.getElementById('ledger-amount').value;
         const amountJpy = parseFloat(rawAmount) || 0;
         const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
-
+        
         const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
                           (document.getElementById('ledger-finance-fields').style.display !== 'none');
 
-        // 3. [傳輸格式大改] 改用 application/x-www-form-urlencoded
-        // 這能確保後端用 e.parameter 絕對接得到，不用管 postData
+        const finalAmountJpy = isFinance ? String(amountJpy) : "0";
+        const finalAmountTwd = isFinance ? String(amountTwd) : "0";
+
+        // ============================================================
+        // 3. 發送
+        // ============================================================
         const payloadData = {
             action: 'upload',
-            token: typeof getKey === 'function' ? getKey('gas_token') : '',
+            token: (typeof getKey === 'function') ? getKey('gas_token') : '',
             type: isFinance ? 'finance' : 'note',
             id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
-            user: userJsonString, // 這現在是個純字串
+            
+            user: userJsonString, // ★ 送出這串
+            
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
             rate: String(finalRate),
-            twdAmount: String(amountTwd), // 轉字串保險
-            item: document.getElementById('ledger-item')?.value || '',
-            amount: String(amountJpy),
-            content: document.getElementById('ledger-note-content')?.value || ''
-            
+            twdAmount: finalAmountTwd, 
+            item: document.getElementById('ledger-item')?.value || '', 
+            content: document.getElementById('ledger-note-content')?.value || '',
+            amount: finalAmountJpy
         };
 
-        if (isFinance && amountJpy <= 0) {
-            alert("請輸入有效的金額");
-            hideLoading();
-            return;
-        }
-
-        // ★ 關鍵：手動編碼 payload，不使用 JSON.stringify(payload)
-        // 這樣後端 backend.gs 裡的 e.parameter.user 就能直接讀到字串
-        const url = typeof getKey === 'function' ? getKey('gas_url') : '';
-        
-        // 這種 fetch 方式對 GAS 最友善
-        const resp = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(payloadData) // 雖然還是 stringify，但上面的 user 已經是 string
-        });
-        
+        const url = (typeof getKey === 'function') ? getKey('gas_url') : '';
+        const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payloadData) });
         const result = await resp.json();
 
         if (result.status === 'success' || result.result === 'success') {
-            // [修正] 根據類型顯示不同的成功訊息
             if (isFinance) {
                 alert(`✅ 記帳成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
             } else {
                 alert(`✅ 記事儲存成功！`);
             }
             
-            // 清空欄位 (保持不變)
+            // 清空
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
             
-            // 重新整理列表
-            if (typeof syncLedgerData === 'function') {
-                await syncLedgerData();
-            }
+            if (typeof syncLedgerData === 'function') await syncLedgerData();
         } else {
             alert("⚠️ 儲存失敗: " + (result.message || "未知錯誤"));
         }
 
     } catch (e) {
-        console.error(e);
-        alert("❌ 錯誤: " + e.message);
+        console.error("執行錯誤:", e);
+        alert("❌ 程式錯誤: " + e.message);
     } finally {
-        hideLoading();
+        if (typeof hideLoading === 'function') hideLoading();
     }
 }
 
