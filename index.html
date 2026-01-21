@@ -8965,38 +8965,31 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [最終修正版] 處理記帳送出 (配合您現有的 HTML ID 結構)
+// [修正版] 處理記帳送出 (確保匯率與使用者資料正確)
 async function handleLedgerSubmit() {
-    showLoading(); // 顯示遮罩
+    showLoading(); 
 
     try {
-        // ==========================================
-        // 1. [修正] 正確抓取使用者資料
-        // ==========================================
-        // 您的 HTML 結構是：名字在 input 框，頭像在 span 標籤
+        // 1. [精準抓取] 鎖定您介面上的輸入框 ID
+        // 您的介面設計是：點選頭像後，會更新到 #custom-user-name 和 #current-selected-emoji
         const nameInput = document.getElementById('custom-user-name');
         const avatarDisplay = document.getElementById('current-selected-emoji');
         
-        // 直接讀取輸入框的值 (這就是使用者自定義的名稱)
         const userName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : '匿名';
-        // 直接讀取目前顯示的 Emoji
         const userAvatar = (avatarDisplay && avatarDisplay.innerText.trim()) ? avatarDisplay.innerText.trim() : '🦁';
         
-        // 建立正確的 JSON 字串
+        // 建立資料包 (注意：這裡我們主動轉成字串送出，後端才會收得乾淨)
         const finalUserPayload = JSON.stringify({ name: userName, avatar: userAvatar });
 
-        // ==========================================
-        // 2. [修正] 匯率與金額計算 (防止為 0)
-        // ==========================================
-        let finalRate = 0.21; // 最低防線預設值
+        // 2. [匯率防護] 確保金額計算正確
+        let finalRate = 0.21; // 萬一沒抓到匯率的底線值
 
-        // A. 優先讀取計算機設定的匯率 (如果有)
+        // A. 優先讀取計算機上的匯率欄位
         const manualRateEl = document.getElementById('calc-rate');
         if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
             finalRate = parseFloat(manualRateEl.value);
-        } 
-        // B. 讀取快取匯率 (如果有的話)
-        else {
+        } else {
+            // B. 讀取快取
             const cached = localStorage.getItem('live_exchange_rate_cache');
             if (cached) {
                 try {
@@ -9009,52 +9002,40 @@ async function handleLedgerSubmit() {
         const rawAmount = document.getElementById('ledger-amount').value;
         const amountJpy = parseFloat(rawAmount) || 0;
         
-        // 計算台幣 (四捨五入)
+        // [關鍵] 計算台幣 (Math.round 四捨五入)
         const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
 
-        // ==========================================
-        // 3. 建立 Payload
-        // ==========================================
+        // 3. 建立傳送物件
         const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
                           (document.getElementById('ledger-finance-fields').style.display !== 'none');
         
-        // 產生唯一 ID
-        const uniqueId = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now());
-
         let payload = {
             action: 'upload',
             token: typeof getKey === 'function' ? getKey('gas_token') : '', 
             type: isFinance ? 'finance' : 'note',
-            id: uniqueId,
-            user: finalUserPayload,       // 這裡現在一定是正確的 {name, avatar}
+            id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
+            user: finalUserPayload,       // 送出 JSON 字串
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
             rate: finalRate,
             amountTwd: amountTwd,
-            
-            // 確保文字欄位不為 undefined
             item: document.getElementById('ledger-item')?.value || '',
             amount: amountJpy,
             content: document.getElementById('ledger-note-content')?.value || ''
         };
 
-        // 驗證必填
         if (isFinance && amountJpy <= 0) {
             alert("請輸入有效的金額");
             hideLoading();
             return;
         }
 
-        // ==========================================
-        // 4. 發送資料
-        // ==========================================
+        // 4. 發送 (使用 Await 確保同步)
         const url = typeof getKey === 'function' ? getKey('gas_url') : '';
-        
         const resp = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
-        
         const result = await resp.json();
 
         if (result.status === 'success' || result.result === 'success') {
@@ -9124,7 +9105,7 @@ async function syncLedgerData() {
     }
 }
 
-// [修正版] 渲染列表 (修復 item undefined 與 頭像顯示問題)
+// [修正版] 渲染列表 (整合強效解析邏輯)
 function renderLedgerList(data) {
     const listContainer = document.getElementById('ledger-list');
     if (!listContainer) return;
@@ -9141,7 +9122,6 @@ function renderLedgerList(data) {
         if (!isoString) return '';
         try {
             const d = new Date(isoString);
-            // 簡單格式: MM/DD HH:mm
             return `${(d.getMonth() + 1)}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
         } catch (e) { return isoString; }
     };
@@ -9150,47 +9130,42 @@ function renderLedgerList(data) {
 
     if (filteredData.length === 0) {
         listContainer.innerHTML = `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
-        // 即使沒資料也要歸零上方顯示
         updateTotalDisplay(0, 0); 
         return;
     }
 
     filteredData.forEach(item => {
-        // 1. [強化解析] 使用者資料解析邏輯
+        // ★★★ 核心修正：應用您找到的強效解析邏輯 ★★★
         let displayUser = { name: '未知', avatar: '👤' };
         
-        // 嘗試各種可能的資料結構
-        if (item.user) {
-            if (typeof item.user === 'object') {
+        try {
+            if (typeof item.user === 'object' && item.user !== null) {
+                // 如果已經是物件 (有些 GAS 寫法會直接回傳物件)
                 displayUser = item.user;
             } else if (typeof item.user === 'string') {
-                try {
-                    // 如果是 JSON 字串就 parse，否則當作一般字串處理
-                    if (item.user.trim().startsWith('{')) {
-                        displayUser = JSON.parse(item.user);
-                    } else {
-                        // 舊資料相容：假設字串就是名字
-                        displayUser = { name: item.user, avatar: '👤' };
-                    }
-                } catch (e) {
+                // 如果是字串 (最常見的情況)
+                if (item.user.trim().startsWith('{')) {
+                    displayUser = JSON.parse(item.user);
+                } else {
+                    // 舊資料相容
                     displayUser = { name: item.user, avatar: '👤' };
                 }
             }
+        } catch (e) {
+            console.warn("解析使用者資料失敗", item.user);
         }
 
         const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
         if (item.type === 'finance') {
             const jpy = parseFloat(item.amount || 0);
-            // 優先顯示後端存的 amountTwd，如果沒有才前端重算
+            // 優先顯示後端存的 TWD，若無則前端重算
             const twd = item.amountTwd ? parseInt(item.amountTwd) : Math.round(jpy * (item.rate || 0.21));
             
             totalJPY += jpy;
             totalTWD += twd;
 
-            // [關鍵修正] 多重欄位檢查，解決 undefined
-            // GAS 有時會把欄位吃掉或改名，這裡同時檢查 item, content, description, desc
-            const displayTitle = item.item || item.content || item.description || item.desc || '無標題';
+            const displayTitle = item.item || item.content || '無標題';
 
             html += `
                 <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #EF4444; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
