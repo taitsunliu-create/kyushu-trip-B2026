@@ -9039,14 +9039,22 @@ async function handleLedgerSubmit() {
         const result = await resp.json();
 
         if (result.status === 'success' || result.result === 'success') {
-            alert(`✅ 儲存成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
+            // [修正] 根據類型顯示不同的成功訊息
+            if (isFinance) {
+                alert(`✅ 記帳成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
+            } else {
+                alert(`✅ 記事儲存成功！`);
+            }
             
-            // 清空
+            // 清空欄位 (保持不變)
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
             
-            if (typeof syncLedgerData === 'function') await syncLedgerData();
+            // 重新整理列表
+            if (typeof syncLedgerData === 'function') {
+                await syncLedgerData();
+            }
         } else {
             alert("⚠️ 儲存失敗: " + (result.message || "未知錯誤"));
         }
