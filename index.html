@@ -9013,7 +9013,7 @@ async function handleLedgerSubmit() {
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
             rate: String(finalRate),
-            amountTwd: String(amountTwd), // 轉字串保險
+            twdAmount: String(amountTwd), // 轉字串保險
             item: document.getElementById('ledger-item')?.value || '',
             amount: String(amountJpy),
             content: document.getElementById('ledger-note-content')?.value || ''
