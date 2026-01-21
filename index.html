@@ -8965,109 +8965,91 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [修正版] 處理記帳送出 (鐵壁防禦版：解決時間差與變數未定義問題)
+// [最終修正版] 處理記帳送出 (配合您現有的 HTML ID 結構)
 async function handleLedgerSubmit() {
-    // 步驟 0: 顯示讀取中，防止使用者連點
-    showLoading();
+    showLoading(); // 顯示遮罩
 
     try {
-        // ---------------------------------------------------------
-        // 1. [強制等待] 讓 UI 點擊事件跑完 (關鍵！解決頭像抓不到)
-        // ---------------------------------------------------------
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // ---------------------------------------------------------
-        // 2. [暴力抓取] 直接從畫面上找「誰是紅色的 (active)」
-        // ---------------------------------------------------------
-        // 不相信 hidden input，直接看畫面
-        const activeUserEl = document.querySelector('.user-icon.active'); 
-        let finalUserPayload = "";
-
-        if (activeUserEl) {
-            const name = activeUserEl.querySelector('.user-name').innerText.trim();
-            const avatar = activeUserEl.querySelector('.avatar').innerText.trim();
-            finalUserPayload = JSON.stringify({ name: name, avatar: avatar });
-        } else {
-            // 如果真的沒人亮燈，嘗試讀取隱藏欄位，再不行就給預設值
-            const hiddenVal = document.getElementById('selected-user-info').value;
-            if (hiddenVal && hiddenVal !== "{}" && hiddenVal.includes("name")) {
-                finalUserPayload = hiddenVal;
-            } else {
-                finalUserPayload = JSON.stringify({ name: '匿名', avatar: '👤' });
-            }
-        }
+        // ==========================================
+        // 1. [修正] 正確抓取使用者資料
+        // ==========================================
+        // 您的 HTML 結構是：名字在 input 框，頭像在 span 標籤
+        const nameInput = document.getElementById('custom-user-name');
+        const avatarDisplay = document.getElementById('current-selected-emoji');
         
-        console.log("最終確認使用者資料:", finalUserPayload); // Debug 用
+        // 直接讀取輸入框的值 (這就是使用者自定義的名稱)
+        const userName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : '匿名';
+        // 直接讀取目前顯示的 Emoji
+        const userAvatar = (avatarDisplay && avatarDisplay.innerText.trim()) ? avatarDisplay.innerText.trim() : '🦁';
+        
+        // 建立正確的 JSON 字串
+        const finalUserPayload = JSON.stringify({ name: userName, avatar: userAvatar });
 
-        // ---------------------------------------------------------
-        // 3. [匯率鎖死] 確保絕對不會是 0
-        // ---------------------------------------------------------
-        let finalRate = 0.21; // 最後一道防線
+        // ==========================================
+        // 2. [修正] 匯率與金額計算 (防止為 0)
+        // ==========================================
+        let finalRate = 0.21; // 最低防線預設值
 
-        // 第一優先：看使用者有沒有手動改匯率欄位
+        // A. 優先讀取計算機設定的匯率 (如果有)
         const manualRateEl = document.getElementById('calc-rate');
-        const manualRateVal = manualRateEl ? parseFloat(manualRateEl.value) : 0;
-
-        if (manualRateVal > 0) {
-            finalRate = manualRateVal;
-        } else {
-            // 第二優先：讀取全域變數 (如果有的話)
-            if (typeof currentRate !== 'undefined' && currentRate > 0) {
-                finalRate = currentRate;
-            } else {
-                // 第三優先：讀取 LocalStorage 快取
-                const cached = localStorage.getItem('live_exchange_rate_cache');
-                if (cached) {
-                    try {
-                        const parsed = JSON.parse(cached);
-                        if (parsed.rate > 0) finalRate = parsed.rate;
-                    } catch(e) {}
-                }
+        if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
+            finalRate = parseFloat(manualRateEl.value);
+        } 
+        // B. 讀取快取匯率 (如果有的話)
+        else {
+            const cached = localStorage.getItem('live_exchange_rate_cache');
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed.rate > 0) finalRate = parsed.rate;
+                } catch(e) {}
             }
         }
-
-        // ---------------------------------------------------------
-        // 4. 計算與資料包裝
-        // ---------------------------------------------------------
-        const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
-                          (document.getElementById('ledger-finance-fields').style.display !== 'none');
 
         const rawAmount = document.getElementById('ledger-amount').value;
-        const amountVal = parseFloat(rawAmount) || 0;
+        const amountJpy = parseFloat(rawAmount) || 0;
         
-        // 計算台幣：只有當金額大於 0 才計算，且最少為 1 (避免小數點問題顯示為0)
-        const amountTwdVal = amountVal > 0 ? Math.max(1, Math.round(amountVal * finalRate)) : 0;
+        // 計算台幣 (四捨五入)
+        const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
+
+        // ==========================================
+        // 3. 建立 Payload
+        // ==========================================
+        const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
+                          (document.getElementById('ledger-finance-fields').style.display !== 'none');
+        
+        // 產生唯一 ID
+        const uniqueId = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now());
 
         let payload = {
             action: 'upload',
-            token: getKey('gas_token'), 
+            token: typeof getKey === 'function' ? getKey('gas_token') : '', 
             type: isFinance ? 'finance' : 'note',
-            id: (crypto && crypto.randomUUID) ? crypto.randomUUID() : ('id' + Date.now()),
-            user: finalUserPayload,       // 使用剛剛暴力抓取的值
+            id: uniqueId,
+            user: finalUserPayload,       // 這裡現在一定是正確的 {name, avatar}
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
-            rate: finalRate,              // 使用確保非 0 的匯率
-            amountTwd: amountTwdVal       // 使用計算後的台幣
+            rate: finalRate,
+            amountTwd: amountTwd,
+            
+            // 確保文字欄位不為 undefined
+            item: document.getElementById('ledger-item')?.value || '',
+            amount: amountJpy,
+            content: document.getElementById('ledger-note-content')?.value || ''
         };
 
-        if (isFinance) {
-            const itemVal = document.getElementById('ledger-item').value;
-            payload.item = itemVal || '未命名項目';
-            payload.amount = amountVal;
-            
-            if (!rawAmount) { 
-                alert("請填寫金額"); 
-                hideLoading();
-                return; 
-            }
-        } else {
-            payload.content = document.getElementById('ledger-note-content').value || '無內容';
+        // 驗證必填
+        if (isFinance && amountJpy <= 0) {
+            alert("請輸入有效的金額");
+            hideLoading();
+            return;
         }
 
-        // ---------------------------------------------------------
-        // 5. 發送資料 (Await)
-        // ---------------------------------------------------------
-        const url = getKey('gas_url');
+        // ==========================================
+        // 4. 發送資料
+        // ==========================================
+        const url = typeof getKey === 'function' ? getKey('gas_url') : '';
+        
         const resp = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(payload)
@@ -9076,7 +9058,7 @@ async function handleLedgerSubmit() {
         const result = await resp.json();
 
         if (result.status === 'success' || result.result === 'success') {
-            alert("✅ 儲存成功！");
+            alert(`✅ 儲存成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
             
             // 清空欄位
             document.getElementById('ledger-item').value = '';
@@ -9088,12 +9070,12 @@ async function handleLedgerSubmit() {
                 await syncLedgerData();
             }
         } else {
-            alert("⚠️ 儲存發生問題: " + (result.message || JSON.stringify(result)));
+            alert("⚠️ 儲存失敗: " + (result.message || "未知錯誤"));
         }
 
     } catch (e) {
         console.error(e);
-        alert("❌ 系統錯誤: " + e.message);
+        alert("❌ 程式錯誤: " + e.message);
     } finally {
         hideLoading();
     }
