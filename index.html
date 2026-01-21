@@ -8967,46 +8967,60 @@ function updateUserInfoFromUI() {
 
 // [偵錯修正版] 處理記帳送出
 async function handleLedgerSubmit() {
-    showLoading(); 
+    showLoading(); // 顯示轉圈圈
 
     try {
         // ============================================================
-        // 1. [核心修正區] 請在這裡填入您 HTML 對應的 ID
+        // 1. [關鍵修正] 這裡填入您 HTML 裡真正的 ID
         // ============================================================
         
-        // ★ 請確認這裡的 ID 與您 HTML 裡 <input> 的 id 一模一樣
-        const NAME_INPUT_ID = 'custom-user-name';   // <-- 請修改這裡
-        const AVATAR_ID = 'current-selected-emoji'; // <-- 請修改這裡
+        // 請確認您的輸入框 <input> 的 id 真的是 'custom-user-name'
+        const NAME_INPUT_ID = 'custom-user-name';   
+        // 請確認顯示頭像的 <span> 的 id 真的是 'current-selected-emoji'
+        const AVATAR_ID = 'current-selected-emoji'; 
 
         // ------------------------------------------------------------
-
+        // 開始抓人
         const nameInput = document.getElementById(NAME_INPUT_ID);
         const avatarDisplay = document.getElementById(AVATAR_ID);
         
-        // [偵錯檢查] 
+        // [檢查點 1] 如果連輸入框都找不到，直接報錯
         if (!nameInput) {
-            alert(`❌ 找不到 ID 為 "${NAME_INPUT_ID}" 的輸入框！\n請檢查 HTML 裡的 id 是否正確。`);
+            alert(`❌ 程式找不到 ID 為 "${NAME_INPUT_ID}" 的輸入框！\n請檢查 HTML 裡的 <input id="..."> 是否寫對。`);
             hideLoading();
             return;
         }
 
+        // [檢查點 2] 抓取數值
+        // 如果輸入框是空的，就給 '匿名'
         const userName = (nameInput.value && nameInput.value.trim()) ? nameInput.value.trim() : '匿名';
+        // 如果頭像沒顯示，就給 '👤'
         const userAvatar = (avatarDisplay && avatarDisplay.innerText.trim()) ? avatarDisplay.innerText.trim() : '👤';
         
-        // ★ 偵錯點：送出前先讓您看看抓到了什麼
-        // (確認沒問題後，這行 alert 可以註解掉)
-        // alert(`準備送出資料：\n名稱: ${userName}\n頭像: ${userAvatar}`);
+        // ★ [檢查點 3] 彈出視窗讓您確認 (這是最重要的！)
+        // 請在測試時看這個視窗，確認名字是不是您剛剛打的
+        alert(`【偵錯模式】\n程式抓到的名字：${userName}\n程式抓到的頭像：${userAvatar}`);
 
         // 建立 JSON 字串 (這就是會寫入試算表的內容)
         const userJsonString = JSON.stringify({ name: userName, avatar: userAvatar });
 
         // ============================================================
-        // 2. 準備 Payload (與之前相同)
+        // 2. 準備其他資料 (匯率與金額)
         // ============================================================
-        let finalRate = 0.21;
-        // ... (省略匯率獲取邏輯，沿用您現有的) ...
+        let finalRate = 0.21; // 預設匯率
         const manualRateEl = document.getElementById('calc-rate');
-        if (manualRateEl && parseFloat(manualRateEl.value) > 0) finalRate = parseFloat(manualRateEl.value);
+        if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
+            finalRate = parseFloat(manualRateEl.value);
+        } else {
+             // 嘗試讀取快取
+            const cached = localStorage.getItem('live_exchange_rate_cache');
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed.rate > 0) finalRate = parsed.rate;
+                } catch(e) {}
+            }
+        }
 
         const rawAmount = document.getElementById('ledger-amount').value;
         const amountJpy = parseFloat(rawAmount) || 0;
@@ -9019,13 +9033,16 @@ async function handleLedgerSubmit() {
         const finalAmountJpy = isFinance ? String(amountJpy) : "0";
         const finalAmountTwd = isFinance ? String(amountTwd) : "0";
 
+        // ============================================================
+        // 3. 打包與發送
+        // ============================================================
         const payloadData = {
             action: 'upload',
             token: typeof getKey === 'function' ? getKey('gas_token') : '',
             type: isFinance ? 'finance' : 'note',
             id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
             
-            user: userJsonString, // ★ 送出正確的 JSON 字串
+            user: userJsonString, // ★ 送出正確抓到的資料
             
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
@@ -9036,27 +9053,23 @@ async function handleLedgerSubmit() {
             amount: finalAmountJpy
         };
 
-        // ... (後續 fetch 發送邏輯保持不變) ...
-        // ...
-        
-        // 為了節省篇幅，請保留您原本 fetch 的部分，只要確保 payloadData 是用上面這個即可
-        // 或者您需要完整的 fetch 程式碼嗎？(若需要請告訴我)
-        
         const url = typeof getKey === 'function' ? getKey('gas_url') : '';
         const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payloadData) });
         const result = await resp.json();
 
         if (result.status === 'success' || result.result === 'success') {
             if (isFinance) {
-                alert(`✅ 記帳成功！\n(金額: ¥${amountJpy} ≈ NT${amountTwd})`);
+                alert(`✅ 記帳成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
             } else {
                 alert(`✅ 記事儲存成功！`);
             }
-            // 清空與重整
-            nameInput.value = ''; // 清空名字 (如果需要的話)
+            
+            // 清空欄位
+            if(nameInput) nameInput.value = ''; 
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
+            
             if (typeof syncLedgerData === 'function') await syncLedgerData();
         } else {
             alert("⚠️ 儲存失敗: " + (result.message || "未知錯誤"));
