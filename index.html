@@ -9170,8 +9170,7 @@ function renderLedgerList(data) {
             totalJPY += jpy;
             totalTWD += twd;
 
-            //const displayTitle = item.content || item.item || '無標題';
-            const displayTitle = item.item || item.content || '無標題';
+            const displayTitle = item.content || item.item || item.description || item.desc || '無標題';
 
             html += `
                 <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #EF4444; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
