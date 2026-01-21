@@ -8965,51 +8965,54 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [偵錯修正版] 處理記帳送出
+// [最終完整版] 處理記帳送出 (整合所有修正)
 async function handleLedgerSubmit() {
     showLoading(); // 顯示轉圈圈
 
-    try {// ============================================================
-    // 1. [終極修正] 暴力抓取使用者資料 (自動搜尋輸入框)
-    // ============================================================
-    
-    // A. 嘗試抓取名字 (三層保險)
-    let nameEl = document.getElementById('custom-user-name');
-    
-    // 保險 1: 如果 ID 抓不到，嘗試抓取 class
-    if (!nameEl) nameEl = document.querySelector('.user-name-input');
-    
-    // 保險 2: 如果還是抓不到，直接抓頁面上「第一個文字輸入框」
-    // (這招對您的單頁應用程式通常有效)
-    if (!nameEl) nameEl = document.querySelector('input[type="text"]');
+    try {
+        // ============================================================
+        // 1. [終極修正] 暴力抓取使用者資料 (自動搜尋輸入框)
+        // ============================================================
+        
+        // A. 嘗試抓取名字 (三層保險)
+        let nameEl = document.getElementById('custom-user-name');
+        
+        // 保險 1: 如果 ID 抓不到，嘗試抓取 class
+        if (!nameEl) nameEl = document.querySelector('.user-name-input');
+        
+        // 保險 2: 如果還是抓不到，直接抓頁面上「第一個文字輸入框」
+        // (這招對您的單頁應用程式通常有效)
+        if (!nameEl) nameEl = document.querySelector('input[type="text"]');
 
-    // B. 嘗試抓取頭像
-    let avatarEl = document.getElementById('current-selected-emoji');
-    if (!avatarEl) avatarEl = document.querySelector('.avatar-display');
+        // B. 嘗試抓取頭像
+        let avatarEl = document.getElementById('current-selected-emoji');
+        if (!avatarEl) avatarEl = document.querySelector('.avatar-display');
 
-    // ------------------------------------------------------------
-    // C. 安全取值 (防止 undefined)
-    // ------------------------------------------------------------
-    
-    let userName = '匿名';
-    
-    if (nameEl) {
-        // 同時嘗試讀取 value (輸入框) 和 innerText (文字元素)
-        const rawValue = nameEl.value || nameEl.innerText;
-        if (rawValue) {
-            userName = rawValue.trim();
+        // ------------------------------------------------------------
+        // C. 安全取值 (防止 undefined)
+        // ------------------------------------------------------------
+        
+        let userName = '匿名';
+        
+        if (nameEl) {
+            // 同時嘗試讀取 value (輸入框) 和 innerText (文字元素)
+            const rawValue = nameEl.value || nameEl.innerText;
+            if (rawValue) {
+                userName = rawValue.trim();
+            }
         }
-    }
 
-    // ★ 關鍵修正：如果您之前的程式碼讓 userName 變成了字串 "undefined"，這裡強制修正
-    if (!userName || userName === 'undefined' || userName === 'null') {
-        userName = '匿名';
-    }
+        // ★ 關鍵修正：如果您之前的程式碼讓 userName 變成了字串 "undefined"，這裡強制修正
+        if (!userName || userName === 'undefined' || userName === 'null') {
+            userName = '匿名';
+        }
 
-    let userAvatar = '🦁'; // 預設獅子
-    if (avatarEl && avatarEl.innerText) {
-        userAvatar = avatarEl.innerText.trim();
-    }
+        let userAvatar = '🦁'; // 預設獅子
+        if (avatarEl && avatarEl.innerText) {
+            userAvatar = avatarEl.innerText.trim();
+        }
+
+        // 建立 JSON 字串 (這就是會寫入試算表的內容)
         const userJsonString = JSON.stringify({ name: userName, avatar: userAvatar });
 
         // ============================================================
@@ -9072,8 +9075,9 @@ async function handleLedgerSubmit() {
                 alert(`✅ 記事儲存成功！`);
             }
             
-            // 清空欄位
-            if(nameInput) nameInput.value = ''; 
+            // 清空欄位 (確保 nameEl 存在才清空)
+            if(nameEl && nameEl.value !== undefined) nameEl.value = ''; 
+
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
