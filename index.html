@@ -9140,25 +9140,32 @@ function renderLedgerList(data) {
     }
 
     filteredData.forEach(item => {
-        // ★★★ 核心修正：應用您找到的強效解析邏輯 ★★★
-        let displayUser = { name: '未知', avatar: '👤' };
-        
+        // [修正] 使用者資料強效解析
+        let displayUser = { name: '未知', avatar: '👤' }; // 預設值
+
         try {
-            if (typeof item.user === 'object' && item.user !== null) {
-                // 如果已經是物件 (有些 GAS 寫法會直接回傳物件)
-                displayUser = item.user;
-            } else if (typeof item.user === 'string') {
-                // 如果是字串 (最常見的情況)
-                if (item.user.trim().startsWith('{')) {
-                    displayUser = JSON.parse(item.user);
-                } else {
-                    // 舊資料相容
-                    displayUser = { name: item.user, avatar: '👤' };
+            if (item.user) {
+                if (typeof item.user === 'object') {
+                    // 如果後端很貼心已經幫我們轉成物件
+                    displayUser = item.user;
+                } else if (typeof item.user === 'string') {
+                    // 如果後端回傳的是 JSON 字串 (最常見)
+                    // 先去除前後空白，檢查是否像 JSON
+                    const cleanUserStr = item.user.trim();
+                    if (cleanUserStr.startsWith('{')) {
+                        displayUser = JSON.parse(cleanUserStr);
+                    } else {
+                        // 如果只是純文字 (舊資料兼容)
+                        displayUser = { name: cleanUserStr, avatar: '👤' };
+                    }
                 }
             }
         } catch (e) {
-            console.warn("解析使用者資料失敗", item.user);
+            console.warn("使用者解析失敗:", item.user);
+            // 保持預設值
         }
+
+        // ... 接下來是原本的金額計算與 HTML 生成 ...
 
         const displayDateTime = formatFullDateTime(item.timestamp || item.date);
 
