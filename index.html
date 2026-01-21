@@ -9003,20 +9003,29 @@ async function handleLedgerSubmit() {
                           (document.getElementById('ledger-finance-fields').style.display !== 'none');
 
         // 3. [傳輸格式大改] 改用 application/x-www-form-urlencoded
-        // 這能確保後端用 e.parameter 絕對接得到，不用管 postData
+        // 在 handleLedgerSubmit 函式中，請將 payload 定義修改為：
+
+        // 3. 建立傳送物件 (配合後端命名習慣)
         const payloadData = {
             action: 'upload',
-            token: typeof getKey === 'function' ? getKey('gas_token') : 'GAS_TOKEN_FCWI',
+            token: typeof getKey === 'function' ? getKey('gas_token') : '',
             type: isFinance ? 'finance' : 'note',
             id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
-            user: userJsonString, // 這現在是個純字串
+            
+            user: userJsonString,  // 這是我們剛剛修好的 JSON 字串
+            
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
             rate: String(finalRate),
-            amountTwd: String(amountTwd), // 轉字串保險
-            item: document.getElementById('ledger-item')?.value || '',
-            amount: String(amountJpy),
-            content: document.getElementById('ledger-note-content')?.value || ''
+            
+            // ★★★ 關鍵修正 1：統一命名為 twdAmount ★★★
+            twdAmount: String(amountTwd), 
+            
+            // ★★★ 關鍵修正 2：統一命名為 content (記帳的項目名稱也叫 content) ★★★
+            content: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
+            
+            amount: String(amountJpy)
+            // image 暫時留空或根據您原本邏輯處理
         };
 
         if (isFinance && amountJpy <= 0) {
@@ -9156,12 +9165,12 @@ function renderLedgerList(data) {
         if (item.type === 'finance') {
             const jpy = parseFloat(item.amount || 0);
             // 優先顯示後端存的 TWD，若無則前端重算
-            const twd = item.amountTwd ? parseInt(item.amountTwd) : Math.round(jpy * (item.rate || 0.21));
+            const twd = item.twdAmount ? parseInt(item.twdAmount) : Math.round(jpy * (item.rate || 0.21));
             
             totalJPY += jpy;
             totalTWD += twd;
 
-            const displayTitle = item.item || item.content || '無標題';
+            const displayTitle = item.content || item.item || '無標題';
 
             html += `
                 <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #EF4444; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
