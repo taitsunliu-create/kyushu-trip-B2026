@@ -9006,7 +9006,7 @@ async function handleLedgerSubmit() {
         // 這能確保後端用 e.parameter 絕對接得到，不用管 postData
         const payloadData = {
             action: 'upload',
-            token: typeof getKey === 'function' ? getKey('gas_token') : 'GAS_TOKEN_FCWI',
+            token: typeof getKey === 'function' ? getKey('gas_token') : '',
             type: isFinance ? 'finance' : 'note',
             id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
             user: userJsonString, // 這現在是個純字串
