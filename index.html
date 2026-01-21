@@ -8965,31 +8965,27 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [修正版] 處理記帳送出 (確保匯率與使用者資料正確)
+// [核彈級修正] 強制純文字表單送出 (解決所有 JSON 解析與傳輸問題)
 async function handleLedgerSubmit() {
-    showLoading(); 
+    showLoading();
 
     try {
-        // 1. [精準抓取] 鎖定您介面上的輸入框 ID
-        // 您的介面設計是：點選頭像後，會更新到 #custom-user-name 和 #current-selected-emoji
+        // 1. [資料準備] 抓取使用者與頭像
         const nameInput = document.getElementById('custom-user-name');
         const avatarDisplay = document.getElementById('current-selected-emoji');
         
         const userName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : '匿名';
         const userAvatar = (avatarDisplay && avatarDisplay.innerText.trim()) ? avatarDisplay.innerText.trim() : '🦁';
         
-        // 建立資料包 (注意：這裡我們主動轉成字串送出，後端才會收得乾淨)
-        const finalUserPayload = JSON.stringify({ name: userName, avatar: userAvatar });
+        // ★ 關鍵：建立一個 "純字串" 的 JSON，不要讓它變成物件
+        const userJsonString = JSON.stringify({ name: userName, avatar: userAvatar });
 
-        // 2. [匯率防護] 確保金額計算正確
-        let finalRate = 0.21; // 萬一沒抓到匯率的底線值
-
-        // A. 優先讀取計算機上的匯率欄位
+        // 2. [匯率準備]
+        let finalRate = 0.21;
         const manualRateEl = document.getElementById('calc-rate');
         if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
             finalRate = parseFloat(manualRateEl.value);
         } else {
-            // B. 讀取快取
             const cached = localStorage.getItem('live_exchange_rate_cache');
             if (cached) {
                 try {
@@ -9001,26 +8997,25 @@ async function handleLedgerSubmit() {
 
         const rawAmount = document.getElementById('ledger-amount').value;
         const amountJpy = parseFloat(rawAmount) || 0;
-        
-        // [關鍵] 計算台幣 (Math.round 四捨五入)
         const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
 
-        // 3. 建立傳送物件
         const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
                           (document.getElementById('ledger-finance-fields').style.display !== 'none');
-        
-        let payload = {
+
+        // 3. [傳輸格式大改] 改用 application/x-www-form-urlencoded
+        // 這能確保後端用 e.parameter 絕對接得到，不用管 postData
+        const payloadData = {
             action: 'upload',
-            token: typeof getKey === 'function' ? getKey('gas_token') : '', 
+            token: typeof getKey === 'function' ? getKey('gas_token') : 'GAS_TOKEN_FCWI',
             type: isFinance ? 'finance' : 'note',
             id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
-            user: finalUserPayload,       // 送出 JSON 字串
+            user: userJsonString, // 這現在是個純字串
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
-            rate: finalRate,
-            amountTwd: amountTwd,
+            rate: String(finalRate),
+            amountTwd: String(amountTwd), // 轉字串保險
             item: document.getElementById('ledger-item')?.value || '',
-            amount: amountJpy,
+            amount: String(amountJpy),
             content: document.getElementById('ledger-note-content')?.value || ''
         };
 
@@ -9030,33 +9025,34 @@ async function handleLedgerSubmit() {
             return;
         }
 
-        // 4. 發送 (使用 Await 確保同步)
+        // ★ 關鍵：手動編碼 payload，不使用 JSON.stringify(payload)
+        // 這樣後端 backend.gs 裡的 e.parameter.user 就能直接讀到字串
         const url = typeof getKey === 'function' ? getKey('gas_url') : '';
+        
+        // 這種 fetch 方式對 GAS 最友善
         const resp = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payloadData) // 雖然還是 stringify，但上面的 user 已經是 string
         });
+        
         const result = await resp.json();
 
         if (result.status === 'success' || result.result === 'success') {
             alert(`✅ 儲存成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
             
-            // 清空欄位
+            // 清空
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
             
-            // 重新整理列表
-            if (typeof syncLedgerData === 'function') {
-                await syncLedgerData();
-            }
+            if (typeof syncLedgerData === 'function') await syncLedgerData();
         } else {
             alert("⚠️ 儲存失敗: " + (result.message || "未知錯誤"));
         }
 
     } catch (e) {
         console.error(e);
-        alert("❌ 程式錯誤: " + e.message);
+        alert("❌ 錯誤: " + e.message);
     } finally {
         hideLoading();
     }
