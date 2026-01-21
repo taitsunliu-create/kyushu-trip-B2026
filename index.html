@@ -8969,39 +8969,47 @@ function updateUserInfoFromUI() {
 async function handleLedgerSubmit() {
     showLoading(); // 顯示轉圈圈
 
-    try {
-        // ============================================================
-        // 1. [關鍵修正] 這裡填入您 HTML 裡真正的 ID
-        // ============================================================
-        
-        // 請確認您的輸入框 <input> 的 id 真的是 'custom-user-name'
-        const NAME_INPUT_ID = 'custom-user-name';   
-        // 請確認顯示頭像的 <span> 的 id 真的是 'current-selected-emoji'
-        const AVATAR_ID = 'current-selected-emoji'; 
+    try {// ============================================================
+    // 1. [終極修正] 暴力抓取使用者資料 (自動搜尋輸入框)
+    // ============================================================
+    
+    // A. 嘗試抓取名字 (三層保險)
+    let nameEl = document.getElementById('custom-user-name');
+    
+    // 保險 1: 如果 ID 抓不到，嘗試抓取 class
+    if (!nameEl) nameEl = document.querySelector('.user-name-input');
+    
+    // 保險 2: 如果還是抓不到，直接抓頁面上「第一個文字輸入框」
+    // (這招對您的單頁應用程式通常有效)
+    if (!nameEl) nameEl = document.querySelector('input[type="text"]');
 
-        // ------------------------------------------------------------
-        // 開始抓人
-        const nameInput = document.getElementById(NAME_INPUT_ID);
-        const avatarDisplay = document.getElementById(AVATAR_ID);
-        
-        // [檢查點 1] 如果連輸入框都找不到，直接報錯
-        if (!nameInput) {
-            alert(`❌ 程式找不到 ID 為 "${NAME_INPUT_ID}" 的輸入框！\n請檢查 HTML 裡的 <input id="..."> 是否寫對。`);
-            hideLoading();
-            return;
+    // B. 嘗試抓取頭像
+    let avatarEl = document.getElementById('current-selected-emoji');
+    if (!avatarEl) avatarEl = document.querySelector('.avatar-display');
+
+    // ------------------------------------------------------------
+    // C. 安全取值 (防止 undefined)
+    // ------------------------------------------------------------
+    
+    let userName = '匿名';
+    
+    if (nameEl) {
+        // 同時嘗試讀取 value (輸入框) 和 innerText (文字元素)
+        const rawValue = nameEl.value || nameEl.innerText;
+        if (rawValue) {
+            userName = rawValue.trim();
         }
+    }
 
-        // [檢查點 2] 抓取數值
-        // 如果輸入框是空的，就給 '匿名'
-        const userName = (nameInput.value && nameInput.value.trim()) ? nameInput.value.trim() : '匿名';
-        // 如果頭像沒顯示，就給 '👤'
-        const userAvatar = (avatarDisplay && avatarDisplay.innerText.trim()) ? avatarDisplay.innerText.trim() : '👤';
-        
-        // ★ [檢查點 3] 彈出視窗讓您確認 (這是最重要的！)
-        // 請在測試時看這個視窗，確認名字是不是您剛剛打的
-        alert(`【偵錯模式】\n程式抓到的名字：${userName}\n程式抓到的頭像：${userAvatar}`);
+    // ★ 關鍵修正：如果您之前的程式碼讓 userName 變成了字串 "undefined"，這裡強制修正
+    if (!userName || userName === 'undefined' || userName === 'null') {
+        userName = '匿名';
+    }
 
-        // 建立 JSON 字串 (這就是會寫入試算表的內容)
+    let userAvatar = '🦁'; // 預設獅子
+    if (avatarEl && avatarEl.innerText) {
+        userAvatar = avatarEl.innerText.trim();
+    }
         const userJsonString = JSON.stringify({ name: userName, avatar: userAvatar });
 
         // ============================================================
