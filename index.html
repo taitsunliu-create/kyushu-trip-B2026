@@ -11321,10 +11321,14 @@
             showGlobalLoading();
             try {
                 const url = getKey('gas_url');
+                const item = window.rawLedgerData.find(d => d.id === id); // 找到原始資料以確認類型
+                const type = item ? item.type : 'finance'; // 預設 finance
+
                 // 傳送 delete 指令
                 const payload = {
                     action: 'delete',
                     id: id,
+                    type: type, // [修正] 必須傳送類型，後端才能找到正確的工作表
                     token: getKey('gas_token')
                 };
 
@@ -11370,14 +11374,14 @@
                 document.getElementById('ledger-item').value = item.item || item.content || '';
                 document.getElementById('ledger-amount').value = item.amount || '';
                 // 為了讓使用者知道正在編輯，改變按鈕文字
-                const btn = document.querySelector('#ledger-finance-fields button');
+                const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
                 if (btn) btn.innerText = '確認修正';
             } else {
                 filterLedgerView('note');
                 // 填入資料
                 document.getElementById('ledger-note-content').value = item.content || item.item || '';
                 // 為了讓使用者知道正在編輯，改變按鈕文字
-                const btn = document.querySelector('#ledger-note-fields button');
+                const btn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
                 if (btn) btn.innerText = '更新記事';
             }
 
