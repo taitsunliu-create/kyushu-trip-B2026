@@ -6588,14 +6588,14 @@
                 </div>
 
                 <div id="ledger-finance-fields">
-                    <div style="display: flex; gap: 8px; align-items: center;">
+                    <div style="display: flex; gap: 6px; align-items: center;">
                         <input type="text" id="ledger-item" placeholder="項目內容..."
-                            style="flex: 1.5; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                        <input type="number" id="ledger-amount" placeholder="金額 (JPY)"
-                            style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                            style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <input type="number" id="ledger-amount" placeholder="金額"
+                            style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         <button onclick="handleLedgerSubmit()" class="btn-primary btn-submit-ledger"
-                            style="width: 48px; height: 45px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
