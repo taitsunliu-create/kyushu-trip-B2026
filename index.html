@@ -10816,9 +10816,11 @@
                 }
 
                 // 抓取頭像
-                let userAvatar = '🦁';
-                const avatarEl = document.getElementById('current-selected-emoji');
-                if (avatarEl) userAvatar = avatarEl.innerText.trim();
+                // [修正] 抓取頭像 (優先從 LocalStorage 抓取，因為舊的 UI 可能被隱藏或沒更新)
+                let userAvatar = localStorage.getItem('last_user_emoji') || '🦁';
+                // 雙重確認：如果原本 DOM 還在，也可以參考，但建議以 LS 為準以配合 Welcome Flow Logic
+                // const avatarEl = document.getElementById('current-selected-emoji');
+                // if (avatarEl) userAvatar = avatarEl.innerText.trim();
 
                 // 建立乾淨的 JSON 字串
                 // 因為經過上面的淨化，userName 絕對不會是 JSON 格式的字串
@@ -11122,9 +11124,8 @@
 
             // 使用與原本相同的頭像列表
             const emojis = [
-                '🦁', '🐰', '🐼', '🐨', '🦊',
-                '🐱', '🐶', '🐯', '🐵', '🐷',
-                '🐹', '🐻', '🐮', '🐸', '🐔'
+                '🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷',
+                '🐹', '🐻', '🐮', '🐸', '🐔', '🐧', '🦄', '🐙', '🦖', '🐬'
             ];
 
             container.innerHTML = '';
