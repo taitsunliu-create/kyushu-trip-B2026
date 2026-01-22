@@ -4896,7 +4896,7 @@ header.is-night {
 
             <div style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
                 <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
-                <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..." 
+                <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..." onchange="window.TEMP_USER_NAME = this.value"
                        style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700; color: #1F2937;"
                        value="爸爸" oninput="updateUserInfoFromUI()">
             </div>
@@ -8965,71 +8965,63 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [最終防禦版] 處理記帳送出 (內建殭屍過濾器)
+// [最終淨化版] 處理記帳送出 (徹底防止資料污染)
 async function handleLedgerSubmit() {
     showLoading(); 
-    console.log("【執行版本：v2026-Zombie-Fix】"); 
+    console.log("【執行版本：v2026-CLEAN-FLOW】");
 
     try {
         // ============================================================
-        // 1. 智慧抓取使用者 (排除隱藏欄位與髒資料)
+        // 1. 抓取使用者資料 (多重來源 + 髒資料清洗)
         // ============================================================
         
-        // A. 優先嘗試 ID
-        let nameEl = document.getElementById('custom-user-name');
-        
-        // B. 如果沒抓到，嘗試抓取「看得到的文字輸入框」 (排除 hidden)
-        if (!nameEl) {
-            // 抓取所有 type="text" 且不是 hidden 的輸入框
-            const inputs = document.querySelectorAll('input[type="text"]:not([type="hidden"])');
-            // 找出 placeholder 包含 "名" 或 "Name" 的那個
-            for (let input of inputs) {
-                if (input.placeholder && (input.placeholder.includes('名') || input.placeholder.includes('Name'))) {
-                    nameEl = input;
-                    break;
-                }
-            }
-            // 如果還沒找到，就拿第一個看得到的輸入框
-            if (!nameEl && inputs.length > 0) nameEl = inputs[0];
-        }
-
-        let avatarEl = document.getElementById('current-selected-emoji');
-        if (!avatarEl) avatarEl = document.querySelector('.avatar-display');
-
-        // ------------------------------------------------------------
-        // C. 取值與「殭屍過濾」 (關鍵修正！)
-        // ------------------------------------------------------------
         let userName = '';
-        
-        if (nameEl) {
-            userName = (nameEl.value || nameEl.innerText || '').trim();
+
+        // 來源 A: 優先讀取 onchange 存下的值 (最準確)
+        if (window.TEMP_USER_NAME) {
+            userName = window.TEMP_USER_NAME.trim();
+        } 
+        // 來源 B: 如果沒有，嘗試直接抓 DOM
+        else {
+            const el = document.getElementById('custom-user-name') || document.querySelector('.user-name-input');
+            if (el) userName = el.value.trim();
         }
 
-        // ★★★ 核心防禦：如果名字長得像 JSON (以 { 開頭)，代表抓錯了！ ★★★
-        if (userName.startsWith('{') || userName.includes('"avatar"')) {
-            console.warn("⚠️ 偵測到髒資料 (抓到隱藏欄位)，強制重置為匿名");
-            userName = '匿名';
+        // ★★★ 核心淨化邏輯 (The Sanitizer) ★★★
+        // 這是斬斷惡性循環的關鍵！
+        // 如果名字包含 '{' (像 JSON) 或包含 'avatar' 關鍵字，代表抓錯了，強制重置。
+        if (userName.startsWith('{') || userName.includes('"avatar"') || userName.includes('avatar":')) {
+            console.warn("⚠️ 攔截到受汙染的資料！已自動修復。");
+            userName = '匿名'; 
+            
+            // 順便把髒掉的輸入框清空，避免使用者看到鬼資料
+            const el = document.getElementById('custom-user-name');
+            if (el) el.value = '';
+            window.TEMP_USER_NAME = '';
         }
 
-        // 防呆：如果是空或 undefined 字串
+        // 防呆：如果是空的或 undefined
         if (!userName || userName === 'undefined' || userName === 'null') {
             userName = '匿名';
         }
 
+        // 抓取頭像
         let userAvatar = '🦁';
-        if (avatarEl && avatarEl.innerText) {
-            userAvatar = avatarEl.innerText.trim();
-        }
+        const avatarEl = document.getElementById('current-selected-emoji');
+        if (avatarEl) userAvatar = avatarEl.innerText.trim();
 
-        // 建立乾淨的 JSON
+        // 建立乾淨的 JSON 字串
+        // 因為經過上面的淨化，userName 絕對不會是 JSON 格式的字串
         const userJsonString = JSON.stringify({ 
             name: userName, 
             avatar: userAvatar 
         });
 
         // ============================================================
-        // 2. 準備 Payload (其餘保持不變)
+        // 2. 準備 Payload (完全對接 backend.gs)
         // ============================================================
+        
+        // 匯率邏輯
         let finalRate = 0.21;
         const manualRateEl = document.getElementById('calc-rate');
         if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
@@ -9051,6 +9043,7 @@ async function handleLedgerSubmit() {
         const isFinance = (document.getElementById('ledger-type')?.value === 'finance') || 
                           (document.getElementById('ledger-finance-fields').style.display !== 'none');
 
+        // 筆記模式強制金額歸零
         const finalAmountJpy = isFinance ? String(amountJpy) : "0";
         const finalAmountTwd = isFinance ? String(amountTwd) : "0";
 
@@ -9071,6 +9064,9 @@ async function handleLedgerSubmit() {
             amount: finalAmountJpy
         };
 
+        // ============================================================
+        // 3. 發送請求
+        // ============================================================
         const url = (typeof getKey === 'function') ? getKey('gas_url') : '';
         const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payloadData) });
         const result = await resp.json();
@@ -9082,8 +9078,11 @@ async function handleLedgerSubmit() {
                 alert(`✅ 記事儲存成功！`);
             }
             
-            // 清空欄位
-            if (nameEl && typeof nameEl.value === 'string') nameEl.value = ''; 
+            // 清空全域變數與介面
+            window.TEMP_USER_NAME = '';
+            const nameInput = document.getElementById('custom-user-name');
+            if (nameInput) nameInput.value = '';
+            
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
