@@ -10785,14 +10785,18 @@
                 // 1. 抓取使用者資料 (多重來源 + 髒資料清洗)
                 // ============================================================
 
-                let userName = '';
+                // let userName = ''; // [已移除避免重複宣告]
 
-                // 來源 A: 優先讀取 onchange 存下的值 (最準確)
-                if (window.TEMP_USER_NAME) {
+                // 來源 A: 優先讀取 LocalStorage (最準確，配合 Welcome Flow)
+                let userName = localStorage.getItem('last_user_name');
+
+                // 來源 B: 如果沒有，嘗試讀取全域變數 (相容性)
+                if (!userName && window.TEMP_USER_NAME) {
                     userName = window.TEMP_USER_NAME.trim();
                 }
-                // 來源 B: 如果沒有，嘗試直接抓 DOM
-                else {
+
+                // 來源 C: 最後嘗試 DOM (可能已經被隱藏或清空，僅作 fallback)
+                if (!userName) {
                     const el = document.getElementById('custom-user-name') || document.querySelector('.user-name-input');
                     if (el) userName = el.value.trim();
                 }
@@ -10860,10 +10864,11 @@
                 const finalAmountTwd = isFinance ? String(amountTwd) : "0";
 
                 const payloadData = {
-                    action: 'upload',
+                    action: window.editingId ? 'edit' : 'upload', // [修正] 支援編輯模式
                     token: (typeof getKey === 'function') ? getKey('gas_token') : '',
                     type: isFinance ? 'finance' : 'note',
-                    id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
+                    // [修正] 如果是編輯模式，使用原本的 ID；否則產生新的
+                    id: window.editingId ? window.editingId : ((window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now())),
 
                     userName: userName,
                     userAvatar: userAvatar,
@@ -10885,20 +10890,22 @@
                 const result = await resp.json();
 
                 if (result.status === 'success' || result.result === 'success') {
-                    if (isFinance) {
-                        alert(`✅ 記帳成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
-                    } else {
-                        alert(`✅ 記事儲存成功！`);
-                    }
-
-                    // 清空全域變數與介面
-                    window.TEMP_USER_NAME = '';
-                    const nameInput = document.getElementById('custom-user-name');
-                    if (nameInput) nameInput.value = '';
-
                     document.getElementById('ledger-item').value = '';
                     document.getElementById('ledger-amount').value = '';
                     document.getElementById('ledger-note-content').value = '';
+
+                    // [新增] 重置編輯狀態
+                    if (window.editingId) {
+                        window.editingId = null;
+                        document.querySelectorAll('.btn-submit-ledger').forEach(btn => btn.innerText = isFinance ? '送出' : '儲存記事');
+                        alert(isFinance ? `✅ 修正成功！` : `✅ 記事更新成功！`);
+                    } else {
+                        if (isFinance) {
+                            alert(`✅ 記帳成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
+                        } else {
+                            alert(`✅ 記事儲存成功！`);
+                        }
+                    }
 
                     if (typeof syncLedgerData === 'function') await syncLedgerData();
                 } else {
@@ -11019,6 +11026,28 @@
                     //const displayTitle = item.item || item.content || '無標題';
                     const displayTitle = item.content || item.item || '無標題';
 
+                    // [新增] 驗證身分 (簡單名稱對照)
+                    const currentUserName = localStorage.getItem('last_user_name');
+                    let actionButtons = '';
+
+                    if (currentUserName && displayUser.name === currentUserName) {
+                        actionButtons = `
+                        <div style="display: flex; gap: 10px; margin-top: 8px; justify-content: flex-end;">
+                            <button onclick="editLedgerItem('${item.id}')" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button onclick="deleteLedgerItem('${item.id}')" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>`;
+                    }
+
                     html += `
                 <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #EF4444; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -11037,10 +11066,33 @@
                             <div style="font-size: 0.85rem; color: #6B7280;">≈ NT$${twd.toLocaleString()}</div>
                         </div>
                     </div>
+                    ${actionButtons}
                 </div>`;
                 } else {
                     // 筆記模式
                     const noteContent = item.content || item.item || '無內容';
+                    // [新增] 驗證身分 (簡單名稱對照)
+                    const currentUserName = localStorage.getItem('last_user_name');
+                    let actionButtons = '';
+
+                    if (currentUserName && displayUser.name === currentUserName) {
+                        actionButtons = `
+                        <div style="display: flex; gap: 10px; margin-top: 8px; justify-content: flex-end; border-top: 1px dashed #eee; padding-top: 8px;">
+                            <button onclick="editLedgerItem('${item.id}')" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button onclick="deleteLedgerItem('${item.id}')" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>`;
+                    }
+
                     html += `
                 <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB; background: white; border-radius: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
@@ -11051,6 +11103,7 @@
                         <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
                     </div>
                     <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${noteContent}</div>
+                    ${actionButtons}
                 </div>`;
                 }
             });
@@ -11255,6 +11308,84 @@
                 fetchLiveRate();
             }
         });
+
+        // ==========================================
+        // [新增] 編輯與刪除功能 (需配合 GAS 後端更新)
+        // ==========================================
+        window.editingId = null; // 全域變數：紀錄目前正在編輯的 ID
+
+        async function deleteLedgerItem(id) {
+            if (!confirm('確定要永久刪除這筆紀錄嗎？')) return;
+
+            showGlobalLoading();
+            try {
+                const url = getKey('gas_url');
+                // 傳送 delete 指令
+                const payload = {
+                    action: 'delete',
+                    id: id,
+                    token: getKey('gas_token')
+                };
+
+                const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+
+                if (result.status === 'success') {
+                    alert('🗑️ 刪除成功');
+                    // 直接從前端變數移除該筆資料 (加速 UI 反應)
+                    if (window.rawLedgerData) {
+                        window.rawLedgerData = window.rawLedgerData.filter(item => item.id !== id);
+                        renderLedgerList(window.rawLedgerData);
+                        // 同步更新總金額 (需重算)
+                        // 若想為了保險起見，也可以呼叫 syncLedgerData()
+                    } else {
+                        syncLedgerData();
+                    }
+                } else {
+                    alert('刪除失敗: ' + result.message);
+                }
+            } catch (e) {
+                console.error("Delete failed", e);
+                alert('刪除發生錯誤');
+            } finally {
+                hideGlobalLoading();
+            }
+        }
+
+        function editLedgerItem(id) {
+            const item = window.rawLedgerData.find(d => d.id === id);
+            if (!item) {
+                alert('找不到該筆資料，請重新整理頁面。');
+                return;
+            }
+
+            // 設定全域編輯 ID
+            window.editingId = id;
+
+            // 切換到對應的 Tab (Finance or Note)
+            if (item.type === 'finance') {
+                filterLedgerView('finance');
+                // 填入資料
+                document.getElementById('ledger-item').value = item.item || item.content || '';
+                document.getElementById('ledger-amount').value = item.amount || '';
+                // 為了讓使用者知道正在編輯，改變按鈕文字
+                const btn = document.querySelector('#ledger-finance-fields button');
+                if (btn) btn.innerText = '確認修正';
+            } else {
+                filterLedgerView('note');
+                // 填入資料
+                document.getElementById('ledger-note-content').value = item.content || item.item || '';
+                // 為了讓使用者知道正在編輯，改變按鈕文字
+                const btn = document.querySelector('#ledger-note-fields button');
+                if (btn) btn.innerText = '更新記事';
+            }
+
+            // 滾動到輸入區
+            document.getElementById('ledger-input-card').scrollIntoView({ behavior: 'smooth' });
+
+            // 提示
+            // alert('請修改上方內容後，點擊按鈕送出。');
+        }
 
     </script>
     <!-- [新增] 歡迎與身分選擇 Modal -->
