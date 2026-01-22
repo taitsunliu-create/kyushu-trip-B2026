@@ -11117,7 +11117,8 @@
 
         function initWelcomeAvatarSelector() {
             const container = document.getElementById('welcome-avatar-grid');
-            if (container.innerHTML.trim() !== '') return; // 避免重複生成
+            // [修正] 改用 children.length 檢查，避免被 HTML 註解誤導
+            if (container.children.length > 0) return;
 
             // 使用與原本相同的頭像列表
             const emojis = [
@@ -11254,17 +11255,15 @@
     <!-- [新增] 歡迎與身分選擇 Modal -->
     <div id="welcome-modal">
         <div class="welcome-box">
-            <div class="welcome-title">九州之旅 👋</div>
+            <div class="welcome-title">歡迎使用旅程紀錄 👋</div>
             <div class="welcome-desc">請選擇您的稱呼與頭像<br>讓旅程紀錄更生動！</div>
 
-            <div class="avatar-grid" id="welcome-avatar-grid">
-                <!-- JS 生成 -->
-            </div>
+            <div class="avatar-grid" id="welcome-avatar-grid"></div>
 
             <input type="text" id="welcome-nickname" class="input-nickname" placeholder="請輸入暱稱 (例如: 爸爸)" maxlength="10"
                 onclick="this.focus()">
 
-            <button class="btn-start-trip" onclick="handleLogin()">開始紀錄旅程 🚀</button>
+            <button class="btn-start-trip" onclick="handleLogin()">開始紀錄旅程 </button>
         </div>
     </div>
 
