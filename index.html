@@ -6588,13 +6588,19 @@
                 </div>
 
                 <div id="ledger-finance-fields">
-                    <input type="text" id="ledger-item" placeholder="項目內容..."
-                        style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="ledger-item" placeholder="項目內容..."
+                            style="flex: 1.5; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
                         <input type="number" id="ledger-amount" placeholder="金額 (JPY)"
                             style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                        <button onclick="handleLedgerSubmit()" class="btn-primary"
-                            style="width: 80px; margin: 0;">送出</button>
+                        <button onclick="handleLedgerSubmit()" class="btn-primary btn-submit-ledger"
+                            style="width: 48px; height: 45px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -10897,7 +10903,14 @@
                     // [新增] 重置編輯狀態
                     if (window.editingId) {
                         window.editingId = null;
-                        document.querySelectorAll('.btn-submit-ledger').forEach(btn => btn.innerText = isFinance ? '送出' : '儲存記事');
+                        document.querySelectorAll('.btn-submit-ledger').forEach(btn => {
+                            // 如果是 Finance (有 SVG 的)，要還原 SVG
+                            if (btn.querySelector('svg') || isFinance) {
+                                btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+                            } else {
+                                btn.innerText = '儲存記事';
+                            }
+                        });
                         alert(isFinance ? `✅ 修正成功！` : `✅ 記事更新成功！`);
                     } else {
                         if (isFinance) {
@@ -11384,7 +11397,10 @@
                 document.getElementById('ledger-amount').value = item.amount || '';
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
-                if (btn) btn.innerText = '確認修正';
+                if (btn) {
+                    // 改為顯示「編輯(打勾)」圖示
+                    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                }
             } else {
                 filterLedgerView('note');
                 // 填入資料
