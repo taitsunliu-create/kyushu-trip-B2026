@@ -6532,7 +6532,7 @@
         </div>
     </div>
 
-    <!-- TAB 6: 旅程紀錄 (New) -->
+    <!-- TAB 6: 旅程記錄 (New) -->
     <div id="view-ledger" class="container">
         <div class="card"
             style="margin-bottom: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white;">
@@ -6785,7 +6785,7 @@
                     <use href="#icon-weather"></use>
                 </svg>
             </span>
-            旅程紀錄
+            旅程記錄
         </div>
 
         <div class="nav-item" data-target="view-ai" onclick="switchTab(this)">
@@ -8690,7 +8690,7 @@
             document.getElementById(targetId).classList.add('active');
 
             window.scrollTo(0, 0);
-            // 如果切換到「旅程紀錄」分頁，強制初始化頭像選單
+            // 如果切換到「旅程記錄」分頁，強制初始化頭像選單
             if (targetId === 'view-ledger') {
                 // 使用 setTimeout 確保 DOM 已經完全顯示後再執行
                 setTimeout(() => {
@@ -10946,6 +10946,9 @@
             renderLedgerList(rawLedgerData);
         }
 
+        // [新增] 確保全域變數存在 (解決 Delete/Edit 找不到資料的問題)
+        window.rawLedgerData = [];
+
         // B. 更新後的同步函式 (加入快取機制)
         async function syncLedgerData() {
             const url = getKey('gas_url');
@@ -10956,8 +10959,11 @@
                 const res = await fetch(`${url}?token=${token}&action=getAll`);
                 const result = await res.json();
                 if (result.status === 'success') {
-                    rawLedgerData = result.data; // ★ 有一說一：將資料存入全域變數
-                    renderLedgerList(rawLedgerData);
+                    // [修正] 強制寫入 window 物件，確保 deleteLedgerItem 可以讀取
+                    window.rawLedgerData = result.data;
+                    // 同時更新本地變數 (如果有的話)以防萬一
+                    rawLedgerData = result.data;
+                    renderLedgerList(window.rawLedgerData);
                 }
             } catch (e) {
                 console.error("同步失敗", e);
@@ -11285,7 +11291,7 @@
             window.TEMP_USER_NAME = name;
         }
 
-        // [Hook] 在切換 Tab 時檢查 (如果切換到旅程紀錄 view-ledger)
+        // [Hook] 在切換 Tab 時檢查 (如果切換到旅程記錄 view-ledger)
         // 覆寫原本的 switchTab 邏輯可能會太複雜，我們選擇用事件監聽或在 switchTab 後面掛鉤
         // 這裡採用簡單的定時檢查或在 switchTab 的 onclick 中加入
         // 由於 switchTab 是全域的，我們可以在這裡劫持它嗎？ 
@@ -11295,7 +11301,7 @@
             const ledgerBtn = document.querySelector('.nav-item[data-target="view-ledger"]');
             if (ledgerBtn) {
                 ledgerBtn.addEventListener('click', () => {
-                    // 點擊旅程紀錄分頁時，檢查 Session
+                    // 點擊旅程記錄分頁時，檢查 Session
                     checkUserSession();
                 });
             }
@@ -11321,7 +11327,9 @@
             showGlobalLoading();
             try {
                 const url = getKey('gas_url');
-                const item = window.rawLedgerData.find(d => d.id === id); // 找到原始資料以確認類型
+                // [修正] 確保讀取全域變數，並防止未定義錯誤
+                const dataList = window.rawLedgerData || [];
+                const item = dataList.find(d => d.id === id);
                 const type = item ? item.type : 'finance'; // 預設 finance
 
                 // 傳送 delete 指令
@@ -11358,7 +11366,9 @@
         }
 
         function editLedgerItem(id) {
-            const item = window.rawLedgerData.find(d => d.id === id);
+            // [修正] 確保讀取全域變數
+            const dataList = window.rawLedgerData || [];
+            const item = dataList.find(d => d.id === id);
             if (!item) {
                 alert('找不到該筆資料，請重新整理頁面。');
                 return;
@@ -11396,8 +11406,8 @@
     <!-- [新增] 歡迎與身分選擇 Modal -->
     <div id="welcome-modal">
         <div class="welcome-box">
-            <div class="welcome-title">歡迎使用旅程紀錄 👋</div>
-            <div class="welcome-desc">請選擇您的稱呼與頭像<br>讓旅程紀錄更生動！</div>
+            <div class="welcome-title">歡迎使用旅程記錄 👋</div>
+            <div class="welcome-desc">請選擇您的稱呼與頭像<br>讓旅程記錄更生動！</div>
 
             <div class="avatar-grid" id="welcome-avatar-grid"></div>
 
