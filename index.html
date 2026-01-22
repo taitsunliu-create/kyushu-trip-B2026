@@ -6497,7 +6497,7 @@
 
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: #666;">
                     <label>匯率:</label>
-                    <input type="number" id="calc-rate" step="0.0001"
+                    <input type="number" id="calc-rate" step="0.001"
                         style="width: 65px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight:bold; color:#D97706;"
                         oninput="reCalcTotal()">
                 </div>
@@ -7869,7 +7869,7 @@
 
         function updateRateUI(rate, type) {
             const rateInput = document.getElementById('calc-rate');
-            if (rateInput) rateInput.value = rate;
+            if (rateInput) rateInput.value = Number(rate).toFixed(3);
 
             // [修正] 加入檢查：確認 statusEl 存在才更新，避免報錯
             const statusEl = document.getElementById('rate-status');
@@ -10456,7 +10456,10 @@
         }
 
         // [開始] 替換身分定義相關邏輯
-        const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
+        const AVATAR_OPTIONS = [
+            '🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷',
+            '🐹', '🐻', '🐮', '🐸', '🐔', '🐧', '🦄', '🐙', '🦖', '🐬'
+        ];
 
         // [已修正] 初始化頭像選擇器 (內建淨水器功能)
         function initAvatarSelector() {
