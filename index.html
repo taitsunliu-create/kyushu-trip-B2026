@@ -8917,42 +8917,44 @@ function toggleLedgerInput() {
 // [開始] 替換身分定義相關邏輯
 const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
 
+// [已修正] 初始化頭像選擇器 (內建淨水器功能)
 function initAvatarSelector() {
     const container = document.getElementById('avatar-list');
     if (!container) return;
 
-    // ★★★ 修正開始：讀取快取並進行淨化 ★★★
+    // ★★★ 關鍵修正 1：讀取並清洗髒資料 ★★★
     let safeName = '爸爸'; // 預設值
     const cachedName = localStorage.getItem('last_user_name');
 
     if (cachedName) {
-        const cleanName = cachedName.trim();
-        // 如果發現快取的是 JSON 格式 (以 { 開頭)，代表是髒資料
-        if (cleanName.startsWith('{')) {
+        const raw = cachedName.trim();
+        // 檢查：如果讀出來的資料像 JSON (以 { 開頭)，代表是髒資料
+        if (raw.startsWith('{')) {
             try {
-                // 嘗試解析它，看能不能救回真正的名字
-                const parsed = JSON.parse(cleanName);
+                const parsed = JSON.parse(raw);
+                // 嘗試救回真正的名字 (排除 undefined 或遞迴 JSON)
                 if (parsed.name && !parsed.name.startsWith('{')) {
-                    safeName = parsed.name; // 救回來了！
+                    safeName = parsed.name;
+                } else {
+                    safeName = '匿名'; // 救不回來就重置
                 }
             } catch (e) {
-                // 解析失敗，直接放棄，使用預設值
-                console.warn('快取資料損毀，重置為預設值');
+                safeName = '爸爸'; // 解析失敗用預設值
             }
-        } else if (cleanName !== 'undefined' && cleanName !== 'null') {
-            // 如果是正常的文字，直接使用
-            safeName = cleanName;
+        } else if (raw !== 'undefined' && raw !== 'null') {
+            // 如果是乾淨的純文字，直接用
+            safeName = raw;
         }
     }
     // ★★★ 修正結束 ★★★
 
     const lastEmoji = localStorage.getItem('last_user_emoji') || '🦁';
     
-    // 填入淨化後的名字
+    // 將清洗過的名字填入介面
     const nameInput = document.getElementById('custom-user-name');
     if (nameInput) {
         nameInput.value = safeName;
-        // 如果有綁定全域變數，順便更新一下
+        // 同步更新全域防禦變數 (配合 handleLedgerSubmit)
         if (window.TEMP_USER_NAME !== undefined) window.TEMP_USER_NAME = safeName;
     }
 
@@ -8967,6 +8969,7 @@ function initAvatarSelector() {
         </div>
     `).join('');
 
+    // 更新隱藏欄位
     updateUserInfoFromUI(); 
 }
 
@@ -8983,30 +8986,38 @@ function selectAvatar(emoji, el) {
     localStorage.setItem('last_user_emoji', emoji);
 }
 
+// [已修正] 更新使用者資訊 (防止髒資料寫入快取)
 function updateUserInfoFromUI() {
     const nameInput = document.getElementById('custom-user-name');
     let name = nameInput ? nameInput.value : '匿名';
     
-    // ★★★ 修正開始：儲存前最後檢查 ★★★
-    // 如果名字看起來像 JSON，強制重置
-    if (name.trim().startsWith('{') || name.includes('"avatar"')) {
+    // ★★★ 關鍵修正 2：寫入前的最後防線 ★★★
+    // 如果名字看起來像 JSON (以 { 開頭) 或包含 avatar 關鍵字，強制重置
+    if (name && (name.trim().startsWith('{') || name.includes('"avatar"') || name.includes('avatar":'))) {
+        console.warn('⚠️ 攔截到髒資料，強制修正為匿名');
         name = '匿名';
-        if (nameInput) nameInput.value = '匿名'; // 同步修正介面
+        // 同步修正介面，讓使用者看到乾淨的名字
+        if (nameInput) nameInput.value = '匿名';
+    }
+    
+    // 防呆
+    if (!name || name === 'undefined' || name === 'null') {
+        name = '匿名';
     }
     // ★★★ 修正結束 ★★★
 
     const avatar = document.getElementById('current-selected-emoji').innerText;
     
-    // 這裡是用來給 hidden input 的，保持 JSON 格式沒關係
+    // 更新隱藏欄位 (這是給程式看的，沒關係)
     const infoEl = document.getElementById('selected-user-info');
     if (infoEl) {
         infoEl.value = JSON.stringify({ name: name, avatar: avatar });
     }
     
-    // ★ 關鍵：存入 localStorage 的必須是「純文字名字」
+    // ★ 關鍵：只存入「乾淨的純文字」到快取
     localStorage.setItem('last_user_name', name);
     
-    // 同步更新全域變數 (配合 handleLedgerSubmit 使用)
+    // 更新全域變數 (配合 handleLedgerSubmit)
     window.TEMP_USER_NAME = name;
 }
 // [結束] 替換身分定義相關邏輯
