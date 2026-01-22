@@ -11246,9 +11246,13 @@
                 });
             }
 
-            // 初始載入時，如果當前頁面已經是 ledger，也要檢查
             if (document.getElementById('view-ledger').classList.contains('active')) {
                 checkUserSession();
+            }
+
+            // [新增] 應用程式啟動時，自動抓取一次匯率 (解決電腦版沒開計算機就抓不到匯率的問題)
+            if (typeof fetchLiveRate === 'function') {
+                fetchLiveRate();
             }
         });
 
