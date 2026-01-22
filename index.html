@@ -10877,8 +10877,9 @@
                     timestamp: new Date().toISOString(),
                     rate: String(finalRate),
                     twdAmount: finalAmountTwd,
-                    item: document.getElementById('ledger-item')?.value || '',
-                    content: document.getElementById('ledger-note-content')?.value || '',
+                    // [修正] 為了相容後端 handleEdit (只讀取 content) 與 handleAdd (讀取 item)，我們將兩者同步
+                    item: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
+                    content: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     amount: finalAmountJpy
                 };
 
