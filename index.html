@@ -11321,16 +11321,8 @@
             showGlobalLoading();
             try {
                 const url = getKey('gas_url');
-                // [修正] 強制轉為字串比對，避免型別不符導致找不到
-                const item = window.rawLedgerData.find(d => String(d.id) === String(id));
-
-                if (!item) {
-                    alert('錯誤：找不到原始資料，無法確認刪除目標。');
-                    hideGlobalLoading();
-                    return;
-                }
-
-                const type = item.type; // 確保有找到才抓類型
+                const item = window.rawLedgerData.find(d => d.id === id); // 找到原始資料以確認類型
+                const type = item ? item.type : 'finance'; // 預設 finance
 
                 // 傳送 delete 指令
                 const payload = {
@@ -11366,8 +11358,7 @@
         }
 
         function editLedgerItem(id) {
-            // [修正] 強制轉為字串比對
-            const item = window.rawLedgerData.find(d => String(d.id) === String(id));
+            const item = window.rawLedgerData.find(d => d.id === id);
             if (!item) {
                 alert('找不到該筆資料，請重新整理頁面。');
                 return;
