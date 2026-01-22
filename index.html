@@ -3487,12 +3487,205 @@
 
         /* 確保頭像項目的點擊範圍不被擠壓 */
         .avatar-item {
-            flex: 0 0 auto;
-            /* 防止頭像被捲動容器壓縮 */
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            z-index: 5;
             /* 提高層級確保可被點擊 */
+        }
+
+        /* --- [新增] 迎賓模態框樣式 --- */
+        #welcome-modal {
+            display: none;
+            /* 預設隱藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            /* 深色背景 */
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s;
+        }
+
+        .welcome-box {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 裝飾性背景圓 */
+        .welcome-box::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #FBBF24, #F59E0B);
+            border-radius: 50%;
+            opacity: 0.2;
+            z-index: 0;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-desc {
+            font-size: 0.95rem;
+            color: #6B7280;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 頭像選擇網格 */
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .avatar-option {
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 12px;
+            transition: transform 0.2s, background 0.2s;
+            user-select: none;
+        }
+
+        .avatar-option:hover {
+            background: #F3F4F6;
+            transform: scale(1.1);
+        }
+
+        .avatar-option.selected {
+            background: #EFF6FF;
+            border: 2px solid #2563EB;
+            box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2);
+        }
+
+        /* 暱稱輸入框 */
+        .input-nickname {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-nickname:focus {
+            border-color: #2563EB;
+        }
+
+        .btn-start-trip {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            color: white;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+            transition: transform 0.1s;
+        }
+
+        .btn-start-trip:active {
+            transform: scale(0.98);
+        }
+
+        /* --- [新增] 使用者狀態顯示區 (替代原本的輸入框) --- */
+        .user-status-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            margin-bottom: 15px;
+            cursor: pointer;
+            /* 讓使用者知道可以點擊 */
+            transition: background 0.2s;
+        }
+
+        .user-status-card:active {
+            background: #F9FAFB;
+        }
+
+        .user-info-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-avatar {
+            font-size: 2rem;
+            background: #F3F4F6;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .current-user-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .current-user-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        .current-user-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .btn-switch-user {
+            background: #EFF6FF;
+            color: #2563EB;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* --- [新增] 登出確認彈窗 --- */
+        .logout-box {
+            text-align: center;
+        }
+
+        .logout-avatar {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
         }
     </style>
 </head>
@@ -6380,22 +6573,18 @@
 
         <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
             <div class="card-content" style="padding: 12px;">
-                <div id="avatar-selector-container"
-                    style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
-                    <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">紀錄者身分：</div>
-
-                    <div id="avatar-list"
-                        style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; margin-bottom: 10px; -webkit-overflow-scrolling: touch;">
+                <!-- [新增] 使用者狀態顯示 (點擊可切換身分) -->
+                <div id="user-status-display" class="user-status-card" onclick="showLogoutPopup()">
+                    <div class="user-info-left">
+                        <div id="display-current-avatar" class="current-avatar">👤</div>
+                        <div class="current-user-text">
+                            <span class="current-user-label">目前紀錄身分</span>
+                            <span id="display-current-name" class="current-user-name">請登入</span>
+                        </div>
                     </div>
-
-                    <div
-                        style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
-                        <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
-                        <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..."
-                            onchange="window.TEMP_USER_NAME = this.value"
-                            style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700; color: #1F2937;"
-                            value="爸爸" oninput="updateUserInfoFromUI()">
-                    </div>
+                    <div class="btn-switch-user">切換</div>
+                    <!-- 隱藏欄位，確保相容舊有的 handleLedgerSubmit -->
+                    <input type="hidden" id="custom-user-name" value="">
                     <input type="hidden" id="selected-user-info" value="">
                 </div>
 
@@ -8645,7 +8834,7 @@
             overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(2px);';
             overlay.innerHTML = '<div style="background:white; padding:20px 30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2); display:flex; flex-direction:column; align-items:center;">' +
                 '<div class="loading-spinner" style="border:4px solid #f3f3f3; border-top:4px solid #2563EB; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin-bottom:10px;"></div>' +
-                '<div style="font-weight:bold; color:#374151;">處理中...</div>' +
+                '<div style="font-weight:bold; color:#374151;">Loading...</div>' +
                 '<style>@keyframes spin {0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);}}</style>' +
                 '</div>';
             document.body.appendChild(overlay);
@@ -10883,7 +11072,219 @@
             }
         }
 
+
+
+        // --- [新增] 使用者身分管理邏輯 (Welcome Flow) ---
+
+        // 1. 檢查使用者 Session
+        function checkUserSession() {
+            const userName = localStorage.getItem('last_user_name');
+            const userAvatar = localStorage.getItem('last_user_emoji');
+
+            // 嚴格檢查：必須兩個都有值，且 name 不是髒資料
+            let isValid = false;
+            if (userName && userAvatar) {
+                if (!userName.trim().startsWith('{') && userName !== 'undefined' && userName !== 'null') {
+                    isValid = true;
+                }
+            }
+
+            if (isValid) {
+                // 已登入：更新 UI 並隱藏迎賓頁
+                updateUserDisplay();
+                hideWelcomeModal();
+                updateUserInfoFromUI(); // 確保 hidden fields 同步
+            } else {
+                // 未登入：顯示迎賓頁
+                showWelcomeModal();
+            }
+        }
+
+        // 2. 顯示迎賓 Modal
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcome-modal');
+            modal.style.display = 'flex';
+            initWelcomeAvatarSelector();
+        }
+
+        // 3. 隱藏迎賓 Modal
+        function hideWelcomeModal() {
+            document.getElementById('welcome-modal').style.display = 'none';
+        }
+
+        // 4. 初始化迎賓頁頭像選擇器
+        let selectedWelcomeAvatar = '🦁'; // 預設
+
+        function initWelcomeAvatarSelector() {
+            const container = document.getElementById('welcome-avatar-grid');
+            if (container.innerHTML.trim() !== '') return; // 避免重複生成
+
+            // 使用與原本相同的頭像列表
+            const emojis = [
+                '🦁', '🐰', '🐼', '🐨', '🦊',
+                '🐱', '🐶', '🐯', '🐵', '🐷',
+                '🐹', '🐻', '🐮', '🐸', '🐔'
+            ];
+
+            container.innerHTML = '';
+            emojis.forEach(emoji => {
+                const div = document.createElement('div');
+                div.className = 'avatar-option';
+                div.innerText = emoji;
+                if (emoji === selectedWelcomeAvatar) div.classList.add('selected');
+
+                div.onclick = function () {
+                    // 移除其他選中狀態
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    // 選中當前
+                    this.classList.add('selected');
+                    selectedWelcomeAvatar = emoji;
+                };
+                container.appendChild(div);
+            });
+        }
+
+        // 5. 處理登入 (按鈕點擊)
+        function handleLogin() {
+            const nameInput = document.getElementById('welcome-nickname');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('請輸入一個帥氣或可愛的暱稱！');
+                return;
+            }
+
+            // 儲存到 LocalStorage
+            localStorage.setItem('last_user_name', name);
+            localStorage.setItem('last_user_emoji', selectedWelcomeAvatar);
+
+            // 更新 UI
+            updateUserDisplay();
+            updateUserInfoFromUI(); // 同步 hidden fields
+
+            // 關閉 Modal
+            hideWelcomeModal();
+
+            // 歡迎提示 (可選)
+            // alert(`歡迎加入旅程，${name}！`);
+        }
+
+        // 6. 顯示登出確認窗
+        function showLogoutPopup() {
+            const name = localStorage.getItem('last_user_name') || '成員';
+            const avatar = localStorage.getItem('last_user_emoji') || '👤';
+
+            document.getElementById('logout-name-preview').innerText = name;
+            document.getElementById('logout-avatar-preview').innerText = avatar;
+            document.getElementById('logout-popup').style.display = 'flex';
+        }
+
+        // 7. 確認登出
+        function handleLogoutConfirm() {
+            // 清除 LocalStorage
+            localStorage.removeItem('last_user_name');
+            localStorage.removeItem('last_user_emoji');
+
+            // 關閉確認窗
+            document.getElementById('logout-popup').style.display = 'none';
+
+            // 重新顯示迎賓頁
+            showWelcomeModal();
+        }
+
+        // 8. 更新 UI顯示 (將 LocalStorage 資料填入 user-status-display 和 hidden fields)
+        function updateUserDisplay() {
+            const name = localStorage.getItem('last_user_name') || '請登入';
+            const avatar = localStorage.getItem('last_user_emoji') || '👤';
+
+            // 更新顯示卡片
+            document.getElementById('display-current-name').innerText = name;
+            document.getElementById('display-current-avatar').innerText = avatar;
+
+            // 更新隱藏欄位 (給 handleLedgerSubmit 用)
+            const nameInput = document.getElementById('custom-user-name');
+            if (nameInput) nameInput.value = name;
+
+            // 確保隱藏的 JSON 欄位也更新 (相容性)
+            updateUserInfoFromUI();
+        }
+
+        // [Override] 修改既有的 updateUserInfoFromUI 以支援我們的新流程
+        // 由於我們移除了原本的 UI，這裡需要改寫以從 hidden field 讀取或直接從 LS 讀取
+        // 注意：原本的函數是綁定在 input oninput 上的，現在 input 是 hidden 的
+        function updateUserInfoFromUI() {
+            const name = document.getElementById('custom-user-name').value || localStorage.getItem('last_user_name') || '匿名';
+            const avatar = localStorage.getItem('last_user_emoji') || '🦁';
+
+            // 構建 JSON 字串 (給後端用)
+            const userInfo = JSON.stringify({
+                name: name,
+                avatar: avatar
+            });
+
+            const hiddenInput = document.getElementById('selected-user-info');
+            if (hiddenInput) hiddenInput.value = userInfo;
+
+            // 確保全域變數同步 (如果有用到的話)
+            window.TEMP_USER_NAME = name;
+        }
+
+        // [Hook] 在切換 Tab 時檢查 (如果切換到旅程紀錄 view-ledger)
+        // 覆寫原本的 switchTab 邏輯可能會太複雜，我們選擇用事件監聽或在 switchTab 後面掛鉤
+        // 這裡採用簡單的定時檢查或在 switchTab 的 onclick 中加入
+        // 由於 switchTab 是全域的，我們可以在這裡劫持它嗎？ 
+        // 比較安全的方式是：找到 nav-item，為其添加額外的 onclick
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ledgerBtn = document.querySelector('.nav-item[data-target="view-ledger"]');
+            if (ledgerBtn) {
+                ledgerBtn.addEventListener('click', () => {
+                    // 點擊旅程紀錄分頁時，檢查 Session
+                    checkUserSession();
+                });
+            }
+
+            // 初始載入時，如果當前頁面已經是 ledger，也要檢查
+            if (document.getElementById('view-ledger').classList.contains('active')) {
+                checkUserSession();
+            }
+        });
+
     </script>
+    <!-- [新增] 歡迎與身分選擇 Modal -->
+    <div id="welcome-modal">
+        <div class="welcome-box">
+            <div class="welcome-title">九州之旅 👋</div>
+            <div class="welcome-desc">請選擇您的稱呼與頭像<br>讓旅程紀錄更生動！</div>
+
+            <div class="avatar-grid" id="welcome-avatar-grid">
+                <!-- JS 生成 -->
+            </div>
+
+            <input type="text" id="welcome-nickname" class="input-nickname" placeholder="請輸入暱稱 (例如: 爸爸)" maxlength="10"
+                onclick="this.focus()">
+
+            <button class="btn-start-trip" onclick="handleLogin()">開始紀錄旅程 🚀</button>
+        </div>
+    </div>
+
+    <!-- [新增] 登出/切換身分確認 Modal -->
+    <div id="logout-popup" class="modal-overlay">
+        <div class="modal-box" style="width: 300px;">
+            <div class="modal-title">切換身分</div>
+            <div class="logout-box">
+                <span id="logout-avatar-preview" class="logout-avatar">👤</span>
+                <p class="modal-desc">確定要登出目前的「<span id="logout-name-preview"
+                        style="font-weight:bold; color:#1F2937;"></span>」身分，並重新選擇嗎？</p>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel"
+                    onclick="document.getElementById('logout-popup').style.display='none'">取消</button>
+                <button class="modal-btn btn-confirm" onclick="handleLogoutConfirm()"
+                    style="background: #EF4444; color: white;">確定登出</button>
+            </div>
+        </div>
+    </div>
     </div>
 </body>
 
