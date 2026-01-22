@@ -8965,45 +8965,70 @@ function updateUserInfoFromUI() {
 }
 // [結束] 替換身分定義相關邏輯
 
-// [最終確認版] 處理記帳送出
+// [最終防禦版] 處理記帳送出 (內建殭屍過濾器)
 async function handleLedgerSubmit() {
     showLoading(); 
-
-    // ★ Debug 1: 在 Console 印出版本號，請按 F12 看看有沒有出現這行
-    console.log("【正在執行版本：v2026-Final】"); 
+    console.log("【執行版本：v2026-Zombie-Fix】"); 
 
     try {
         // ============================================================
-        // 1. 抓取使用者資料 (暴力強制版)
+        // 1. 智慧抓取使用者 (排除隱藏欄位與髒資料)
         // ============================================================
-        const nameInput = document.getElementById('custom-user-name');
-        const avatarDisplay = document.getElementById('current-selected-emoji');
-
-        // A. 取得原始值
-        let rawName = nameInput ? nameInput.value : '';
         
-        // B. 強制轉型 (不管它是 undefined, null 還是什麼，先轉成字串再說)
-        let safeName = String(rawName).trim();
-
-        // C. 最終防呆 (如果是 "undefined" 字串或空的，就變 "匿名")
-        if (!safeName || safeName === 'undefined' || safeName === 'null') {
-            safeName = '匿名';
+        // A. 優先嘗試 ID
+        let nameEl = document.getElementById('custom-user-name');
+        
+        // B. 如果沒抓到，嘗試抓取「看得到的文字輸入框」 (排除 hidden)
+        if (!nameEl) {
+            // 抓取所有 type="text" 且不是 hidden 的輸入框
+            const inputs = document.querySelectorAll('input[type="text"]:not([type="hidden"])');
+            // 找出 placeholder 包含 "名" 或 "Name" 的那個
+            for (let input of inputs) {
+                if (input.placeholder && (input.placeholder.includes('名') || input.placeholder.includes('Name'))) {
+                    nameEl = input;
+                    break;
+                }
+            }
+            // 如果還沒找到，就拿第一個看得到的輸入框
+            if (!nameEl && inputs.length > 0) nameEl = inputs[0];
         }
 
-        // D. 頭像同理
-        let safeAvatar = avatarDisplay ? avatarDisplay.innerText.trim() : '🦁';
+        let avatarEl = document.getElementById('current-selected-emoji');
+        if (!avatarEl) avatarEl = document.querySelector('.avatar-display');
 
-        // ★ Debug 2: 彈出視窗讓您親眼確認 (確認沒問題後可註解掉)
-        // alert(`檢查點：\n名字=${safeName}\n頭像=${safeAvatar}`);
+        // ------------------------------------------------------------
+        // C. 取值與「殭屍過濾」 (關鍵修正！)
+        // ------------------------------------------------------------
+        let userName = '';
+        
+        if (nameEl) {
+            userName = (nameEl.value || nameEl.innerText || '').trim();
+        }
 
-        // E. 建立 JSON (這時候 safeName 一定是字串，絕對不會被過濾掉)
+        // ★★★ 核心防禦：如果名字長得像 JSON (以 { 開頭)，代表抓錯了！ ★★★
+        if (userName.startsWith('{') || userName.includes('"avatar"')) {
+            console.warn("⚠️ 偵測到髒資料 (抓到隱藏欄位)，強制重置為匿名");
+            userName = '匿名';
+        }
+
+        // 防呆：如果是空或 undefined 字串
+        if (!userName || userName === 'undefined' || userName === 'null') {
+            userName = '匿名';
+        }
+
+        let userAvatar = '🦁';
+        if (avatarEl && avatarEl.innerText) {
+            userAvatar = avatarEl.innerText.trim();
+        }
+
+        // 建立乾淨的 JSON
         const userJsonString = JSON.stringify({ 
-            name: safeName, 
-            avatar: safeAvatar 
+            name: userName, 
+            avatar: userAvatar 
         });
 
         // ============================================================
-        // 2. 準備其他資料 (保持不變)
+        // 2. 準備 Payload (其餘保持不變)
         // ============================================================
         let finalRate = 0.21;
         const manualRateEl = document.getElementById('calc-rate');
@@ -9029,16 +9054,13 @@ async function handleLedgerSubmit() {
         const finalAmountJpy = isFinance ? String(amountJpy) : "0";
         const finalAmountTwd = isFinance ? String(amountTwd) : "0";
 
-        // ============================================================
-        // 3. 發送
-        // ============================================================
         const payloadData = {
             action: 'upload',
             token: (typeof getKey === 'function') ? getKey('gas_token') : '',
             type: isFinance ? 'finance' : 'note',
             id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
             
-            user: userJsonString, // ★ 送出這串
+            user: userJsonString, // 送出清洗過的資料
             
             date: new Date().toISOString().split('T')[0],
             timestamp: new Date().toISOString(),
@@ -9060,7 +9082,8 @@ async function handleLedgerSubmit() {
                 alert(`✅ 記事儲存成功！`);
             }
             
-            // 清空
+            // 清空欄位
+            if (nameEl && typeof nameEl.value === 'string') nameEl.value = ''; 
             document.getElementById('ledger-item').value = '';
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
