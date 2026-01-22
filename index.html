@@ -11047,7 +11047,7 @@
                     // 修正：直接解析字串避免時區問題
                     const [yy, mm, dd] = dateKey.split('-');
                     const dateObj = new Date(parseInt(yy), parseInt(mm) - 1, parseInt(dd));
-                    const dayNames = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+                    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                     displayDateTitle = `${yy}/${mm}/${dd} (${dayNames[dateObj.getDay()]})`;
                 } catch (e) { }
 
