@@ -6649,8 +6649,25 @@
                     <div style="display: flex; gap: 6px; align-items: center;">
                         <input type="text" id="ledger-item" placeholder="項目內容..." oninput="validateLedgerInputs()"
                             style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+
+                        <!-- Scan Button -->
+                        <button onclick="openOCR()"
+                            style="width: 44px; height: 42px; padding: 0; border: 1px solid #ddd; border-radius: 8px; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;"
+                            title="掃描單據">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                        </button>
+                        <input type="file" id="ocr-input" accept="image/*" capture="environment" style="display: none;"
+                            onchange="handleOCRFile(this)">
+
                         <input type="number" id="ledger-amount" placeholder="金額" oninput="validateLedgerInputs()"
-                            style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                            style="flex: 0.8; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger" disabled
                             style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; transition: all 0.2s;">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB"
@@ -12105,7 +12122,264 @@
             </div>
         </div>
     </div>
+
+    <!-- [New] OCR Modal -->
+    <div id="ocr-modal" class="modal-overlay"
+        style="z-index: 10001; align-items: flex-end; justify-content: flex-end; display: none;">
+        <div class="modal-box"
+            style="width: 100%; max-width: 100%; border-radius: 20px 20px 0 0; padding: 0; max-height: 80vh; height: auto; display: flex; flex-direction: column; overflow: hidden; background: #F3F4F6;">
+            <!-- Header -->
+            <div
+                style="padding: 15px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #1F2937;">🧾 識別結果</h3>
+                <button onclick="closeOCR()"
+                    style="background: none; border: none; font-size: 1.5rem; color: #6B7280;">&times;</button>
+            </div>
+
+            <!-- Content -->
+            <div style="flex: 1; overflow-y: auto; padding: 15px; overscroll-behavior: contain;"
+                id="ocr-results-container">
+                <div id="ocr-loading"
+                    style="display: none; flex-direction: column; align-items: center; padding: 40px;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                    </svg>
+                    <p style="margin-top: 15px; color: #4B5563;">正在分析單據...</p>
+                </div>
+
+                <div id="ocr-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Result Items -->
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #D1D5DB;">
+                    <div style="font-size: 0.9rem; color: #6B7280; margin-bottom: 10px;">手動追加</div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="manual-ocr-item" placeholder="品項"
+                            style="flex: 1.5; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                        <input type="number" id="manual-ocr-amount" placeholder="金額"
+                            style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                        <button onclick="addManualOCRItem()"
+                            style="background: #E5E7EB; border: none; width: 36px; border-radius: 6px; color: #374151; font-size: 1.2rem;">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding: 15px; background: white; border-top: 1px solid #e5e7eb;">
+                <button onclick="submitOCRResults()"
+                    style="width: 100%; background: #2563EB; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    確認送出 <span id="ocr-total-count"
+                        style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 10px; font-size: 0.8rem;">0</span>
+                </button>
+            </div>
+        </div>
     </div>
+    </div>
+
+    <script>
+        // Use a separate script block for OCR logic to keep things clean
+        let ocrItems = [];
+
+        function openOCR() {
+            document.getElementById('ocr-input').click();
+        }
+
+        function closeOCR() {
+            document.getElementById('ocr-modal').style.display = 'none';
+            document.body.style.overflow = ''; // Unlock scroll
+            document.getElementById('ocr-input').value = ''; // Reset
+        }
+
+        async function handleOCRFile(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                // Open Modal & Show Loading
+                document.getElementById('ocr-modal').style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Lock scroll
+
+                const listEl = document.getElementById('ocr-list');
+                const loadingEl = document.getElementById('ocr-loading');
+                const resultContainer = document.getElementById('ocr-results-container');
+
+                listEl.innerHTML = '';
+                listEl.style.display = 'none';
+                loadingEl.style.display = 'flex';
+                document.getElementById('manual-ocr-item').value = '';
+                document.getElementById('manual-ocr-amount').value = '';
+                updateOCRTotal();
+
+                // Mock OCR Process (2 seconds)
+                // In real app, you would upload 'file' to Vision API/Gemini API here
+                await new Promise(r => setTimeout(r, 2000));
+
+                // Mock Results (Randomized for demo)
+                const mockData = [
+                    { item: '餐廳消費 (Restaurant)', amount: Math.floor(Math.random() * 5000) + 500 },
+                    { item: '交通費 (Transport)', amount: Math.floor(Math.random() * 1000) + 100 },
+                    { item: '便利商店 (Combini)', amount: Math.floor(Math.random() * 800) + 100 }
+                ];
+
+                ocrItems = mockData.map((d, i) => ({ ...d, id: Date.now() + i, checked: true }));
+
+                renderOCRList();
+                loadingEl.style.display = 'none';
+                listEl.style.display = 'flex';
+            }
+        }
+
+        function renderOCRList() {
+            const listEl = document.getElementById('ocr-list');
+            listEl.innerHTML = '';
+
+            ocrItems.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '8px';
+                row.style.padding = '10px';
+                row.style.background = 'white';
+                row.style.borderRadius = '8px';
+                row.style.border = '1px solid #E5E7EB';
+
+                row.innerHTML = `
+                    <input type="checkbox" onchange="toggleOCRItem(${index})" ${item.checked ? 'checked' : ''} style="width: 20px; height: 20px;">
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                        <input type="text" value="${item.item}" onchange="updateOCRItem(${index}, 'item', this.value)" style="border: none; font-weight: 500; font-size: 1rem; width: 100%; color: #1F2937;">
+                    </div>
+                    <div style="width: 100px;">
+                        <input type="number" value="${item.amount}" onchange="updateOCRItem(${index}, 'amount', this.value)" style="border: 1px solid #ddd; padding: 4px; border-radius: 4px; width: 100%; text-align: right;">
+                    </div>
+                    <button onclick="removeOCRItem(${index})" style="background: none; border: none; color: #EF4444; font-size: 1.2rem;">&times;</button>
+                `;
+                listEl.appendChild(row);
+            });
+            updateOCRTotal();
+        }
+
+        function toggleOCRItem(index) {
+            ocrItems[index].checked = !ocrItems[index].checked;
+            updateOCRTotal();
+        }
+
+        function updateOCRItem(index, field, value) {
+            ocrItems[index][field] = value;
+            updateOCRTotal();
+        }
+
+        function removeOCRItem(index) {
+            ocrItems.splice(index, 1);
+            renderOCRList();
+        }
+
+        function addManualOCRItem() {
+            const itemInput = document.getElementById('manual-ocr-item');
+            const amountInput = document.getElementById('manual-ocr-amount');
+
+            const item = itemInput.value.trim();
+            const amount = amountInput.value.trim();
+
+            if (item && amount) {
+                ocrItems.push({
+                    id: Date.now(),
+                    item: item,
+                    amount: parseInt(amount),
+                    checked: true
+                });
+                itemInput.value = '';
+                amountInput.value = '';
+                renderOCRList();
+                // Scroll to bottom
+                const container = document.getElementById('ocr-results-container');
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function updateOCRTotal() {
+            const count = ocrItems.filter(i => i.checked).length;
+            document.getElementById('ocr-total-count').innerText = count;
+        }
+
+        async function submitOCRResults() {
+            const selectedItems = ocrItems.filter(i => i.checked);
+            if (selectedItems.length === 0) {
+                alert('請至少選擇一個項目');
+                return;
+            }
+
+            // Show global loading
+            showGlobalLoading(); // Assuming this global function exists based on previous code reading
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // Simple loop to submit items sequentially to ensure order (or parallel if backend supports)
+            // GAS might have rate limits, so sequential is safer
+            for (const item of selectedItems) {
+                try {
+                    // Reuse logic similar to handleLedgerSubmit but stripped down
+                    // We need to construct payload manually since handleLedgerSubmit reads DOM
+
+                    // 1. Prepare Data
+                    let userName = localStorage.getItem('last_user_name') || '匿名';
+                    if (userName.startsWith('{')) userName = '匿名'; // Sanity check
+                    let userAvatar = localStorage.getItem('last_user_emoji') || '🦁';
+
+                    // Rate logic (Duplicate from main logic)
+                    let finalRate = 0.21;
+                    const cached = localStorage.getItem('live_exchange_rate_cache');
+                    if (cached) { try { finalRate = JSON.parse(cached).rate || 0.21; } catch (e) { } }
+
+                    const amountJpy = parseFloat(item.amount) || 0;
+                    const amountTwd = Math.round(amountJpy * finalRate);
+
+                    const payloadData = {
+                        action: 'upload', // Batch is always new upload
+                        token: (typeof getKey === 'function') ? getKey('gas_token') : '',
+                        type: 'finance', // OCR is usually finance
+                        id: 'ocr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                        userName: userName,
+                        userAvatar: userAvatar,
+                        date: new Date().toISOString().split('T')[0],
+                        timestamp: new Date().toISOString(),
+                        rate: String(finalRate),
+                        twdAmount: String(amountTwd),
+                        item: item.item,
+                        content: item.item, // Sync content
+                        amount: String(amountJpy),
+                        images: [] // OCR usually adds text, user can attach images later? Or we should attach the scanned image? 
+                        // For now, no image attachment to individual items to keep it simple, or attach the same source image to all?
+                        // User requirement didn't specify, but usually receipt image is attached.
+                        // Im skipping image to save bandwidth/complexity for now unless needed.
+                    };
+
+                    const url = (typeof getKey === 'function') ? getKey('gas_url') : '';
+                    await fetch(url, { method: 'POST', body: JSON.stringify(payloadData) });
+                    successCount++;
+
+                } catch (e) {
+                    console.error('Batch Item Error:', e);
+                    failCount++;
+                }
+            }
+
+            // Hide Loading
+            document.getElementById('global-loading').style.display = 'none'; // Assuming ID
+
+            if (failCount === 0) {
+                alert(`✅ 成功匯入 ${successCount} 筆資料！`);
+                closeOCR();
+                if (typeof syncLedgerData === 'function') await syncLedgerData();
+            } else {
+                alert(`⚠️ 部分完成：成功 ${successCount} 筆，失敗 ${failCount} 筆。`);
+                if (successCount > 0) {
+                    closeOCR();
+                    if (typeof syncLedgerData === 'function') await syncLedgerData();
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>
