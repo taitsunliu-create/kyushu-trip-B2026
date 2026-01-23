@@ -1139,6 +1139,23 @@
         }
 
         /* Buttons */
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary:active {
+            background-color: #1D4ED8;
+            /* Darker blue */
+            transform: scale(0.96);
+        }
+
         .btn-map {
             display: inline-flex;
             align-items: center;
