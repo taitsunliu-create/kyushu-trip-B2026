@@ -6659,6 +6659,9 @@
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
                         </button>
+                        <!-- Cancel Button (Finance) -->
+                        <button id="btn-cancel-finance" onclick="cancelEditMode()"
+                            style="display: none; width: 24px; height: 24px; border-radius: 50%; background: #EF4444; color: white; border: none; align-items: center; justify-content: center; font-size: 14px; margin-left: 2px;">✕</button>
                     </div>
                 </div>
 
@@ -6705,6 +6708,9 @@
                                         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                                     </svg>
                                 </button>
+                                <!-- Cancel Button (Note) -->
+                                <button id="btn-cancel-note" onclick="cancelEditMode()"
+                                    style="display: none; width: 24px; height: 24px; border-radius: 50%; background: #EF4444; color: white; border: none; align-items: center; justify-content: center; font-size: 14px; margin: 0 auto;">✕</button>
                             </div>
                         </div>
                     </div>
@@ -11107,6 +11113,12 @@
 
                     if (window.editingId) window.editingId = null;
 
+                    // Hide Cancel Buttons
+                    const btnFin = document.getElementById('btn-cancel-finance');
+                    const btnNote = document.getElementById('btn-cancel-note');
+                    if (btnFin) btnFin.style.display = 'none';
+                    if (btnNote) btnNote.style.display = 'none';
+
                     // [回饋顯示邏輯]
                     // [回饋顯示邏輯]
                     if (activeBtn) {
@@ -11819,6 +11831,9 @@
                     btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     // [Fix] Enable button immediately for editing
                     btn.disabled = false;
+                    // Show Cancel
+                    const cBtn = document.getElementById('btn-cancel-finance');
+                    if (cBtn) cBtn.style.display = 'flex';
                 }
             } else {
                 filterLedgerView('note');
@@ -11855,6 +11870,9 @@
                     btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     // [Fix] Enable button immediately for editing
                     btn.disabled = false;
+                    // Show Cancel
+                    const cBtn = document.getElementById('btn-cancel-note');
+                    if (cBtn) cBtn.style.display = 'flex';
                 }
             }
 
@@ -12034,6 +12052,37 @@
                 });
             }
         });
+
+        // [New] Cancel Edit Mode
+        function cancelEditMode() {
+            window.editingId = null;
+            document.getElementById('ledger-item').value = '';
+            document.getElementById('ledger-amount').value = '';
+            document.getElementById('ledger-note-content').value = '';
+            clearImage();
+
+            // Restore Buttons
+            const btnFin = document.getElementById('btn-cancel-finance');
+            const btnNote = document.getElementById('btn-cancel-note');
+            if (btnFin) btnFin.style.display = 'none';
+            if (btnNote) btnNote.style.display = 'none';
+
+            // Restore Submit Icons
+            const submitFin = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
+            const submitNote = document.querySelector('#ledger-note-fields .btn-submit-ledger');
+
+            const originalIcon = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>`;
+
+            if (submitFin) submitFin.innerHTML = originalIcon;
+            if (submitNote) submitNote.innerHTML = originalIcon;
+
+            validateLedgerInputs();
+        }
     </script>
 
     <!-- [新增] 登出/切換身分確認 Modal -->
