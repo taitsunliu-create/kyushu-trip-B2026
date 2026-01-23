@@ -6698,19 +6698,22 @@
                                     </svg>
                                 </button>
 
-                                <!-- 送出按鈕 -->
-                                <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                                    disabled
-                                    style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent; transition: all 0.2s;">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                                    </svg>
-                                </button>
-                                <!-- Cancel Button (Note) -->
-                                <button id="btn-cancel-note" onclick="cancelEditMode()"
-                                    style="display: none; width: 24px; height: 24px; border-radius: 50%; background: #EF4444; color: white; border: none; align-items: center; justify-content: center; font-size: 14px; margin: 0 auto;">✕</button>
+                                <!-- Submit & Cancel Wrapper -->
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <!-- 送出按鈕 -->
+                                    <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                                        disabled
+                                        style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent; transition: all 0.2s;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                        </svg>
+                                    </button>
+                                    <!-- Cancel Button (Note) -->
+                                    <button id="btn-cancel-note" onclick="cancelEditMode()"
+                                        style="display: none; width: 24px; height: 24px; border-radius: 50%; background: #EF4444; color: white; border: none; align-items: center; justify-content: center; font-size: 14px;">✕</button>
+                                </div>
                             </div>
                         </div>
                     </div>
