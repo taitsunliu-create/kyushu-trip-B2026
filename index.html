@@ -12211,35 +12211,64 @@
                 // This is cleaner than opening empty modal.
 
                 try {
-                    // 1. Compress Image
-                    const base64 = await compressImageForOCR(file);
+                    // 1. Get API Key & Validation
+                    const apiKey = (typeof getKey === 'function') ? getKey('gemini') : '';
+                    if (!apiKey) {
+                        // User has not unlocked the AI assistant yet
+                        alert("請先至「AI 助手」頁面輸入密碼解鎖金鑰，才能啟用 AI 辨識功能。");
+                        throw new Error("金鑰未解鎖");
+                    }
 
-                    // 2. Upload to GAS
-                    const url = (typeof getKey === 'function') ? getKey('gas_url') : '';
-                    if (!url) throw new Error("GAS URL not found");
+                    // 2. Compress Image
+                    const base64Data = await compressImageForOCR(file);
+                    // Remove data:image/jpeg;base64, prefix for API
+                    const rawBase64 = base64Data.split(',')[1];
+
+                    // 3. Call Gemini API
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
                     const payload = {
-                        action: 'ocr',
-                        image: base64,
-                        token: (typeof getKey === 'function') ? getKey('gas_token') : ''
+                        "contents": [{
+                            "parts": [
+                                { "text": "你是一個專業的會計助手。請仔細分析這張收據圖片，提取「消費項目」與「金額」。\n規則：\n1. 請將所有日文品項名稱翻譯成繁體中文(台灣)。\n2. 回傳純 JSON 格式，不要有 markdown 標記 (不要 ```json)。\n3. 格式範例：[{\"item\": \"炸豬排定食\", \"amount\": 1200}, {\"item\": \"可樂\", \"amount\": 300}]\n4. 只包含有明確金額的消費項目，忽略地址、電話、小計、合計、找零等雜訊。" },
+                                {
+                                    "inline_data": {
+                                        "mime_type": "image/jpeg",
+                                        "data": rawBase64
+                                    }
+                                }
+                            ]
+                        }]
                     };
 
-                    const resp = await fetch(url, {
+                    const response = await fetch(apiUrl, {
                         method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
-                    const result = await resp.json();
-
-                    if (result.status !== 'success') {
-                        throw new Error(result.message || 'OCR Failed');
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error?.message || 'Gemini API Error');
                     }
 
-                    // 3. Populate Results
-                    const items = result.items || [];
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-                    if (items.length === 0) {
-                        alert('未能識別出項目，請手動輸入');
+                    if (!text) throw new Error("AI 無法識別內容");
+
+                    // 4. Parse JSON
+                    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    let items = [];
+                    try {
+                        items = JSON.parse(jsonStr);
+                    } catch (e) {
+                        console.error('JSON Parse Error', text);
+                        throw new Error("AI 回傳格式錯誤，無法解析。");
+                    }
+
+                    if (!Array.isArray(items) || items.length === 0) {
+                        alert('未能識別出項目，請確認圖片清晰度或手動輸入');
                     }
 
                     ocrItems = items.map((d, i) => ({
@@ -12253,7 +12282,7 @@
                     document.getElementById('ocr-modal').style.display = 'flex';
                     renderOCRList();
                     listEl.style.display = 'flex';
-                    loadingEl.style.display = 'none'; // Hide internal loader just in case
+                    loadingEl.style.display = 'none';
 
                 } catch (e) {
                     console.error('OCR Error:', e);
