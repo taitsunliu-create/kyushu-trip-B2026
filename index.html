@@ -6663,10 +6663,17 @@
                 </div>
 
                 <div id="ledger-note-fields" style="display: none;">
+                    <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                        style="width: 100%; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        儲存記事
+                    </button>
                     <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
-                        style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;"></textarea>
-                    <button onclick="handleLedgerSubmit()" class="btn-primary"
-                        style="width: 100%; margin: 0;">儲存記事</button>
+                        style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-top: 10px;"></textarea>
                 </div>
             </div>
         </div>
@@ -10847,21 +10854,27 @@
             const isFinance = (document.getElementById('ledger-type')?.value === 'finance') ||
                 (document.getElementById('ledger-finance-fields').style.display !== 'none');
 
-            // 取得按鈕 (僅 Finance 模式)
-            const btnFinance = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
-            // 備份原始圖示 (紙飛機)
-            const originalIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="btn-icon-original" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+            // 取得按鈕
+            let activeBtn;
+            if (isFinance) {
+                activeBtn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
+            } else {
+                activeBtn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
+            }
 
-            if (isFinance && btnFinance) {
-                // [Finance Mode] 使用按鈕內 Loading (橘色轉圈圈)
-                btnFinance.disabled = true;
-                btnFinance.innerHTML = `
+            // 備份原始圖示 (紙飛機 + 文字)
+            let originalContent = activeBtn ? activeBtn.innerHTML : '';
+            // 如果是純圖示（Finance），就恢復純圖示；如果是文字+圖示（Note），就恢復文字+圖示
+
+            if (activeBtn) {
+                // 使用按鈕內 Loading (橘色轉圈圈)
+                activeBtn.disabled = true;
+                activeBtn.innerHTML = `
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
                     <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
                     <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
                 </svg>`;
             } else {
-                // [Note Mode] 維持全域 Loading
                 showGlobalLoading();
             }
 
@@ -10949,17 +10962,19 @@
                     if (window.editingId) window.editingId = null;
 
                     // [回饋顯示邏輯]
-                    if (isFinance && btnFinance) {
+                    // [回饋顯示邏輯]
+                    if (activeBtn) {
                         // 顯示綠色 OK
-                        btnFinance.innerHTML = `<span style="color:#10B981; font-weight:900; font-size:1.2rem;">OK</span>`;
+                        activeBtn.innerHTML = `<span style="color:#10B981; font-weight:900; font-size:1.2rem;">OK</span>`;
                         // 1.5秒後還原
                         setTimeout(() => {
-                            btnFinance.innerHTML = originalIcon;
-                            btnFinance.querySelector('svg').style.stroke = 'var(--primary)'; // 確保顏色正確
-                            btnFinance.disabled = false;
+                            if (activeBtn) {
+                                activeBtn.innerHTML = originalContent;
+                                // 確保 SVG 顏色正確 (如果是 icon-only 可能需要重置 stroke，但若是 innerHTML 還原通常不用)
+                                activeBtn.disabled = false;
+                            }
                         }, 1500);
                     } else {
-                        // Note 模式維持 Alert
                         alert(`✅ 儲存成功！`);
                     }
 
@@ -10971,16 +10986,16 @@
             } catch (e) {
                 console.error("執行錯誤:", e);
                 // 失敗回饋
-                if (isFinance && btnFinance) {
+                // 失敗回饋
+                if (activeBtn) {
                     // 顯示紅色 NG
-                    btnFinance.innerHTML = `<span style="color:#EF4444; font-weight:900; font-size:1.2rem;">NG</span>`;
+                    activeBtn.innerHTML = `<span style="color:#EF4444; font-weight:900; font-size:1.2rem;">NG</span>`;
                     setTimeout(() => {
-                        btnFinance.innerHTML = originalIcon;
-                        btnFinance.querySelector('svg').style.stroke = 'var(--primary)';
-                        btnFinance.disabled = false;
+                        if (activeBtn) {
+                            activeBtn.innerHTML = originalContent;
+                            activeBtn.disabled = false;
+                        }
                     }, 2000);
-                    // 失敗時還是跳個 alert 讓使用者知道訊息，或者省略？使用者說 "失敗或異常則是紅色NG"，沒說要 alert
-                    // 這裡選擇只顯示 NG 視覺回饋，若使用者需要詳細訊息可看 console
                 } else {
                     alert("❌ 錯誤: " + e.message);
                 }
