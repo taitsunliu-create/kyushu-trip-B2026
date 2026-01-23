@@ -6667,7 +6667,9 @@
                         <!-- 圖片預覽區域 -->
                         <!-- 圖片預覽區域 (改為橫向捲動多張圖) -->
                         <div id="note-image-preview"
-                            style="display:none; gap: 8px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 4px;">
+                            style="display:none; gap: 8px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 4px; touch-action: pan-x;"
+                            ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()"
+                            ontouchend="event.stopPropagation()">
                             <!-- 動態生成圖片預覽 -->
                         </div>
 
@@ -11441,7 +11443,8 @@
                             if (imgs) {
                                 // Added touch-action and overscroll-behavior for better swipe experience
                                 imageHtml = `
-                                <div style="margin-top: 10px; margin-bottom: 5px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; touch-action: pan-x;">
+                                <div style="margin-top: 10px; margin-bottom: 5px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; touch-action: pan-x;"
+                                     ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()" ontouchend="event.stopPropagation()">
                                     ${imgs}
                                 </div>`;
                             }
@@ -11888,7 +11891,8 @@
             </button>
 
             <!-- Gallery Slider -->
-            <div id="gallery-container" onclick="event.stopPropagation()"
+            <div id="gallery-container" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()"
+                ontouchmove="event.stopPropagation()" ontouchend="event.stopPropagation()"
                 style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; width: 100%; height: 80vh; align-items: center; gap: 20px; padding: 0 20px; box-sizing: border-box; overscroll-behavior-x: contain; touch-action: pan-x;">
                 <!-- Dynamic Images injected here -->
             </div>
