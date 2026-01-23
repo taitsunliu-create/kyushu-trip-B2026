@@ -6602,10 +6602,10 @@
                 <div style="display: flex; gap: 8px;">
                     <button onclick="filterLedgerView('finance')" class="btn-icon-circle" id="btn-view-finance">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <circle cx="12" cy="12" r="8"></circle>
-                            <line x1="12" y1="8" x2="12" y2="16"></line>
-                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                            <path d="M12 18V6"></path>
                         </svg>
                     </button>
                     <button onclick="filterLedgerView('note')" class="btn-icon-circle" id="btn-view-note"
@@ -6844,8 +6844,11 @@
 
         <div class="nav-item" data-target="view-ledger" onclick="switchTab(this)">
             <span class="nav-icon">
-                <svg class="icon-sprite">
-                    <use href="#icon-weather"></use>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                    <path d="M12 18V6"></path>
                 </svg>
             </span>
             旅程記錄
