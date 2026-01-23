@@ -11460,27 +11460,75 @@
             }
         });
 
-        // ==========================================
         // [新增] 編輯與刪除功能 (需配合 GAS 後端更新)
         // ==========================================
         window.editingId = null; // 全域變數：紀錄目前正在編輯的 ID
+        window.deleteConfirmMap = {}; // [新增] 用來記錄哪些 ID 處於刪除確認狀態
 
-        async function deleteLedgerItem(id) {
-            if (!confirm('確定要永久刪除這筆紀錄嗎？')) return;
+        async function deleteLedgerItem(id, btnElement) {
+            // [狀態 1] 第一次點擊：變更為確認狀態 (紅色實心垃圾桶)
+            if (!window.deleteConfirmMap[id]) {
+                window.deleteConfirmMap[id] = true;
 
-            showGlobalLoading();
+                // 變更圖示為紅色實心
+                const originalContent = btnElement.innerHTML;
+                btnElement.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>`;
+
+                // 3秒後若沒點擊，自動還原
+                setTimeout(() => {
+                    if (window.deleteConfirmMap[id] === true) { // 如果還在確認狀態(沒進入刪除中)
+                        delete window.deleteConfirmMap[id];
+                        btnElement.innerHTML = originalContent; // 還原
+                    }
+                }, 3000);
+                return;
+            }
+
+            // [狀態 2] 第二次點擊：執行刪除 (水位下降動畫)
+            window.deleteConfirmMap[id] = 'deleting'; // 標記為刪除中
+
+            // 替換為水位下降動畫 SVG
+            // 這裡使用兩個 path，一個是外框，一個是內部水位 (用 CSS animation 控制 height 或 clip-path)
+            btnElement.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="none">
+                 <!-- 定義遮罩 (垃圾桶形狀) -->
+                 <defs>
+                    <clipPath id="trash-clip-${id}">
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </clipPath>
+                 </defs>
+                 
+                 <!-- 背景 (外框) -->
+                 <path d="M3 6h18" stroke="#EF4444" stroke-width="2" stroke-linecap="round"></path>
+                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#EF4444" stroke-width="2"></path>
+                 
+                 <!-- 水位 (紅色區塊) -->
+                 <!-- 使用 rect 配合 mask，並對 rect 做 translateY 動畫 -->
+                 <rect x="0" y="0" width="24" height="24" fill="#EF4444" clip-path="url(#trash-clip-${id})" style="animation: drainWater 1.5s linear forwards; transform-origin: bottom;">
+                 </rect>
+                 
+                 <style>
+                    @keyframes drainWater {
+                        0% { transform: translateY(0); }
+                        100% { transform: translateY(24px); }
+                    }
+                 </style>
+            </svg>`;
+
             try {
                 const url = getKey('gas_url');
-                // [修正] 確保讀取全域變數，並防止未定義錯誤
                 const dataList = window.rawLedgerData || [];
                 const item = dataList.find(d => d.id === id);
-                const type = item ? item.type : 'finance'; // 預設 finance
+                const type = item ? item.type : 'finance';
 
-                // 傳送 delete 指令
                 const payload = {
                     action: 'delete',
                     id: id,
-                    type: type, // [修正] 必須傳送類型，後端才能找到正確的工作表
+                    type: type,
                     token: getKey('gas_token')
                 };
 
@@ -11488,26 +11536,37 @@
                 const result = await res.json();
 
                 if (result.status === 'success') {
-                    alert('🗑️ 刪除成功');
-                    // 直接從前端變數移除該筆資料 (加速 UI 反應)
-                    if (window.rawLedgerData) {
-                        window.rawLedgerData = window.rawLedgerData.filter(item => item.id !== id);
-                        renderLedgerList(window.rawLedgerData);
-                        // 同步更新總金額 (需重算)
-                        // 若想為了保險起見，也可以呼叫 syncLedgerData()
-                    } else {
-                        syncLedgerData();
-                    }
+                    // [狀態 3] 成功：顯示 OK
+                    btnElement.innerHTML = `<span style="color:#10B981; font-weight:900; font-size:0.9rem;">OK</span>`;
+
+                    // 短暫停留後移除項目
+                    setTimeout(() => {
+                        if (window.rawLedgerData) {
+                            window.rawLedgerData = window.rawLedgerData.filter(item => item.id !== id);
+                            renderLedgerList(window.rawLedgerData);
+                        } else {
+                            syncLedgerData();
+                        }
+                    }, 500);
                 } else {
-                    alert('刪除失敗: ' + result.message);
+                    throw new Error(result.message);
                 }
             } catch (e) {
-                console.error("Delete failed", e);
-                alert('刪除發生錯誤');
-            } finally {
-                hideGlobalLoading();
+                console.error(e);
+                // [狀態 4] 失敗：顯示 NG
+                btnElement.innerHTML = `<span style="color:#EF4444; font-weight:900; font-size:0.9rem;">NG</span>`;
+                setTimeout(() => {
+                    delete window.deleteConfirmMap[id];
+                    // 還原回初始 SVG (空心垃圾桶)
+                    btnElement.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>`;
+                }, 1500);
             }
         }
+
 
         function editLedgerItem(id) {
             // [修正] 確保讀取全域變數
