@@ -6665,12 +6665,10 @@
                 <div id="ledger-note-fields" style="display: none;">
                     <div style="flex: 1; width: 100%;">
                         <!-- 圖片預覽區域 -->
+                        <!-- 圖片預覽區域 (改為橫向捲動多張圖) -->
                         <div id="note-image-preview"
-                            style="display:none; margin-bottom: 8px; position: relative; width: fit-content;">
-                            <img id="preview-img-elem" src=""
-                                style="height: 80px; width: auto; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;">
-                            <button onclick="clearImage()"
-                                style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✕</button>
+                            style="display:none; gap: 8px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 4px;">
+                            <!-- 動態生成圖片預覽 -->
                         </div>
 
                         <div style="display: flex; gap: 8px; align-items: flex-end;">
@@ -6678,8 +6676,8 @@
                                 style="flex: 1; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; min-width: 0;"></textarea>
 
                             <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <!-- 隱藏的檔案輸入框 -->
-                                <input type="file" id="note-img-input" accept="image/*" style="display: none;"
+                                <!-- 隱藏的檔案輸入框 (支援多選) -->
+                                <input type="file" id="note-img-input" accept="image/*" multiple style="display: none;"
                                     onchange="handleImageSelect(this)">
 
                                 <!-- 圖片上傳按鈕 -->
@@ -7092,7 +7090,7 @@
         // 用於 Google Places (分享位置時抓地標名稱)
         const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ==";
         // [安插在其他 ENC_ 變數群組中]
-        const encryptedGasUrl = "U2FsdGVkX1+VwGInHga+8pqDCqcKp94TCSUzGoZ3me+lj3RXTh27o2HERR1PbGB+KPxcPkaEz1a69ZsEaedCh25oOoTBjXjIR2fluS1dTanyDZ/xg5U8YwzvMSF8DewxwBWUry8FCFGchhz/8EMkhhtO8uu+SPJ5xqYz4+LpHxnRI5Ux9Rifvelwus8uBGMc"; // 填入您的 URL 密文
+        const encryptedGasUrl = "U2FsdGVkX1/58oOnPVI02W8zpKSleYmjpGUeyKr2IRwk85YMxG2uhSvIFtV941UtSRsANmjwvhEM8T28E71sDnTg7qzHpNt6JFIoKf6DNaK4bo99fHTOsykEPdQr+i0j/6TGOX4XQzL6aQUxHYA+OuMJ6IVlQaeXRs05XXYZfFJdQipYlpxwjbzMzbPwOnbY"; // 填入您的 URL 密文
         const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
         // [安插在其他 API_KEY 全域變數群組中]
@@ -10881,31 +10879,62 @@
         }
         // [結束] 替換身分定義相關邏輯
 
-        // Global variable for storing compressed image base64
-        window.currentImageBase64 = null;
+        // Global variable for storing compressed images (Array of Strings: Base64 or URL)
+        window.currentImages = [];
 
         // 圖片處理函式
         async function handleImageSelect(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
+            if (input.files && input.files.length > 0) {
                 try {
                     // 顯示 Loading UX (可選)
 
-                    // 壓縮圖片
-                    const compressedBase64 = await compressImage(file, 0.7, 1024);
-                    window.currentImageBase64 = compressedBase64;
+                    // 處理每一張圖片
+                    for (let i = 0; i < input.files.length; i++) {
+                        const file = input.files[i];
+                        const compressedBase64 = await compressImage(file, 0.7, 1024);
+                        window.currentImages.push(compressedBase64);
+                    }
 
-                    // 顯示預覽
-                    const preview = document.getElementById('note-image-preview');
-                    const img = document.getElementById('preview-img-elem');
-                    img.src = compressedBase64;
-                    preview.style.display = 'block';
+                    renderPreviewItems();
 
                 } catch (e) {
                     console.error("圖片處理失敗", e);
                     alert("圖片處理失敗，請重試");
                 }
             }
+            // 清空 input 讓選同樣檔案也能觸發 onchange
+            input.value = '';
+        }
+
+        // 渲染預覽區域
+        function renderPreviewItems() {
+            const previewContainer = document.getElementById('note-image-preview');
+            previewContainer.innerHTML = ''; // 清空
+
+            if (window.currentImages.length > 0) {
+                previewContainer.style.display = 'flex';
+
+                window.currentImages.forEach((imgSrc, index) => {
+                    // 產生預覽項目
+                    const div = document.createElement('div');
+                    div.style.position = 'relative';
+                    div.style.flexShrink = '0';
+
+                    div.innerHTML = `
+                        <img src="${imgSrc}" style="height: 80px; width: auto; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;">
+                        <button onclick="removeImage(${index})" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✕</button>
+                    `;
+                    previewContainer.appendChild(div);
+                });
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        }
+
+        // 移除單張圖片
+        function removeImage(index) {
+            window.currentImages.splice(index, 1);
+            renderPreviewItems();
         }
 
         function compressImage(file, quality = 0.7, maxWidth = 1024) {
@@ -10942,9 +10971,8 @@
         }
 
         function clearImage() {
-            window.currentImageBase64 = null;
-            document.getElementById('note-image-preview').style.display = 'none';
-            document.getElementById('preview-img-elem').src = '';
+            window.currentImages = [];
+            renderPreviewItems();
             document.getElementById('note-img-input').value = ''; // Reset input
         }
 
@@ -11052,7 +11080,7 @@
                     item: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     content: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     amount: finalAmountJpy,
-                    imageBase64: window.currentImageBase64 || '' // 修正: 後端接收 key 為 imageBase64
+                    images: window.currentImages || [] // 修正: 改傳 images 陣列
                 };
 
                 // ============================================================
@@ -11366,15 +11394,30 @@
                             </div>`;
                         }
 
-                        // 圖片顯示邏輯
+                        // 圖片顯示邏輯 (支援多張)
                         let imageHtml = '';
                         if (item.image) {
-                            const imgSrc = item.image.startsWith('http') || item.image.startsWith('data:') ? item.image : `data:image/jpeg;base64,${item.image}`;
-                            imageHtml = `
-                            <div style="margin-top: 10px; margin-bottom: 5px;">
-                                <img src="${imgSrc}" style="max-height: 150px; border-radius: 8px; cursor: zoom-in; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" 
-                                onclick="showFullImage('${imgSrc.replace(/'/g, "\\'")}')">
-                            </div>`;
+                            // 分割圖片字串 (逗號分隔)
+                            const imgList = item.image.split(',');
+
+                            let imgs = '';
+                            imgList.forEach(src => {
+                                if (src.trim()) {
+                                    // 簡單判斷如果是 Base64 就補前綴 (相容舊資料)
+                                    const pSrc = src.trim().startsWith('http') || src.trim().startsWith('data:') ? src.trim() : `data:image/jpeg;base64,${src.trim()}`;
+                                    imgs += `
+                                        <img src="${pSrc}" style="height: 100px; border-radius: 8px; cursor: zoom-in; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0;" 
+                                        onclick="showFullImage('${pSrc.replace(/'/g, "\\'")}')">
+                                     `;
+                                }
+                            });
+
+                            if (imgs) {
+                                imageHtml = `
+                                <div style="margin-top: 10px; margin-bottom: 5px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
+                                    ${imgs}
+                                </div>`;
+                            }
                         }
 
                         html += `
@@ -11750,9 +11793,11 @@
 
                 // 處理圖片 (如果編輯時已經有圖片，應該顯示預覽)
                 if (item.image) {
-                    window.currentImageBase64 = item.image.startsWith('http') || item.image.startsWith('data:') ? item.image : `data:image/jpeg;base64,${item.image}`;
-                    document.getElementById('preview-img-elem').src = window.currentImageBase64;
-                    document.getElementById('note-image-preview').style.display = 'block';
+                    const imgList = item.image.split(',');
+                    window.currentImages = imgList.map(src => {
+                        return src.trim().startsWith('http') || src.trim().startsWith('data:') ? src.trim() : `data:image/jpeg;base64,${src.trim()}`;
+                    });
+                    renderPreviewItems();
                 } else {
                     clearImage();
                 }
