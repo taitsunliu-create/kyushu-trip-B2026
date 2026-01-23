@@ -6647,13 +6647,13 @@
 
                 <div id="ledger-finance-fields">
                     <div style="display: flex; gap: 6px; align-items: center;">
-                        <input type="text" id="ledger-item" placeholder="項目內容..."
+                        <input type="text" id="ledger-item" placeholder="項目內容..." oninput="validateLedgerInputs()"
                             style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <input type="number" id="ledger-amount" placeholder="金額"
+                        <input type="number" id="ledger-amount" placeholder="金額" oninput="validateLedgerInputs()"
                             style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                            style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger" disabled
+                            style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; transition: all 0.2s;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -6674,7 +6674,7 @@
                         </div>
 
                         <div style="display: flex; gap: 8px; align-items: flex-end;">
-                            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
+                            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." oninput="validateLedgerInputs()"
                                 style="flex: 1; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; min-width: 0;"></textarea>
 
                             <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -6697,8 +6697,9 @@
 
                                 <!-- 送出按鈕 -->
                                 <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                                    style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                    disabled
+                                    style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent; transition: all 0.2s;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <line x1="22" y1="2" x2="11" y2="13"></line>
                                         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -11116,9 +11117,9 @@
                             if (activeBtn) {
                                 // 還原回紙飛機
                                 activeBtn.innerHTML = originalIconSVG;
-                                // 修正顏色：Finance 用橘色，Note 用藍色
                                 // activeBtn.querySelector('svg').style.stroke = isFinance ? '#F97316' : '#2563EB'; 
                                 activeBtn.disabled = false;
+                                if (typeof validateLedgerInputs === 'function') validateLedgerInputs();
                             }
                         }, 1500);
                     } else {
@@ -11147,6 +11148,7 @@
                             // 暫時統一變回紙飛機，因為失敗通常需要重新檢查
                             activeBtn.innerHTML = originalIconSVG;
                             activeBtn.disabled = false;
+                            if (typeof validateLedgerInputs === 'function') validateLedgerInputs();
                         }
                     }, 2000);
                 } else {
@@ -11815,6 +11817,8 @@
                 if (btn) {
                     // 改為顯示「編輯(打勾)」圖示 (橘色)
                     btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    // [Fix] Enable button immediately for editing
+                    btn.disabled = false;
                 }
             } else {
                 filterLedgerView('note');
@@ -11849,11 +11853,16 @@
                 if (btn) {
                     // 改為顯示「編輯(打勾)」圖示 (藍色)
                     btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    // [Fix] Enable button immediately for editing
+                    btn.disabled = false;
                 }
             }
 
             // 滾動到輸入區
             document.getElementById('ledger-input-card').scrollIntoView({ behavior: 'smooth' });
+
+            // [New] Trigger validation to ensure UI state is synced
+            if (typeof validateLedgerInputs === 'function') validateLedgerInputs();
 
             // 提示
             // alert('請修改上方內容後，點擊按鈕送出。');
@@ -11971,6 +11980,60 @@
         function closeImageModal() {
             document.getElementById('image-modal').style.display = 'none';
         }
+
+        // [New] Input Validation Logic
+        function validateLedgerInputs() {
+            // Finance Validation
+            const itemInput = document.getElementById('ledger-item');
+            const amountInput = document.getElementById('ledger-amount');
+            const financeBtn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
+
+            if (itemInput && amountInput && financeBtn) {
+                const hasFinanceVal = itemInput.value.trim() !== '' && amountInput.value.trim() !== '';
+                financeBtn.disabled = !hasFinanceVal;
+                // Update SVG Color directly (Gray #D1D5DB vs Orange #F97316)
+                const svg = financeBtn.querySelector('svg');
+                if (svg) svg.style.stroke = hasFinanceVal ? '#F97316' : '#D1D5DB';
+            }
+
+            // Note Validation
+            const noteInput = document.getElementById('ledger-note-content');
+            const noteBtn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
+
+            if (noteInput && noteBtn) {
+                const hasNoteVal = noteInput.value.trim() !== '';
+                noteBtn.disabled = !hasNoteVal;
+                // Update SVG Color directly (Gray #D1D5DB vs Blue #2563EB)
+                // Note: If Editing (Edit Mode), the icon might be different (Checkmark), but color logic still applies mostly.
+                // However, handleLedgerSubmit re-renders the icon. Here we just control stroke.
+                // Special check: If in Edit mode (id present), user might want to submit.
+                // But generally fields must not be empty.
+                const svg = noteBtn.querySelector('svg');
+                if (svg) svg.style.stroke = hasNoteVal ? '#2563EB' : '#D1D5DB';
+            }
+        }
+
+    </script>
+    <script>
+        // Additional Event Listeners for Validation
+        document.addEventListener('DOMContentLoaded', () => {
+            validateLedgerInputs();
+
+            // Bind click events to view buttons to trigger validation on switch
+            const btnFinance = document.getElementById('btn-view-finance');
+            const btnNote = document.getElementById('btn-view-note');
+
+            if (btnFinance) {
+                btnFinance.addEventListener('click', () => {
+                    setTimeout(validateLedgerInputs, 50); // Small delay to allow view switch
+                });
+            }
+            if (btnNote) {
+                btnNote.addEventListener('click', () => {
+                    setTimeout(validateLedgerInputs, 50);
+                });
+            }
+        });
     </script>
 
     <!-- [新增] 登出/切換身分確認 Modal -->
