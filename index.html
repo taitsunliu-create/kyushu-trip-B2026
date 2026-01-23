@@ -10881,6 +10881,8 @@
 
         // Global variable for storing compressed images (Array of Strings: Base64 or URL)
         window.currentImages = [];
+        // [New] Global map to store images by Item ID for gallery viewing
+        window.ledgerImagesMap = {};
 
         // 圖片處理函式
         async function handleImageSelect(input) {
@@ -11395,19 +11397,17 @@
                         }
 
                         // 圖片顯示邏輯 (支援多張)
+
                         let imageHtml = '';
                         if (item.image) {
                             // 分割圖片字串
                             // ★ 修正：如果開頭是 "data:"，代表它是後端上傳失敗或其他原因存的「單張 Raw Base64」，絕對不能用逗號切分！
-                            // 否則 Base64 內的逗號會導致圖片損毀。
                             let imgList = [];
                             const rawImgStr = item.image.trim();
 
                             if (rawImgStr.startsWith('data:')) {
-                                // 單張 Base64
                                 imgList = [rawImgStr];
                             } else {
-                                // 網址列表：優先嘗試用換行符號切割 (新後端)，相容逗號切割 (舊後端)
                                 if (rawImgStr.includes('\n')) {
                                     imgList = rawImgStr.split('\n');
                                 } else {
@@ -11415,21 +11415,33 @@
                                 }
                             }
 
+                            // [New] Store in global map for gallery
+                            window.ledgerImagesMap[item.id] = [];
+
                             let imgs = '';
+                            let validIndex = 0;
+
                             imgList.forEach(src => {
                                 if (src && src.trim()) {
-                                    // 簡單判斷如果是 Base64 就補前綴 (相容舊資料)
+                                    // 簡單判斷如果是 Base64 就補前綴
                                     const pSrc = src.trim().startsWith('http') || src.trim().startsWith('data:') ? src.trim() : `data:image/jpeg;base64,${src.trim()}`;
+
+                                    // Store valid image
+                                    window.ledgerImagesMap[item.id].push(pSrc);
+
+                                    // Render ID for gallery linking
                                     imgs += `
-                                        <img src="${pSrc}" style="height: 100px; border-radius: 8px; cursor: zoom-in; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0;" 
-                                        onclick="showFullImage('${pSrc.replace(/'/g, "\\'")}')">
+                                        <img src="${pSrc}" style="height: 100px; border-radius: 8px; cursor: zoom-in; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0; scroll-snap-align: start;" 
+                                        onclick="showFullGallery('${item.id}', ${validIndex})">
                                      `;
+                                    validIndex++;
                                 }
                             });
 
                             if (imgs) {
+                                // Added touch-action and overscroll-behavior for better swipe experience
                                 imageHtml = `
-                                <div style="margin-top: 10px; margin-bottom: 5px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
+                                <div style="margin-top: 10px; margin-bottom: 5px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; touch-action: pan-x;">
                                     ${imgs}
                                 </div>`;
                             }
@@ -11860,20 +11872,98 @@
         </div>
     </div>
 
-    <!-- [新增] 圖片放大 Modal -->
+    <!-- [修正] 圖片放大 Modal (Gallery Mode) -->
     <div id="image-modal" class="modal-overlay" onclick="closeImageModal()">
-        <div class="modal-box" style="background: transparent; box-shadow: none; max-width: 95vw; padding: 0;">
-            <img id="full-image-elem" src=""
-                style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <div class="modal-box"
+            style="background: transparent; box-shadow: none; width: 100%; max-width: 100%; padding: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative;">
+
+            <!-- Close Button -->
             <button onclick="closeImageModal()"
-                style="position: absolute; top: -40px; right: 0; background: white; border: none; padding: 8px; border-radius: 50%;">✕</button>
+                style="position: absolute; top: 20px; right: 20px; z-index: 9999; background: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3); cursor: pointer;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+            <!-- Gallery Slider -->
+            <div id="gallery-container" onclick="event.stopPropagation()"
+                style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; width: 100%; height: 80vh; align-items: center; gap: 20px; padding: 0 20px; box-sizing: border-box; overscroll-behavior-x: contain; touch-action: pan-x;">
+                <!-- Dynamic Images injected here -->
+            </div>
+
+            <!-- Dots Indicator (Optional) -->
+            <div id="gallery-dots"
+                style="display: flex; justify-content: center; gap: 8px; margin-top: 10px; pointer-events: none;"></div>
+
         </div>
     </div>
     <script>
-        function showFullImage(src) {
-            document.getElementById('full-image-elem').src = src;
+        // [Modified] Show Gallery
+        function showFullGallery(itemId, startIndex) {
+            const images = window.ledgerImagesMap[itemId] || [];
+            if (images.length === 0) return;
+
+            const container = document.getElementById('gallery-container');
+            const dotsContainer = document.getElementById('gallery-dots');
+            container.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            images.forEach((src, index) => {
+                // Slide Wrapper
+                const slide = document.createElement('div');
+                slide.style.flex = '0 0 100%';
+                slide.style.scrollSnapAlign = 'center';
+                slide.style.display = 'flex';
+                slide.style.justifyContent = 'center';
+                slide.style.alignItems = 'center';
+                slide.style.height = '100%';
+
+                // Image
+                const img = document.createElement('img');
+                img.src = src;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.objectFit = 'contain';
+                img.style.borderRadius = '8px';
+                img.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+
+                slide.appendChild(img);
+                container.appendChild(slide);
+
+                // Dot
+                const dot = document.createElement('div');
+                dot.style.width = '8px';
+                dot.style.height = '8px';
+                dot.style.borderRadius = '50%';
+                dot.style.background = index === startIndex ? 'white' : 'rgba(255,255,255,0.4)';
+                dot.style.transition = 'background 0.3s';
+                dot.id = `dot-${index}`;
+                dotsContainer.appendChild(dot);
+            });
+
             document.getElementById('image-modal').style.display = 'flex';
+
+            // Scroll to start index
+            setTimeout(() => {
+                if (container.children[startIndex]) {
+                    container.children[startIndex].scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
+                }
+            }, 10);
+
+            // Update dots on scroll
+            container.onscroll = () => {
+                const scrollLeft = container.scrollLeft;
+                const width = container.offsetWidth;
+                const index = Math.round(scrollLeft / width);
+                // Update dots
+                Array.from(dotsContainer.children).forEach((d, i) => {
+                    d.style.background = i === index ? 'white' : 'rgba(255,255,255,0.4)';
+                });
+            };
         }
+
         function closeImageModal() {
             document.getElementById('image-modal').style.display = 'none';
         }
