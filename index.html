@@ -10999,7 +10999,7 @@
             // let originalContent = activeBtn ? activeBtn.innerHTML : '';
             // 改為：不管原本是什麼，我們都預期恢復成標準的「紙飛機」圖示 (因為 Edit 模式會把圖示改成打勾，submit 完要變回紙飛機)
             const originalIconSVG = `
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${isFinance ? '#F97316' : '#2563EB'}"
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -11815,8 +11815,8 @@
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
                 if (btn) {
-                    // 改為顯示「編輯(打勾)」圖示 (橘色)
-                    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    // 改為顯示「編輯(打勾)」圖示 (藍色)
+                    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     // [Fix] Enable button immediately for editing
                     btn.disabled = false;
                 }
@@ -11991,9 +11991,9 @@
             if (itemInput && amountInput && financeBtn) {
                 const hasFinanceVal = itemInput.value.trim() !== '' && amountInput.value.trim() !== '';
                 financeBtn.disabled = !hasFinanceVal;
-                // Update SVG Color directly (Gray #D1D5DB vs Orange #F97316)
+                // Update SVG Color directly (Gray #D1D5DB vs Blue #2563EB)
                 const svg = financeBtn.querySelector('svg');
-                if (svg) svg.style.stroke = hasFinanceVal ? '#F97316' : '#D1D5DB';
+                if (svg) svg.style.stroke = hasFinanceVal ? '#2563EB' : '#D1D5DB';
             }
 
             // Note Validation
