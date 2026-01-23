@@ -11397,12 +11397,27 @@
                         // 圖片顯示邏輯 (支援多張)
                         let imageHtml = '';
                         if (item.image) {
-                            // 分割圖片字串 (逗號分隔)
-                            const imgList = item.image.split(',');
+                            // 分割圖片字串
+                            // ★ 修正：如果開頭是 "data:"，代表它是後端上傳失敗或其他原因存的「單張 Raw Base64」，絕對不能用逗號切分！
+                            // 否則 Base64 內的逗號會導致圖片損毀。
+                            let imgList = [];
+                            const rawImgStr = item.image.trim();
+
+                            if (rawImgStr.startsWith('data:')) {
+                                // 單張 Base64
+                                imgList = [rawImgStr];
+                            } else {
+                                // 網址列表：優先嘗試用換行符號切割 (新後端)，相容逗號切割 (舊後端)
+                                if (rawImgStr.includes('\n')) {
+                                    imgList = rawImgStr.split('\n');
+                                } else {
+                                    imgList = rawImgStr.split(',');
+                                }
+                            }
 
                             let imgs = '';
                             imgList.forEach(src => {
-                                if (src.trim()) {
+                                if (src && src.trim()) {
                                     // 簡單判斷如果是 Base64 就補前綴 (相容舊資料)
                                     const pSrc = src.trim().startsWith('http') || src.trim().startsWith('data:') ? src.trim() : `data:image/jpeg;base64,${src.trim()}`;
                                     imgs += `
@@ -11793,7 +11808,19 @@
 
                 // 處理圖片 (如果編輯時已經有圖片，應該顯示預覽)
                 if (item.image) {
-                    const imgList = item.image.split(',');
+                    // ★ 同樣修正切割邏輯
+                    let imgList = [];
+                    const rawImgStr = item.image.trim();
+                    if (rawImgStr.startsWith('data:')) {
+                        imgList = [rawImgStr];
+                    } else {
+                        if (rawImgStr.includes('\n')) {
+                            imgList = rawImgStr.split('\n');
+                        } else {
+                            imgList = rawImgStr.split(',');
+                        }
+                    }
+
                     window.currentImages = imgList.map(src => {
                         return src.trim().startsWith('http') || src.trim().startsWith('data:') ? src.trim() : `data:image/jpeg;base64,${src.trim()}`;
                     });
