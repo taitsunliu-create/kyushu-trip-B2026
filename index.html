@@ -6822,25 +6822,26 @@
                         <!-- [Layout Change] Side-by-side buttons at bottom -->
                         <!-- [Layout Change] Vertical stack: Image on top, Submit/Cancel row on bottom -->
                         <!-- Total height target <= 80px -->
-                        <div
-                            style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding-bottom: 0;">
+                        <!-- [Layout Change] Vertical stack: Image on top, Submit/Cancel row on bottom -->
+                        <!-- [Refactor] Group Image + Submit vertically, Cancel on the side -->
+                        <!-- This ensures Image button stays strictly aligned with Submit button -->
 
-                            <!-- Image Button (Compact Height ~28px) -->
-                            <button onclick="document.getElementById('multi-img-input').click()"
-                                style="width: 44px; height: 28px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                    <polyline points="21 15 16 10 5 21"></polyline>
-                                </svg>
-                            </button>
-                            <!-- Hidden Input -->
-                            <input type="file" id="multi-img-input" multiple accept="image/*" style="display: none;"
-                                onchange="handleMultiImageSelect(event)">
+                        <div style="display: flex; align-items: flex-end; gap: 8px; padding-bottom: 0;">
 
-                            <!-- Bottom Row: Submit + Cancel -->
-                            <div style="display: flex; align-items: center; gap: 8px;">
+                            <!-- Column: Image + Submit -->
+                            <div
+                                style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px;">
+                                <!-- Image Button (Compact Height ~28px) -->
+                                <button onclick="document.getElementById('multi-img-input').click()"
+                                    style="width: 44px; height: 28px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                </button>
+                                <!-- Submit Button -->
                                 <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
                                     style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
@@ -6849,16 +6850,21 @@
                                         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                                     </svg>
                                 </button>
-                                <!-- Cancel Button -->
-                                <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
-                                    style="display: none; width: 26px; height: 26px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white"
-                                        stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
                             </div>
+
+                            <!-- Cancel Button (Outside the column, aligned to bottom right) -->
+                            <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
+                                style="display: none; width: 26px; height: 26px; margin: 0 0 9px 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white"
+                                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+
+                            <!-- Hidden Input -->
+                            <input type="file" id="multi-img-input" multiple accept="image/*" style="display: none;"
+                                onchange="handleMultiImageSelect(event)">
                         </div>
                     </div>
                 </div>
