@@ -1139,6 +1139,64 @@
         }
 
         /* Buttons */
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* [新增] 幽靈按鈕 (無背景，藍色圖示) */
+        .btn-submit-ghost {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn-submit-ghost:active {
+            transform: scale(0.9);
+            background-color: transparent !important;
+        }
+
+        .btn-submit-ghost svg {
+            stroke: var(--primary);
+            /* 圖示改為藍色 */
+            width: 24px;
+            height: 24px;
+        }
+
+        /* [修改] 使用者身分卡片 - 移除邊框 */
+        .user-status-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5px;
+            /* 稍微減少 padding */
+            border: none !important;
+            /* [最重要的修改] 移除邊框 */
+            box-shadow: none !important;
+            /* 移除陰影 */
+            background: transparent;
+            /* 背景透明 */
+            margin-bottom: 5px;
+        }
+
+        .btn-primary:active {
+            background-color: #1D4ED8;
+            /* Darker blue */
+            transform: scale(0.96);
+        }
+
         .btn-map {
             display: inline-flex;
             align-items: center;
@@ -3487,12 +3545,205 @@
 
         /* 確保頭像項目的點擊範圍不被擠壓 */
         .avatar-item {
-            flex: 0 0 auto;
-            /* 防止頭像被捲動容器壓縮 */
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            z-index: 5;
             /* 提高層級確保可被點擊 */
+        }
+
+        /* --- [新增] 迎賓模態框樣式 --- */
+        #welcome-modal {
+            display: none;
+            /* 預設隱藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            /* 深色背景 */
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s;
+        }
+
+        .welcome-box {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 裝飾性背景圓 */
+        .welcome-box::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #FBBF24, #F59E0B);
+            border-radius: 50%;
+            opacity: 0.2;
+            z-index: 0;
+        }
+
+        .welcome-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-desc {
+            font-size: 0.95rem;
+            color: #6B7280;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 頭像選擇網格 */
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .avatar-option {
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 12px;
+            transition: transform 0.2s, background 0.2s;
+            user-select: none;
+        }
+
+        .avatar-option:hover {
+            background: #F3F4F6;
+            transform: scale(1.1);
+        }
+
+        .avatar-option.selected {
+            background: #EFF6FF;
+            border: 2px solid #2563EB;
+            box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2);
+        }
+
+        /* 暱稱輸入框 */
+        .input-nickname {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-nickname:focus {
+            border-color: #2563EB;
+        }
+
+        .btn-start-trip {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            color: white;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+            transition: transform 0.1s;
+        }
+
+        .btn-start-trip:active {
+            transform: scale(0.98);
+        }
+
+        /* --- [新增] 使用者狀態顯示區 (替代原本的輸入框) --- */
+        .user-status-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid #E5E7EB;
+            margin-bottom: 15px;
+            cursor: pointer;
+            /* 讓使用者知道可以點擊 */
+            transition: background 0.2s;
+        }
+
+        .user-status-card:active {
+            background: #F9FAFB;
+        }
+
+        .user-info-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-avatar {
+            font-size: 2rem;
+            background: #F3F4F6;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .current-user-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .current-user-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        .current-user-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .btn-switch-user {
+            background: #EFF6FF;
+            color: #2563EB;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* --- [新增] 登出確認彈窗 --- */
+        .logout-box {
+            text-align: center;
+        }
+
+        .logout-avatar {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
         }
     </style>
 </head>
@@ -6339,10 +6590,9 @@
         </div>
     </div>
 
-    <!-- TAB 6: 旅程紀錄 (New) -->
+    <!-- TAB 6: 旅程記錄 (New) -->
     <div id="view-ledger" class="container">
-        <div class="card"
-            style="margin-bottom: 12px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white;">
+        <div class="card" style="margin-bottom: 12px; background: #5A92E8; color: white;">
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
                 <div id="ledger-header-info">
                     <div style="font-size: 0.8rem; opacity: 0.9;" id="ledger-view-title">總支出 (JPY)</div>
@@ -6352,10 +6602,10 @@
                 <div style="display: flex; gap: 8px;">
                     <button onclick="filterLedgerView('finance')" class="btn-icon-circle" id="btn-view-finance">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <circle cx="12" cy="12" r="8"></circle>
-                            <line x1="12" y1="8" x2="12" y2="16"></line>
-                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                            <path d="M12 18V6"></path>
                         </svg>
                     </button>
                     <button onclick="filterLedgerView('note')" class="btn-icon-circle" id="btn-view-note"
@@ -6380,33 +6630,35 @@
 
         <div class="card" id="ledger-input-card" style="margin-bottom: 15px;">
             <div class="card-content" style="padding: 12px;">
-                <div id="avatar-selector-container"
-                    style="margin-bottom: 15px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
-                    <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; font-weight: 500;">紀錄者身分：</div>
-
-                    <div id="avatar-list"
-                        style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 0; margin-bottom: 10px; -webkit-overflow-scrolling: touch;">
+                <!-- [新增] 使用者狀態顯示 (點擊可切換身分) -->
+                <div id="user-status-display" class="user-status-card" onclick="showLogoutPopup()">
+                    <div class="user-info-left">
+                        <div id="display-current-avatar" class="current-avatar">👤</div>
+                        <div class="current-user-text">
+                            <span class="current-user-label">目前記錄身分</span>
+                            <span id="display-current-name" class="current-user-name">請登入</span>
+                        </div>
                     </div>
-
-                    <div
-                        style="display: flex; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 8px;">
-                        <span id="current-selected-emoji" style="font-size: 1.2rem; margin-right: 8px;">🦁</span>
-                        <input type="text" id="custom-user-name" placeholder="輸入紀錄者名稱..."
-                            onchange="window.TEMP_USER_NAME = this.value"
-                            style="background: transparent; border: none; outline: none; font-size: 0.9rem; width: 100%; font-weight: 700; color: #1F2937;"
-                            value="爸爸" oninput="updateUserInfoFromUI()">
-                    </div>
+                    <div class="btn-switch-user">切換</div>
+                    <!-- 隱藏欄位，確保相容舊有的 handleLedgerSubmit -->
+                    <input type="hidden" id="custom-user-name" value="">
                     <input type="hidden" id="selected-user-info" value="">
                 </div>
 
                 <div id="ledger-finance-fields">
-                    <input type="text" id="ledger-item" placeholder="項目內容..."
-                        style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                    <div style="display: flex; gap: 8px;">
-                        <input type="number" id="ledger-amount" placeholder="金額 (JPY)"
-                            style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-                        <button onclick="handleLedgerSubmit()" class="btn-primary"
-                            style="width: 80px; margin: 0;">送出</button>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <input type="text" id="ledger-item" placeholder="項目內容..."
+                            style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <input type="number" id="ledger-amount" placeholder="金額"
+                            style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                            style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -6592,11 +6844,14 @@
 
         <div class="nav-item" data-target="view-ledger" onclick="switchTab(this)">
             <span class="nav-icon">
-                <svg class="icon-sprite">
-                    <use href="#icon-weather"></use>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                    <path d="M12 18V6"></path>
                 </svg>
             </span>
-            旅程紀錄
+            旅程記錄
         </div>
 
         <div class="nav-item" data-target="view-ai" onclick="switchTab(this)">
@@ -8501,7 +8756,7 @@
             document.getElementById(targetId).classList.add('active');
 
             window.scrollTo(0, 0);
-            // 如果切換到「旅程紀錄」分頁，強制初始化頭像選單
+            // 如果切換到「旅程記錄」分頁，強制初始化頭像選單
             if (targetId === 'view-ledger') {
                 // 使用 setTimeout 確保 DOM 已經完全顯示後再執行
                 setTimeout(() => {
@@ -10586,63 +10841,62 @@
         }
         // [結束] 替換身分定義相關邏輯
 
-        // [最終淨化版] 處理記帳送出 (徹底防止資料污染)
+        // [最終淨化版] 處理記帳送出 (徹底防止資料污染 + 按鈕回饋優化)
         async function handleLedgerSubmit() {
-            showGlobalLoading();
-            console.log("【執行版本：v2026-CLEAN-FLOW】");
+            // 判斷是否為記帳模式 (決定要用哪種 Loading 方式)
+            const isFinance = (document.getElementById('ledger-type')?.value === 'finance') ||
+                (document.getElementById('ledger-finance-fields').style.display !== 'none');
+
+            // 取得按鈕 (僅 Finance 模式)
+            const btnFinance = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
+            // 備份原始圖示 (紙飛機)
+            const originalIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="btn-icon-original" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+
+            if (isFinance && btnFinance) {
+                // [Finance Mode] 使用按鈕內 Loading (橘色轉圈圈)
+                btnFinance.disabled = true;
+                btnFinance.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                    <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                </svg>`;
+            } else {
+                // [Note Mode] 維持全域 Loading
+                showGlobalLoading();
+            }
+
+            console.log("【執行版本：v2026-CLEAN-FLOW + UX回饋】");
 
             try {
                 // ============================================================
                 // 1. 抓取使用者資料 (多重來源 + 髒資料清洗)
                 // ============================================================
+                // 來源 A: 優先讀取 LocalStorage
+                let userName = localStorage.getItem('last_user_name');
+                if (!userName && window.TEMP_USER_NAME) userName = window.TEMP_USER_NAME.trim();
 
-                let userName = '';
-
-                // 來源 A: 優先讀取 onchange 存下的值 (最準確)
-                if (window.TEMP_USER_NAME) {
-                    userName = window.TEMP_USER_NAME.trim();
-                }
-                // 來源 B: 如果沒有，嘗試直接抓 DOM
-                else {
+                // 來源 C: 最後嘗試 DOM
+                if (!userName) {
                     const el = document.getElementById('custom-user-name') || document.querySelector('.user-name-input');
                     if (el) userName = el.value.trim();
                 }
 
-                // ★★★ 核心淨化邏輯 (The Sanitizer) ★★★
-                // 這是斬斷惡性循環的關鍵！
-                // 如果名字包含 '{' (像 JSON) 或包含 'avatar' 關鍵字，代表抓錯了，強制重置。
+                // ★★★ 核心淨化邏輯 ★★★
                 if (userName.startsWith('{') || userName.includes('"avatar"') || userName.includes('avatar":')) {
                     console.warn("⚠️ 攔截到受汙染的資料！已自動修復。");
                     userName = '匿名';
-
-                    // 順便把髒掉的輸入框清空，避免使用者看到鬼資料
                     const el = document.getElementById('custom-user-name');
                     if (el) el.value = '';
                     window.TEMP_USER_NAME = '';
                 }
 
-                // 防呆：如果是空的或 undefined
-                if (!userName || userName === 'undefined' || userName === 'null') {
-                    userName = '匿名';
-                }
+                if (!userName || userName === 'undefined' || userName === 'null') userName = '匿名';
 
-                // 抓取頭像
-                let userAvatar = '🦁';
-                const avatarEl = document.getElementById('current-selected-emoji');
-                if (avatarEl) userAvatar = avatarEl.innerText.trim();
-
-                // 建立乾淨的 JSON 字串
-                // 因為經過上面的淨化，userName 絕對不會是 JSON 格式的字串
-                const userJsonString = JSON.stringify({
-                    name: userName,
-                    avatar: userAvatar
-                });
+                let userAvatar = localStorage.getItem('last_user_emoji') || '🦁';
 
                 // ============================================================
-                // 2. 準備 Payload (完全對接 backend.gs)
+                // 2. 準備 Payload
                 // ============================================================
-
-                // 匯率邏輯
                 let finalRate = 0.21;
                 const manualRateEl = document.getElementById('calc-rate');
                 if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
@@ -10660,29 +10914,22 @@
                 const rawAmount = document.getElementById('ledger-amount').value;
                 const amountJpy = parseFloat(rawAmount) || 0;
                 const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
-
-                const isFinance = (document.getElementById('ledger-type')?.value === 'finance') ||
-                    (document.getElementById('ledger-finance-fields').style.display !== 'none');
-
-                // 筆記模式強制金額歸零
                 const finalAmountJpy = isFinance ? String(amountJpy) : "0";
                 const finalAmountTwd = isFinance ? String(amountTwd) : "0";
 
                 const payloadData = {
-                    action: 'upload',
+                    action: window.editingId ? 'edit' : 'upload',
                     token: (typeof getKey === 'function') ? getKey('gas_token') : '',
                     type: isFinance ? 'finance' : 'note',
-                    id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now()),
-
+                    id: window.editingId ? window.editingId : ((window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now())),
                     userName: userName,
                     userAvatar: userAvatar,
-
                     date: new Date().toISOString().split('T')[0],
                     timestamp: new Date().toISOString(),
                     rate: String(finalRate),
                     twdAmount: finalAmountTwd,
-                    item: document.getElementById('ledger-item')?.value || '',
-                    content: document.getElementById('ledger-note-content')?.value || '',
+                    item: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
+                    content: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     amount: finalAmountJpy
                 };
 
@@ -10694,31 +10941,51 @@
                 const result = await resp.json();
 
                 if (result.status === 'success' || result.result === 'success') {
-                    if (isFinance) {
-                        alert(`✅ 記帳成功！\n(金額: ¥${amountJpy} ≈ NT$${amountTwd})`);
-                    } else {
-                        alert(`✅ 記事儲存成功！`);
-                    }
-
-                    // 清空全域變數與介面
-                    window.TEMP_USER_NAME = '';
-                    const nameInput = document.getElementById('custom-user-name');
-                    if (nameInput) nameInput.value = '';
-
+                    // 清空輸入
                     document.getElementById('ledger-item').value = '';
                     document.getElementById('ledger-amount').value = '';
                     document.getElementById('ledger-note-content').value = '';
 
+                    if (window.editingId) window.editingId = null;
+
+                    // [回饋顯示邏輯]
+                    if (isFinance && btnFinance) {
+                        // 顯示綠色 OK
+                        btnFinance.innerHTML = `<span style="color:#10B981; font-weight:900; font-size:1.2rem;">OK</span>`;
+                        // 1.5秒後還原
+                        setTimeout(() => {
+                            btnFinance.innerHTML = originalIcon;
+                            btnFinance.querySelector('svg').style.stroke = 'var(--primary)'; // 確保顏色正確
+                            btnFinance.disabled = false;
+                        }, 1500);
+                    } else {
+                        // Note 模式維持 Alert
+                        alert(`✅ 儲存成功！`);
+                    }
+
                     if (typeof syncLedgerData === 'function') await syncLedgerData();
                 } else {
-                    alert("⚠️ 儲存失敗: " + (result.message || "未知錯誤"));
+                    throw new Error(result.message || "未知錯誤");
                 }
 
             } catch (e) {
                 console.error("執行錯誤:", e);
-                alert("❌ 程式錯誤: " + e.message);
+                // 失敗回饋
+                if (isFinance && btnFinance) {
+                    // 顯示紅色 NG
+                    btnFinance.innerHTML = `<span style="color:#EF4444; font-weight:900; font-size:1.2rem;">NG</span>`;
+                    setTimeout(() => {
+                        btnFinance.innerHTML = originalIcon;
+                        btnFinance.querySelector('svg').style.stroke = 'var(--primary)';
+                        btnFinance.disabled = false;
+                    }, 2000);
+                    // 失敗時還是跳個 alert 讓使用者知道訊息，或者省略？使用者說 "失敗或異常則是紅色NG"，沒說要 alert
+                    // 這裡選擇只顯示 NG 視覺回饋，若使用者需要詳細訊息可看 console
+                } else {
+                    alert("❌ 錯誤: " + e.message);
+                }
             } finally {
-                hideGlobalLoading();
+                if (!isFinance) hideGlobalLoading();
             }
         }
 
@@ -10747,6 +11014,9 @@
             renderLedgerList(rawLedgerData);
         }
 
+        // [新增] 確保全域變數存在 (解決 Delete/Edit 找不到資料的問題)
+        window.rawLedgerData = [];
+
         // B. 更新後的同步函式 (加入快取機制)
         async function syncLedgerData() {
             const url = getKey('gas_url');
@@ -10757,15 +11027,18 @@
                 const res = await fetch(`${url}?token=${token}&action=getAll`);
                 const result = await res.json();
                 if (result.status === 'success') {
-                    rawLedgerData = result.data; // ★ 有一說一：將資料存入全域變數
-                    renderLedgerList(rawLedgerData);
+                    // [修正] 強制寫入 window 物件，確保 deleteLedgerItem 可以讀取
+                    window.rawLedgerData = result.data;
+                    // 同時更新本地變數 (如果有的話)以防萬一
+                    rawLedgerData = result.data;
+                    renderLedgerList(window.rawLedgerData);
                 }
             } catch (e) {
                 console.error("同步失敗", e);
             }
         }
 
-        // [修正版] 渲染列表 (整合強效解析邏輯)
+        // [修正版] 渲染列表 (分組 + 折疊 + 含年份)
         function renderLedgerList(data) {
             const listContainer = document.getElementById('ledger-list');
             if (!listContainer) return;
@@ -10773,20 +11046,10 @@
             // 排序：新的在上面
             data.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
 
-            let html = '';
+            const filteredData = data.filter(item => item.type === currentLedgerFilter);
+
             let totalJPY = 0;
             let totalTWD = 0;
-
-            // 時間格式化工具
-            const formatFullDateTime = (isoString) => {
-                if (!isoString) return '';
-                try {
-                    const d = new Date(isoString);
-                    return `${(d.getMonth() + 1)}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-                } catch (e) { return isoString; }
-            };
-
-            const filteredData = data.filter(item => item.type === currentLedgerFilter);
 
             if (filteredData.length === 0) {
                 listContainer.innerHTML = `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
@@ -10794,78 +11057,213 @@
                 return;
             }
 
+            // 1. 分組邏輯 (Group By Date: YYYY-MM-DD)
+            const groups = {};
             filteredData.forEach(item => {
-                // ★★★ 核心修正：應用您找到的強效解析邏輯 ★★★
-                let displayUser = { name: '未知', avatar: '👤' };
-
+                let dateStr = 'Unknown';
+                let timeObj = new Date();
                 try {
-                    if (typeof item.user === 'object' && item.user !== null) {
-                        // 如果已經是物件 (有些 GAS 寫法會直接回傳物件)
-                        displayUser = item.user;
-                    } else if (typeof item.user === 'string') {
-                        // 如果是字串 (最常見的情況)
-                        if (item.user.trim().startsWith('{')) {
-                            displayUser = JSON.parse(item.user);
-                        } else {
-                            // 舊資料相容
-                            displayUser = { name: item.user, avatar: '👤' };
-                        }
-                    }
-                } catch (e) {
-                    console.warn("解析使用者資料失敗", item.user);
-                }
+                    timeObj = new Date(item.timestamp || item.date);
+                    // 格式：YYYY-MM-DD
+                    const y = timeObj.getFullYear();
+                    const m = String(timeObj.getMonth() + 1).padStart(2, '0');
+                    const d = String(timeObj.getDate()).padStart(2, '0');
+                    dateStr = `${y}-${m}-${d}`;
+                } catch (e) { }
 
-                const displayDateTime = formatFullDateTime(item.timestamp || item.date);
+                if (!groups[dateStr]) groups[dateStr] = [];
+                groups[dateStr].push(item);
 
+                // 計算總額 (不變)
                 if (item.type === 'finance') {
                     const jpy = parseFloat(item.amount || 0);
-                    // 優先顯示後端存的 TWD，若無則前端重算
                     const twd = item.twdAmount ? parseInt(item.twdAmount) : Math.round(jpy * (item.rate || 0.21));
-
                     totalJPY += jpy;
                     totalTWD += twd;
-
-                    //const displayTitle = item.item || item.content || '無標題';
-                    const displayTitle = item.content || item.item || '無標題';
-
-                    html += `
-                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #EF4444; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div style="display: flex; gap: 12px;">
-                            <div style="display:flex; flex-direction:column; align-items:center; min-width:40px;">
-                                <span style="font-size: 1.8rem; line-height: 1;">${displayUser.avatar || '👤'}</span>
-                                <span style="font-size: 0.7rem; color: #6B7280; margin-top:2px; font-weight:500;">${displayUser.name || '成員'}</span>
-                            </div>
-                            <div>
-                                <div style="font-weight: 700; font-size: 1.1rem; color: #1F2937; margin-bottom: 4px;">${displayTitle}</div>
-                                <div style="font-size: 0.8rem; color: #9CA3AF;">${displayDateTime}</div>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 700; font-size: 1.2rem; color: #EF4444;">¥${jpy.toLocaleString()}</div>
-                            <div style="font-size: 0.85rem; color: #6B7280;">≈ NT$${twd.toLocaleString()}</div>
-                        </div>
-                    </div>
-                </div>`;
-                } else {
-                    // 筆記模式
-                    const noteContent = item.content || item.item || '無內容';
-                    html += `
-                <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB; background: white; border-radius: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 1.4rem;">${displayUser.avatar || '👤'}</span>
-                            <span style="font-size: 0.85rem; font-weight: 600; color:#374151;">${displayUser.name}</span>
-                        </div>
-                        <div style="font-size: 0.75rem; color: #9ca3af;">${displayDateTime}</div>
-                    </div>
-                    <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${noteContent}</div>
-                </div>`;
                 }
+            });
+
+            // 2. 渲染分組
+            let html = '';
+            // 取得今天的日期字串 (用來判斷是否預設展開)
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+            // 排序日期 (新的日期在上面)
+            const sortedDates = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
+
+            sortedDates.forEach(dateKey => {
+                const groupItems = groups[dateKey];
+                const isToday = (dateKey === todayStr);
+
+                // 格式化顯示標題 (YYYY/MM/DD + 星期)
+                let displayDateTitle = dateKey;
+                try {
+                    const d = new Date(dateKey); // 這裡會是 UTC 00:00，但因為我們只取年月日，應該沒差
+                    // 修正：直接解析字串避免時區問題
+                    const [yy, mm, dd] = dateKey.split('-');
+                    const dateObj = new Date(parseInt(yy), parseInt(mm) - 1, parseInt(dd));
+                    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                    displayDateTitle = `${yy}/${mm}/${dd} (${dayNames[dateObj.getDay()]})`;
+                } catch (e) { }
+
+                // 標題 HTML (點擊切換顯示)
+                // isToday 預設展開，其他預設折疊
+                const arrowTransform = isToday ? 'rotate(180deg)' : 'rotate(0deg)';
+                const contentDisplay = isToday ? 'block' : 'none';
+
+                // 生成 Group ID
+                const groupId = `group-${dateKey}`;
+
+                const itemCount = groupItems.length; // [新增] 計算筆數
+
+                html += `
+                <div class="ledger-group" style="margin-bottom: 20px;">
+                    <div onclick="toggleLedgerGroup('${groupId}', this)" 
+                         style="display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; cursor: pointer; user-select: none;">
+                        <div style="font-weight: 700; color: #4B5563; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            <span>${displayDateTitle}</span>
+                            <span style="font-size: 0.85rem; color: #9CA3AF; font-weight: 500;">(${itemCount})</span>
+                            ${isToday ? '<span style="font-size:0.75rem; color:#EF4444; background:#FEE2E2; padding:2px 6px; border-radius:4px;">Today</span>' : ''}
+                        </div>
+                        <svg class="group-arrow" style="width: 20px; height: 20px; transition: transform 0.3s; transform: ${arrowTransform}; color: #9CA3AF;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    
+                    <div id="${groupId}" style="display: ${contentDisplay};">
+                `;
+
+                // 渲染該日期的所有項目
+                groupItems.forEach(item => {
+                    // ★★★ 核心解析邏輯 (與原本相同) ★★★
+                    let displayUser = { name: '未知', avatar: '👤' };
+                    try {
+                        if (typeof item.user === 'object' && item.user !== null) {
+                            displayUser = item.user;
+                        } else if (typeof item.user === 'string') {
+                            if (item.user.trim().startsWith('{')) {
+                                displayUser = JSON.parse(item.user);
+                            } else {
+                                displayUser = { name: item.user, avatar: '👤' };
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("解析使用者資料失敗", item.user);
+                    }
+
+                    // 時間只顯示 HH:mm (因為日期在標題了)
+                    let timeStr = '';
+                    try {
+                        const t = new Date(item.timestamp || item.date);
+                        timeStr = `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`;
+                    } catch (e) { }
+
+                    if (item.type === 'finance') {
+                        const jpy = parseFloat(item.amount || 0);
+                        const twd = item.twdAmount ? parseInt(item.twdAmount) : Math.round(jpy * (item.rate || 0.21));
+                        const displayTitle = item.content || item.item || '無標題';
+
+                        // 驗證身分
+                        const currentUserName = localStorage.getItem('last_user_name');
+                        let actionButtons = '';
+
+                        if (currentUserName && displayUser.name === currentUserName) {
+                            actionButtons = `
+                            <div style="display: flex; gap: 10px; margin-top: 8px; justify-content: flex-end;">
+                                <button onclick="editLedgerItem('${item.id}')" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="deleteLedgerItem('${item.id}', this)" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            </div>`;
+                        }
+
+                        html += `
+                        <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #F97316; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="display: flex; gap: 12px;">
+                                    <div style="display:flex; flex-direction:column; align-items:center; min-width:40px;">
+                                        <span style="font-size: 1.8rem; line-height: 1;">${displayUser.avatar || '👤'}</span>
+                                        <span style="font-size: 0.7rem; color: #6B7280; margin-top:2px; font-weight:500;">${displayUser.name || '成員'}</span>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 1.1rem; color: #1F2937; margin-bottom: 4px;">${displayTitle}</div>
+                                        <div style="font-size: 0.8rem; color: #9CA3AF;">${timeStr}</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-weight: 700; font-size: 1.2rem; color: #F97316;">¥${jpy.toLocaleString()}</div>
+                                    <div style="font-size: 0.85rem; color: #6B7280;">≈ NT$${twd.toLocaleString()}</div>
+                                </div>
+                            </div>
+                            ${actionButtons}
+                        </div>`;
+                    } else {
+                        // 筆記模式
+                        const noteContent = item.content || item.item || '無內容';
+                        const currentUserName = localStorage.getItem('last_user_name');
+                        let actionButtons = '';
+
+                        if (currentUserName && displayUser.name === currentUserName) {
+                            actionButtons = `
+                            <div style="display: flex; gap: 10px; margin-top: 8px; justify-content: flex-end; border-top: 1px dashed #eee; padding-top: 8px;">
+                                <button onclick="editLedgerItem('${item.id}')" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="deleteLedgerItem('${item.id}', this)" style="background:none; border:none; cursor:pointer; padding:4px;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            </div>`;
+                        }
+
+                        html += `
+                        <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB; background: white; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span style="font-size: 1.4rem;">${displayUser.avatar || '👤'}</span>
+                                    <span style="font-size: 0.85rem; font-weight: 600; color:#374151;">${displayUser.name}</span>
+                                </div>
+                                <div style="font-size: 0.75rem; color: #9ca3af;">${timeStr}</div>
+                            </div>
+                            <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${noteContent}</div>
+                            ${actionButtons}
+                        </div>`;
+                    }
+                });
+
+                html += `</div></div>`; // Close group div
             });
 
             listContainer.innerHTML = html;
             updateTotalDisplay(totalJPY, totalTWD);
+        }
+
+        // [新增] 切換折疊顯示
+        function toggleLedgerGroup(groupId, headerEl) {
+            const content = document.getElementById(groupId);
+            const arrow = headerEl.querySelector('.group-arrow');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.display = 'none';
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
         }
 
         // 輔助函式：更新上方總金額
@@ -10883,7 +11281,369 @@
             }
         }
 
+
+
+        // --- [新增] 使用者身分管理邏輯 (Welcome Flow) ---
+
+        // 1. 檢查使用者 Session
+        function checkUserSession() {
+            const userName = localStorage.getItem('last_user_name');
+            const userAvatar = localStorage.getItem('last_user_emoji');
+
+            // 嚴格檢查：必須兩個都有值，且 name 不是髒資料
+            let isValid = false;
+            if (userName && userAvatar) {
+                if (!userName.trim().startsWith('{') && userName !== 'undefined' && userName !== 'null') {
+                    isValid = true;
+                }
+            }
+
+            if (isValid) {
+                // 已登入：更新 UI 並隱藏迎賓頁
+                updateUserDisplay();
+                hideWelcomeModal();
+                updateUserInfoFromUI(); // 確保 hidden fields 同步
+            } else {
+                // 未登入：顯示迎賓頁
+                showWelcomeModal();
+            }
+        }
+
+        // 2. 顯示迎賓 Modal
+        function showWelcomeModal() {
+            const modal = document.getElementById('welcome-modal');
+            modal.style.display = 'flex';
+            initWelcomeAvatarSelector();
+        }
+
+        // 3. 隱藏迎賓 Modal
+        function hideWelcomeModal() {
+            document.getElementById('welcome-modal').style.display = 'none';
+        }
+
+        // 4. 初始化迎賓頁頭像選擇器
+        let selectedWelcomeAvatar = '🦁'; // 預設
+
+        function initWelcomeAvatarSelector() {
+            const container = document.getElementById('welcome-avatar-grid');
+            // [修正] 改用 children.length 檢查，避免被 HTML 註解誤導
+            if (container.children.length > 0) return;
+
+            // 使用與原本相同的頭像列表
+            const emojis = [
+                '🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷',
+                '🐹', '🐻', '🐮', '🐸', '🐔', '🐧', '🦄', '🐙', '🦖', '🐬'
+            ];
+
+            container.innerHTML = '';
+            emojis.forEach(emoji => {
+                const div = document.createElement('div');
+                div.className = 'avatar-option';
+                div.innerText = emoji;
+                if (emoji === selectedWelcomeAvatar) div.classList.add('selected');
+
+                div.onclick = function () {
+                    // 移除其他選中狀態
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    // 選中當前
+                    this.classList.add('selected');
+                    selectedWelcomeAvatar = emoji;
+                };
+                container.appendChild(div);
+            });
+        }
+
+        // 5. 處理登入 (按鈕點擊)
+        function handleLogin() {
+            const nameInput = document.getElementById('welcome-nickname');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('請輸入一個帥氣或可愛的暱稱！');
+                return;
+            }
+
+            // 儲存到 LocalStorage
+            localStorage.setItem('last_user_name', name);
+            localStorage.setItem('last_user_emoji', selectedWelcomeAvatar);
+
+            // 更新 UI
+            updateUserDisplay();
+            updateUserInfoFromUI(); // 同步 hidden fields
+
+            // 關閉 Modal
+            hideWelcomeModal();
+
+            // 歡迎提示 (可選)
+            // alert(`歡迎加入旅程，${name}！`);
+        }
+
+        // 6. 顯示登出確認窗
+        function showLogoutPopup() {
+            const name = localStorage.getItem('last_user_name') || '成員';
+            const avatar = localStorage.getItem('last_user_emoji') || '👤';
+
+            document.getElementById('logout-name-preview').innerText = name;
+            document.getElementById('logout-avatar-preview').innerText = avatar;
+            document.getElementById('logout-popup').style.display = 'flex';
+        }
+
+        // 7. 確認登出
+        function handleLogoutConfirm() {
+            // 清除 LocalStorage
+            localStorage.removeItem('last_user_name');
+            localStorage.removeItem('last_user_emoji');
+
+            // 關閉確認窗
+            document.getElementById('logout-popup').style.display = 'none';
+
+            // 重新顯示迎賓頁
+            showWelcomeModal();
+        }
+
+        // 8. 更新 UI顯示 (將 LocalStorage 資料填入 user-status-display 和 hidden fields)
+        function updateUserDisplay() {
+            const name = localStorage.getItem('last_user_name') || '請登入';
+            const avatar = localStorage.getItem('last_user_emoji') || '👤';
+
+            // 更新顯示卡片
+            document.getElementById('display-current-name').innerText = name;
+            document.getElementById('display-current-avatar').innerText = avatar;
+
+            // 更新隱藏欄位 (給 handleLedgerSubmit 用)
+            const nameInput = document.getElementById('custom-user-name');
+            if (nameInput) nameInput.value = name;
+
+            // 確保隱藏的 JSON 欄位也更新 (相容性)
+            updateUserInfoFromUI();
+        }
+
+        // [Override] 修改既有的 updateUserInfoFromUI 以支援我們的新流程
+        // 由於我們移除了原本的 UI，這裡需要改寫以從 hidden field 讀取或直接從 LS 讀取
+        // 注意：原本的函數是綁定在 input oninput 上的，現在 input 是 hidden 的
+        function updateUserInfoFromUI() {
+            const name = document.getElementById('custom-user-name').value || localStorage.getItem('last_user_name') || '匿名';
+            const avatar = localStorage.getItem('last_user_emoji') || '🦁';
+
+            // 構建 JSON 字串 (給後端用)
+            const userInfo = JSON.stringify({
+                name: name,
+                avatar: avatar
+            });
+
+            const hiddenInput = document.getElementById('selected-user-info');
+            if (hiddenInput) hiddenInput.value = userInfo;
+
+            // 確保全域變數同步 (如果有用到的話)
+            window.TEMP_USER_NAME = name;
+        }
+
+        // [Hook] 在切換 Tab 時檢查 (如果切換到旅程記錄 view-ledger)
+        // 覆寫原本的 switchTab 邏輯可能會太複雜，我們選擇用事件監聽或在 switchTab 後面掛鉤
+        // 這裡採用簡單的定時檢查或在 switchTab 的 onclick 中加入
+        // 由於 switchTab 是全域的，我們可以在這裡劫持它嗎？ 
+        // 比較安全的方式是：找到 nav-item，為其添加額外的 onclick
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ledgerBtn = document.querySelector('.nav-item[data-target="view-ledger"]');
+            if (ledgerBtn) {
+                ledgerBtn.addEventListener('click', () => {
+                    // 點擊旅程記錄分頁時，檢查 Session
+                    checkUserSession();
+                });
+            }
+
+            if (document.getElementById('view-ledger').classList.contains('active')) {
+                checkUserSession();
+            }
+
+            // [新增] 應用程式啟動時，自動抓取一次匯率 (解決電腦版沒開計算機就抓不到匯率的問題)
+            if (typeof fetchLiveRate === 'function') {
+                fetchLiveRate();
+            }
+        });
+
+        // [新增] 編輯與刪除功能 (需配合 GAS 後端更新)
+        // ==========================================
+        window.editingId = null; // 全域變數：紀錄目前正在編輯的 ID
+        window.deleteConfirmMap = {}; // [新增] 用來記錄哪些 ID 處於刪除確認狀態
+
+        async function deleteLedgerItem(id, btnElement) {
+            // [狀態 1] 第一次點擊：變更為確認狀態 (紅色實心垃圾桶)
+            if (!window.deleteConfirmMap[id]) {
+                window.deleteConfirmMap[id] = true;
+
+                // 變更圖示為紅色實心
+                const originalContent = btnElement.innerHTML;
+                btnElement.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>`;
+
+                // 3秒後若沒點擊，自動還原
+                setTimeout(() => {
+                    if (window.deleteConfirmMap[id] === true) { // 如果還在確認狀態(沒進入刪除中)
+                        delete window.deleteConfirmMap[id];
+                        btnElement.innerHTML = originalContent; // 還原
+                    }
+                }, 3000);
+                return;
+            }
+
+            // [狀態 2] 第二次點擊：執行刪除 (水位下降動畫)
+            window.deleteConfirmMap[id] = 'deleting'; // 標記為刪除中
+
+            // 替換為水位下降動畫 SVG
+            // 這裡使用兩個 path，一個是外框，一個是內部水位 (用 CSS animation 控制 height 或 clip-path)
+            btnElement.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="none">
+                 <!-- 定義遮罩 (垃圾桶形狀) -->
+                 <defs>
+                    <clipPath id="trash-clip-${id}">
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </clipPath>
+                 </defs>
+                 
+                 <!-- 背景 (外框) -->
+                 <path d="M3 6h18" stroke="#EF4444" stroke-width="2" stroke-linecap="round"></path>
+                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#EF4444" stroke-width="2"></path>
+                 
+                 <!-- 水位 (紅色區塊) -->
+                 <!-- 使用 rect 配合 mask，並對 rect 做 translateY 動畫 -->
+                 <rect x="0" y="0" width="24" height="24" fill="#EF4444" clip-path="url(#trash-clip-${id})" style="animation: drainWater 1.5s linear forwards; transform-origin: bottom;">
+                 </rect>
+                 
+                 <style>
+                    @keyframes drainWater {
+                        0% { transform: translateY(0); }
+                        100% { transform: translateY(24px); }
+                    }
+                 </style>
+            </svg>`;
+
+            try {
+                const url = getKey('gas_url');
+                const dataList = window.rawLedgerData || [];
+                const item = dataList.find(d => d.id === id);
+                const type = item ? item.type : 'finance';
+
+                const payload = {
+                    action: 'delete',
+                    id: id,
+                    type: type,
+                    token: getKey('gas_token')
+                };
+
+                const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+
+                if (result.status === 'success') {
+                    // [狀態 3] 成功：顯示 OK
+                    btnElement.innerHTML = `<span style="color:#10B981; font-weight:900; font-size:0.9rem;">OK</span>`;
+
+                    // 短暫停留後移除項目
+                    setTimeout(() => {
+                        if (window.rawLedgerData) {
+                            window.rawLedgerData = window.rawLedgerData.filter(item => item.id !== id);
+                            renderLedgerList(window.rawLedgerData);
+                        } else {
+                            syncLedgerData();
+                        }
+                    }, 500);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (e) {
+                console.error(e);
+                // [狀態 4] 失敗：顯示 NG
+                btnElement.innerHTML = `<span style="color:#EF4444; font-weight:900; font-size:0.9rem;">NG</span>`;
+                setTimeout(() => {
+                    delete window.deleteConfirmMap[id];
+                    // 還原回初始 SVG (空心垃圾桶)
+                    btnElement.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>`;
+                }, 1500);
+            }
+        }
+
+
+        function editLedgerItem(id) {
+            // [修正] 確保讀取全域變數
+            const dataList = window.rawLedgerData || [];
+            const item = dataList.find(d => d.id === id);
+            if (!item) {
+                alert('找不到該筆資料，請重新整理頁面。');
+                return;
+            }
+
+            // 設定全域編輯 ID
+            window.editingId = id;
+
+            // 切換到對應的 Tab (Finance or Note)
+            if (item.type === 'finance') {
+                filterLedgerView('finance');
+                // 填入資料
+                document.getElementById('ledger-item').value = item.item || item.content || '';
+                document.getElementById('ledger-amount').value = item.amount || '';
+                // 為了讓使用者知道正在編輯，改變按鈕文字
+                const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
+                if (btn) {
+                    // 改為顯示「編輯(打勾)」圖示
+                    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                }
+            } else {
+                filterLedgerView('note');
+                // 填入資料
+                document.getElementById('ledger-note-content').value = item.content || item.item || '';
+                // 為了讓使用者知道正在編輯，改變按鈕文字
+                const btn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
+                if (btn) btn.innerText = '更新記事';
+            }
+
+            // 滾動到輸入區
+            document.getElementById('ledger-input-card').scrollIntoView({ behavior: 'smooth' });
+
+            // 提示
+            // alert('請修改上方內容後，點擊按鈕送出。');
+        }
+
     </script>
+    <!-- [新增] 歡迎與身分選擇 Modal -->
+    <div id="welcome-modal">
+        <div class="welcome-box">
+            <div class="welcome-title">歡迎使用旅程記錄 👋</div>
+            <div class="welcome-desc">請選擇您的稱呼與頭像<br>讓旅程記錄更生動！</div>
+
+            <div class="avatar-grid" id="welcome-avatar-grid"></div>
+
+            <input type="text" id="welcome-nickname" class="input-nickname" placeholder="請輸入暱稱 (例如: 爸爸)" maxlength="10"
+                onclick="this.focus()">
+
+            <button class="btn-start-trip" onclick="handleLogin()">開始記錄旅程 </button>
+        </div>
+    </div>
+
+    <!-- [新增] 登出/切換身分確認 Modal -->
+    <div id="logout-popup" class="modal-overlay">
+        <div class="modal-box" style="width: 300px;">
+            <div class="modal-title">切換身分</div>
+            <div class="logout-box">
+                <span id="logout-avatar-preview" class="logout-avatar">👤</span>
+                <p class="modal-desc">確定要登出目前的「<span id="logout-name-preview"
+                        style="font-weight:bold; color:#1F2937;"></span>」身分，並重新選擇嗎？</p>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel"
+                    onclick="document.getElementById('logout-popup').style.display='none'">取消</button>
+                <button class="modal-btn btn-confirm" onclick="handleLogoutConfirm()"
+                    style="background: #EF4444; color: white;">確定登出</button>
+            </div>
+        </div>
+    </div>
     </div>
 </body>
 
