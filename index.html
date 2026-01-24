@@ -6659,6 +6659,15 @@
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
                         </button>
+                        <!-- [新增] 放棄變更按鈕 (Finance) -->
+                        <button id="btn-cancel-edit-finance" onclick="cancelEditMode()" class="btn-cancel-edit"
+                            style="display: none; width: 44px; height: 42px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -6672,6 +6681,15 @@
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                        <!-- [新增] 放棄變更按鈕 (Note) -->
+                        <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
+                            style="display: none; width: 44px; height: 44px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
                         </button>
                     </div>
@@ -10968,7 +10986,14 @@
                     document.getElementById('ledger-amount').value = '';
                     document.getElementById('ledger-note-content').value = '';
 
-                    if (window.editingId) window.editingId = null;
+                    if (window.editingId) {
+                        try {
+                            cancelEditMode(); // [新增] 成功送出後，呼叫取消模式來復原 UI
+                        } catch (e) {
+                            console.error("Cancel edit mode error:", e);
+                            window.editingId = null;
+                        }
+                    }
 
                     // [回饋顯示邏輯]
                     // [回饋顯示邏輯]
@@ -11639,11 +11664,51 @@
                 }
             }
 
+            // [新增] 顯示 Cancel 按鈕
+            if (item.type === 'finance') {
+                const cBtn = document.getElementById('btn-cancel-edit-finance');
+                if (cBtn) cBtn.style.display = 'flex';
+            } else {
+                const cBtn = document.getElementById('btn-cancel-edit-note');
+                if (cBtn) cBtn.style.display = 'flex';
+            }
+
             // 滾動到輸入區
             document.getElementById('ledger-input-card').scrollIntoView({ behavior: 'smooth' });
 
             // 提示
             // alert('請修改上方內容後，點擊按鈕送出。');
+        }
+
+        // [新增] 放棄變更模式
+        function cancelEditMode() {
+            window.editingId = null;
+
+            // 清空輸入
+            document.getElementById('ledger-item').value = '';
+            document.getElementById('ledger-amount').value = '';
+            document.getElementById('ledger-note-content').value = '';
+
+            // 隱藏 Cancel 按鈕
+            const cBtnFin = document.getElementById('btn-cancel-edit-finance');
+            if (cBtnFin) cBtnFin.style.display = 'none';
+            const cBtnNote = document.getElementById('btn-cancel-edit-note');
+            if (cBtnNote) cBtnNote.style.display = 'none';
+
+            // 還原按鈕為紙飛機
+            const btns = document.querySelectorAll('.btn-submit-ledger');
+            btns.forEach(btn => {
+                // 判斷是 Finance 還是 Note，如果是 Note 要藍色 stroke
+                const isNote = btn.parentElement.parentElement.id === 'ledger-note-fields';
+                const color = isNote ? '#2563EB' : 'currentColor';
+
+                btn.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>`;
+            });
         }
 
     </script>
