@@ -6806,12 +6806,14 @@
 
                 <div id="ledger-note-fields" style="display: none;">
                     <div style="display: flex; gap: 8px; align-items: flex-end;">
-                        <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+                        <div
+                            style="flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid #ddd; border-radius: 8px; padding: 8px; background: white;">
                             <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
-                                style="width: 100%; height: 80px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; resize: none;"></textarea>
+                                style="width: 100%; height: 80px; padding: 4px; border: none; outline: none; resize: none;"></textarea>
 
-                            <!-- 圖片預覽水平捲軸 -->
-                            <div id="note-image-preview" class="horizontal-scroll-container" style="display: none;">
+                            <!-- 圖片預覽水平捲軸 (移入輸入框內) -->
+                            <div id="note-image-preview" class="horizontal-scroll-container"
+                                style="display: none; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px;">
                             </div>
                         </div>
 
@@ -11473,28 +11475,25 @@
                         }
 
                         if (imagesData.length > 0) {
-                            // 如果有多張圖片，顯示第一張 + 數量標記，或是顯示網格
-                            // 這裡採用簡易網格 display
-                            const maxShow = 4;
-                            const previewHtml = imagesData.slice(0, maxShow).map((src, idx) => {
-                                const isMore = (idx === maxShow - 1) && (imagesData.length > maxShow);
-                                const moreCount = imagesData.length - maxShow + 1; // +1 因為這一格也被佔用了
-
-                                // 傳遞完整的 imagesData 給 openGallery
-                                // 注意：這裡需要將 imagesData 轉為字串陣列傳遞，但在 HTML 屬性中傳遞陣列不好處理
-                                // 所以我們改用 onclick 直接呼叫，並透過一個全域 Map 或直接傳遞 split 結果 (如果不太長)
-                                // 簡單解法：將 imagesData 存入 data-attr，點擊時讀取
-
+                            // [修正] 改為水平捲動容器，不使用 +n 網格
+                            const previewHtml = imagesData.map((src, idx) => {
+                                // 注意：傳遞 JSON string 需要 escape
                                 return `
-                                 <div class="note-img-thumb" style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer;"
+                                 <div class="note-img-thumb" style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; flex-shrink: 0; cursor: pointer; border:1px solid #eee;"
                                       onclick="openGallery(${idx}, '${escape(JSON.stringify(imagesData))}')">
                                      <img src="${src}" style="width: 100%; height: 100%; object-fit: cover;">
-                                     ${isMore ? `<div style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">+${moreCount}</div>` : ''}
                                  </div>
                                  `;
                             }).join('');
 
-                            imagesHtml = `<div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">${previewHtml}</div>`;
+                            // 加入 horizontal-scroll-container class 並加上 stopPropagation 防止滑動衝突
+                            imagesHtml = `
+                             <div class="horizontal-scroll-container" 
+                                  style="display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px;"
+                                  ontouchstart="event.stopPropagation()" 
+                                  ontouchmove="event.stopPropagation()">
+                                ${previewHtml}
+                             </div>`;
                         }
 
                         let actionButtons = '';
@@ -11952,7 +11951,10 @@
             const noteBtn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
 
             if (noteBtn) {
-                if (noteVal) {
+                // [修正] 只要有文字 OR 有圖片就可以送出
+                const hasImages = window.currentNoteImages && window.currentNoteImages.length > 0;
+
+                if (noteVal || hasImages) {
                     noteBtn.disabled = false;
                     noteBtn.style.opacity = '1';
                     noteBtn.style.cursor = 'pointer';
