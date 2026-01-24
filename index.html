@@ -11165,6 +11165,14 @@
                     if (activeBtn) {
                         // 顯示橘色 OK (編輯) 或 綠色 OK (新增)
                         const okColor = wasEditing ? '#F97316' : '#10B981';
+
+                        // [修正] 強制設定按鈕樣式，不受 validation 影響
+                        activeBtn.style.opacity = '1';
+                        activeBtn.style.filter = 'none';
+                        // 雖然 disable=true (因為清空輸入)，但視覺上我們要它是亮色的
+                        // 這裡可以設 disabled=false 以免有些 CSS selector 影響
+                        activeBtn.disabled = false;
+
                         activeBtn.innerHTML = `<span style="color:${okColor}; font-weight:900; font-size:1.2rem;">OK</span>`;
                         // 1.5秒後還原
                         setTimeout(() => {
@@ -11175,9 +11183,12 @@
                                 // activeBtn.querySelector('svg').style.stroke = isFinance ? '#F97316' : '#2563EB'; 
                                 activeBtn.disabled = false;
                             }
+                            // [修正] 等到還原圖示後，才去檢查狀態 (這時 input 是空的，會變灰)
+                            updateLedgerSubmitState();
                         }, 1500);
                     } else {
                         alert(`✅ 儲存成功！`);
+                        updateLedgerSubmitState();
                     }
 
                     if (typeof syncLedgerData === 'function') await syncLedgerData();
@@ -11185,8 +11196,8 @@
                     throw new Error(result.message || "未知錯誤");
                 }
 
-                // [新增] 成功送出後，也要檢查狀態
-                updateLedgerSubmitState();
+                // [修正] 移除這裡的 updateLedgerSubmitState，改成在 setTimeout 裡做
+                // updateLedgerSubmitState();
 
             } catch (e) {
                 console.error("執行錯誤:", e);
