@@ -6675,23 +6675,27 @@
                     <div style="display: flex; gap: 8px; align-items: flex-end;">
                         <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
                             style="flex: 1; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; min-width: 0;"></textarea>
-                        <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                            style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </button>
-                        <!-- [新增] 放棄變更按鈕 (Note) 縮小60% (44->26, 44->26) -->
-                        <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
-                            style="display: none; width: 26px; height: 26px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
+
+                        <!-- [修正] 將按鈕包在容器內並垂直置中對齊 -->
+                        <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 0;">
+                            <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                                style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                            <!-- [新增] 放棄變更按鈕 (Note) 縮小60% (44->26, 44->26) -->
+                            <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
+                                style="display: none; width: 26px; height: 26px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white"
+                                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -11761,8 +11765,8 @@
             // 還原按鈕為紙飛機
             const btns = document.querySelectorAll('.btn-submit-ledger');
             btns.forEach(btn => {
-                // 判斷是 Finance 還是 Note，如果是 Note 要藍色 stroke
-                const isNote = btn.parentElement.parentElement.id === 'ledger-note-fields';
+                // [修正] 使用 .closest() 來判斷是否為 Note 區塊
+                const isNote = !!btn.closest('#ledger-note-fields');
                 const color = isNote ? '#2563EB' : 'currentColor';
 
                 btn.innerHTML = `
