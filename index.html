@@ -12277,9 +12277,9 @@
                     // 縮放結束，紀錄當前倍率
                     isZooming = false;
                     lastScale = currentScale;
-                    if (lastScale < 1) {
+                    if (lastScale < 1.1) {
                         lastScale = 1;
-                        resetZoom(); // 回彈
+                        resetZoom(); // 稍微縮小就回彈至原始大小，方便進行換頁
                     }
                 } else {
                     // 單指滑動結束判斷
