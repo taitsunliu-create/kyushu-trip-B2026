@@ -46,6 +46,139 @@
             --safe-area-bottom: env(safe-area-inset-bottom);
         }
 
+        /* [新增] 水平捲軸圖片預覽容器 */
+        .horizontal-scroll-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            /* iOS 順暢捲動 */
+            /* 隱藏捲軸但保留功能 */
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE 10+ */
+        }
+
+        .horizontal-scroll-container::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari */
+        }
+
+        .preview-thumb-box {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .preview-thumb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-remove-img {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* [新增] 全螢幕圖庫 Modal */
+        #gallery-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 9999;
+            flex-direction: column;
+        }
+
+        #gallery-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            /* 禁止溢出 */
+            position: relative;
+        }
+
+        /* 圖片容器 - 用於 Zoom */
+        .gallery-slide {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease-out;
+            /* 滑動動畫 */
+            will-change: transform;
+        }
+
+        .gallery-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.1s;
+            /* Zoom 反應快一點 */
+            transform-origin: center center;
+        }
+
+        .gallery-dots {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .gallery-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #888;
+            transition: 0.3s;
+        }
+
+        .gallery-dot.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        .gallery-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 10000;
+            text-shadow: 0 0 5px black;
+        }
+
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -6673,28 +6806,51 @@
 
                 <div id="ledger-note-fields" style="display: none;">
                     <div style="display: flex; gap: 8px; align-items: flex-end;">
-                        <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
-                            style="flex: 1; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; min-width: 0;"></textarea>
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+                            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
+                                style="width: 100%; height: 80px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; resize: none;"></textarea>
+
+                            <!-- 圖片預覽水平捲軸 -->
+                            <div id="note-image-preview" class="horizontal-scroll-container" style="display: none;">
+                            </div>
+                        </div>
 
                         <!-- [修正] 將按鈕包在容器內並垂直置中對齊 -->
-                        <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 0;">
-                            <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                                style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
+                        <!-- [新增] 圖片上傳按鈕與預覽區容器 -->
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <!-- 圖片按鈕 (位於紙飛機上方) -->
+                            <button onclick="document.getElementById('multi-img-input').click()"
+                                style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; background: #EFF6FF; cursor: pointer;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
                                 </svg>
                             </button>
-                            <!-- [新增] 放棄變更按鈕 (Note) 縮小60% (44->26, 44->26) -->
-                            <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
-                                style="display: none; width: 26px; height: 26px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white"
-                                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
+                            <!-- 隱藏的多檔上傳 Input -->
+                            <input type="file" id="multi-img-input" multiple accept="image/*" style="display: none;"
+                                onchange="handleMultiImageSelect(event)">
+
+                            <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 0;">
+                                <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                                    style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                                <!-- [新增] 放棄變更按鈕 (Note) 縮小60% (44->26, 44->26) -->
+                                <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
+                                    style="display: none; width: 26px; height: 26px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white"
+                                        stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -7102,8 +7258,8 @@
     目前的日期是 2026年1月 (請根據使用者提問判斷相對日期)。
     
     【行程總覽】
-    Day 1 (1/25 日): 搭乘星宇航空JX846(07:30出發) 抵達福岡機場(預計12:00) -> 租車(Toyota) -> 熊本城/櫻之馬場 -> 晚餐:勝烈亭豬排 -> 住: The Blossom Kumamoto。
-    Day 2 (1/26 一): 熊本站搭 Aso Boy! (09:00) -> 阿蘇站/草千里/火山博物館 -> 開車往黑川溫泉 -> 住: 黑川溫泉 (入湯手形)。
+    Day 1 (1/25 日): 搭乘星宇航空JX846(07:30出發) 抵達熊本機場(預計12:00) -> 熊本城/櫻之馬場 -> 晚餐:勝烈亭豬排 -> 住: The Blossom Kumamoto。
+    Day 2 (1/26 一): 熊本站搭 Aso Boy! (09:00) -> 租車(Toyota)-> 阿蘇站/草千里/火山博物館 -> 開車往黑川溫泉 -> 住: 黑川溫泉 (入湯手形)。
     Day 3 (1/27 二): 九州自然野生動物園 (叢林巴士) -> 別府地獄巡禮 (海地獄/灶地獄) -> 住: 由布院 (金鱗湖旁)。
     Day 4 (1/28 三): 由布院散策 (湯之坪/Snoopy茶屋) -> 太宰府天滿宮 -> TeamLab Forest 福岡 -> 住: 福岡市區。
     Day 5 (1/29 四): 大濠公園/美術館 -> 天神地下街/PARCO (午餐:極味屋) -> 博多運河城 -> 中洲屋台 -> 住: 福岡市區。
@@ -10974,7 +11130,9 @@
                     twdAmount: finalAmountTwd,
                     item: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     content: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
-                    amount: finalAmountJpy
+                    amount: finalAmountJpy,
+                    // [新增] 加入圖片欄位 (Array of Base64 or URLs)
+                    images: window.currentNoteImages || []
                 };
 
                 // ============================================================
@@ -11277,6 +11435,39 @@
                         // 筆記模式
                         const noteContent = item.content || item.item || '無內容';
                         const currentUserName = localStorage.getItem('last_user_name');
+
+                        // [新增] 圖片處理邏輯
+                        let imagesHtml = '';
+                        let imagesData = [];
+                        if (item.image && typeof item.image === 'string') {
+                            imagesData = item.image.split('\n').filter(u => u.trim() !== '');
+                        }
+
+                        if (imagesData.length > 0) {
+                            // 如果有多張圖片，顯示第一張 + 數量標記，或是顯示網格
+                            // 這裡採用簡易網格 display
+                            const maxShow = 4;
+                            const previewHtml = imagesData.slice(0, maxShow).map((src, idx) => {
+                                const isMore = (idx === maxShow - 1) && (imagesData.length > maxShow);
+                                const moreCount = imagesData.length - maxShow + 1; // +1 因為這一格也被佔用了
+
+                                // 傳遞完整的 imagesData 給 openGallery
+                                // 注意：這裡需要將 imagesData 轉為字串陣列傳遞，但在 HTML 屬性中傳遞陣列不好處理
+                                // 所以我們改用 onclick 直接呼叫，並透過一個全域 Map 或直接傳遞 split 結果 (如果不太長)
+                                // 簡單解法：將 imagesData 存入 data-attr，點擊時讀取
+
+                                return `
+                                 <div class="note-img-thumb" style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer;"
+                                      onclick="openGallery(${idx}, '${escape(JSON.stringify(imagesData))}')">
+                                     <img src="${src}" style="width: 100%; height: 100%; object-fit: cover;">
+                                     ${isMore ? `<div style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">+${moreCount}</div>` : ''}
+                                 </div>
+                                 `;
+                            }).join('');
+
+                            imagesHtml = `<div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">${previewHtml}</div>`;
+                        }
+
                         let actionButtons = '';
 
                         if (currentUserName && displayUser.name === currentUserName) {
@@ -11307,6 +11498,7 @@
                                 <div style="font-size: 0.75rem; color: #9ca3af;">${timeStr}</div>
                             </div>
                             <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${noteContent}</div>
+                            ${imagesHtml}
                             ${actionButtons}
                         </div>`;
                     }
@@ -11683,6 +11875,17 @@
                 if (cBtn) cBtn.style.display = 'flex';
             }
 
+            // [新增] 載入現有圖片 (Note 模式)
+            if (item.type !== 'finance') {
+                window.currentNoteImages = [];
+                // item.image 可能是一串 URL (換行分隔)
+                if (item.image && typeof item.image === 'string') {
+                    const urls = item.image.split('\n').filter(u => u.trim() !== '');
+                    window.currentNoteImages = urls;
+                }
+                renderImagePreviews();
+            }
+
             // 滾動到輸入區
             document.getElementById('ledger-input-card').scrollIntoView({ behavior: 'smooth' });
 
@@ -11756,6 +11959,10 @@
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
 
+            // [新增] 清空圖片
+            window.currentNoteImages = [];
+            renderImagePreviews();
+
             // 隱藏 Cancel 按鈕
             const cBtnFin = document.getElementById('btn-cancel-edit-finance');
             if (cBtnFin) cBtnFin.style.display = 'none';
@@ -11779,6 +11986,250 @@
 
             // [新增] 清空後檢查狀態
             updateLedgerSubmitState();
+        }
+
+        // ============================================================
+        // [新增] 多圖上傳與預覽邏輯
+        // ============================================================
+        window.currentNoteImages = []; // 存放 Base64 字串或 URL
+
+        async function handleMultiImageSelect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            showGlobalLoading(); // 顯示讀取中 (因為壓縮可能花時間)
+
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    // 簡單壓縮: Max 1024px
+                    const base64 = await compressImage(file, 1024, 0.8);
+                    window.currentNoteImages.push(base64);
+                }
+                renderImagePreviews();
+                // 清空 input 讓同一檔案可重複選
+                event.target.value = '';
+            } catch (e) {
+                console.error("Image process error", e);
+                alert("圖片處理失敗");
+            } finally {
+                hideGlobalLoading();
+            }
+        }
+
+        function compressImage(file, maxWidth, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height = Math.round(height * (maxWidth / width));
+                            width = maxWidth;
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
+        }
+
+        function renderImagePreviews() {
+            const container = document.getElementById('note-image-preview');
+            if (!window.currentNoteImages || window.currentNoteImages.length === 0) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+
+            container.style.display = 'flex';
+            container.innerHTML = window.currentNoteImages.map((src, index) => `
+                <div class="preview-thumb-box" onclick="openGallery(${index})">
+                    <img src="${src}" class="preview-thumb-img">
+                    <div class="btn-remove-img" onclick="removeImage(event, ${index})">✕</div>
+                </div>
+            `).join('');
+        }
+
+        function removeImage(e, index) {
+            e.stopPropagation(); // 阻止冒泡觸發 openGallery
+            if (confirm('確定移除這張照片嗎？')) {
+                window.currentNoteImages.splice(index, 1);
+                renderImagePreviews();
+            }
+        }
+
+        // ============================================================
+        // [新增] 全螢幕圖庫邏輯 (含縮放與滑動)
+        // ============================================================
+        let galleryCurrentIndex = 0;
+        let galleryImages = []; // 當前圖庫顯示的圖片來源陣列
+
+        // 開啟圖庫 (來源可能是 window.currentNoteImages 或是 Ledger List 中的圖片)
+        function openGallery(index, imagesSource = null) {
+
+            // 解析 imagesSource (如果是字串)
+            let imgs = imagesSource;
+            if (typeof imagesSource === 'string') {
+                try {
+                    imgs = JSON.parse(unescape(imagesSource));
+                } catch (e) {
+                    imgs = [];
+                }
+            }
+
+            galleryImages = imgs || window.currentNoteImages || [];
+            if (galleryImages.length === 0) return;
+
+            galleryCurrentIndex = index;
+            const modal = document.getElementById('gallery-modal');
+            const container = document.getElementById('gallery-container');
+            const dotsContainer = document.getElementById('gallery-dots');
+
+            // 渲染圖片
+            container.innerHTML = galleryImages.map((src, i) => `
+                <div class="gallery-slide" style="transform: translateX(${(i - index) * 100}%)"
+                     data-index="${i}">
+                    <img src="${src}" class="gallery-img">
+                </div>
+            `).join('');
+
+            // 渲染圓點
+            updateGalleryDots();
+
+            modal.style.display = 'flex';
+
+            // 綁定手勢事件
+            bindGalleryEvents();
+        }
+
+        function closeGallery() {
+            document.getElementById('gallery-modal').style.display = 'none';
+        }
+
+        function updateGalleryDots() {
+            const dotsContainer = document.getElementById('gallery-dots');
+            dotsContainer.innerHTML = galleryImages.map((_, i) => `
+                <div class="gallery-dot ${i === galleryCurrentIndex ? 'active' : ''}"></div>
+            `).join('');
+        }
+
+        function switchGallerySlide(newIndex) {
+            if (newIndex < 0) newIndex = 0;
+            if (newIndex >= galleryImages.length) newIndex = galleryImages.length - 1;
+
+            galleryCurrentIndex = newIndex;
+
+            const slides = document.querySelectorAll('.gallery-slide');
+            slides.forEach(slide => {
+                const idx = parseInt(slide.getAttribute('data-index'));
+                slide.style.transform = `translateX(${(idx - galleryCurrentIndex) * 100}%)`;
+            });
+
+            updateGalleryDots();
+
+            // 重置縮放
+            resetZoom();
+        }
+
+
+        // --- 手勢與縮放邏輯 (Pinch Zoom & Swipe) ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isZooming = false;
+        let currentScale = 1;
+        let lastScale = 1;
+        let initialDistance = 0;
+
+        // 變數儲存當前圖片元素 (用於縮放)
+        function getCurrentImg() {
+            const slide = document.querySelector(`.gallery-slide[data-index="${galleryCurrentIndex}"]`);
+            return slide ? slide.querySelector('img') : null;
+        }
+
+        function bindGalleryEvents() {
+            const container = document.getElementById('gallery-container');
+
+            container.ontouchstart = (e) => {
+                if (e.touches.length === 1) {
+                    // 單指：可能是滑動
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                } else if (e.touches.length === 2) {
+                    // 雙指：縮放起始
+                    isZooming = true;
+                    initialDistance = getDistance(e.touches);
+                }
+            };
+
+            container.ontouchmove = (e) => {
+                e.preventDefault(); // 阻止瀏覽器預設行為
+
+                if (isZooming && e.touches.length === 2) {
+                    // 縮放中
+                    const dist = getDistance(e.touches);
+                    const delta = dist / initialDistance;
+                    const newScale = lastScale * delta;
+
+                    // 限制縮放範圍 (1x ~ 4x)
+                    if (newScale >= 1 && newScale <= 4) {
+                        currentScale = newScale;
+                        const img = getCurrentImg();
+                        if (img) img.style.transform = `scale(${currentScale})`;
+                    }
+                }
+            };
+
+            container.ontouchend = (e) => {
+                if (isZooming) {
+                    // 縮放結束，紀錄當前倍率
+                    isZooming = false;
+                    lastScale = currentScale;
+                    if (lastScale < 1) {
+                        lastScale = 1;
+                        resetZoom(); // 回彈
+                    }
+                } else {
+                    // 單指滑動結束判斷
+                    if (e.changedTouches.length === 1 && currentScale === 1) {
+                        const touchEndX = e.changedTouches[0].clientX;
+                        const diffX = touchStartX - touchEndX;
+
+                        if (Math.abs(diffX) > 50) { // 滑動超過 50px
+                            if (diffX > 0) {
+                                switchGallerySlide(galleryCurrentIndex + 1); // Next
+                            } else {
+                                switchGallerySlide(galleryCurrentIndex - 1); // Prev
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        function getDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function resetZoom() {
+            currentScale = 1;
+            lastScale = 1;
+            const img = getCurrentImg();
+            if (img) img.style.transform = `scale(1)`;
         }
 
     </script>
@@ -11812,6 +12263,17 @@
                 <button class="modal-btn btn-confirm" onclick="handleLogoutConfirm()"
                     style="background: #EF4444; color: white;">確定登出</button>
             </div>
+        </div>
+    </div>
+
+    <!-- [新增] 全螢幕圖庫 Modal -->
+    <div id="gallery-modal">
+        <div class="gallery-close" onclick="closeGallery()">×</div>
+        <div id="gallery-container">
+            <!-- Images injected via JS -->
+        </div>
+        <div class="gallery-dots" id="gallery-dots">
+            <!-- Dots injected via JS -->
         </div>
     </div>
     </div>
