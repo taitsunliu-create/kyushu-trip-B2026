@@ -7119,7 +7119,7 @@
         // 用於 Google Places (分享位置時抓地標名稱)
         const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ==";
         // [安插在其他 ENC_ 變數群組中]
-        const encryptedGasUrl = "U2FsdGVkX18Yhif39L3pQpEtkwu+ICpS9B9sTls950AxvYNhFTiTtjCtj41wUauYrU0bUrBDInLsMztMceTJBaZPbwooIzLhZfF3ZqgwnAjb0EHL3WgVsSOCGgQZ77RJtsbYUuPJ0xbdrByw7TlM5FK6eWXc5Tu2K6t4lNF58D5umQV2WUmc2jorQns50LD3"; // 填入您的 URL 密文
+        const encryptedGasUrl = "U2FsdGVkX18ZXIDpL2O9at5HxfiCAn7Kql96xQsAJigVhEjgMIcSNUirljmzi5lVU9AsE/Gs6P5j3T+4demykqbFgIVmWB5QjvP1j69O6e7EqzUU/z7wZcFXsgtyUEmvx3oSN44QO9vslyix2vUmZGlYGIp0TOYBqoou3aoMd5ynuIFpm3Vy/+A5duQIFK5N"; // 填入您的 URL 密文
         const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
         // [安插在其他 API_KEY 全域變數群組中]
@@ -12195,144 +12195,38 @@
             if (input.files && input.files[0]) {
                 const file = input.files[0];
 
-                // Show Loading
-                safeShowGlobalLoading();
-                document.body.style.overflow = 'hidden';
+                // Open Modal & Show Loading
+                document.getElementById('ocr-modal').style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Lock scroll
 
                 const listEl = document.getElementById('ocr-list');
                 const loadingEl = document.getElementById('ocr-loading');
-                // Reset UI
+                const resultContainer = document.getElementById('ocr-results-container');
+
                 listEl.innerHTML = '';
                 listEl.style.display = 'none';
-                loadingEl.style.display = 'flex'; // Use internal loading initially? No, use global
-                // Actually keep internal loading for modal state if we want to show modal first?
-                // Plan: Show global loading first while processing/uploading.
-                // Once data back, open modal with data.
-                // This is cleaner than opening empty modal.
+                loadingEl.style.display = 'flex';
+                document.getElementById('manual-ocr-item').value = '';
+                document.getElementById('manual-ocr-amount').value = '';
+                updateOCRTotal();
 
-                try {
-                    // 1. Get API Key & Validation
-                    const apiKey = (typeof getKey === 'function') ? getKey('gemini') : '';
-                    if (!apiKey) {
-                        // User has not unlocked the AI assistant yet
-                        alert("請先至「AI 助手」頁面輸入密碼解鎖金鑰，才能啟用 AI 辨識功能。");
-                        throw new Error("金鑰未解鎖");
-                    }
+                // Mock OCR Process (2 seconds)
+                // In real app, you would upload 'file' to Vision API/Gemini API here
+                await new Promise(r => setTimeout(r, 2000));
 
-                    // 2. Compress Image
-                    const base64Data = await compressImageForOCR(file);
-                    // Remove data:image/jpeg;base64, prefix for API
-                    const rawBase64 = base64Data.split(',')[1];
+                // Mock Results (Randomized for demo)
+                const mockData = [
+                    { item: '餐廳消費 (Restaurant)', amount: Math.floor(Math.random() * 5000) + 500 },
+                    { item: '交通費 (Transport)', amount: Math.floor(Math.random() * 1000) + 100 },
+                    { item: '便利商店 (Combini)', amount: Math.floor(Math.random() * 800) + 100 }
+                ];
 
-                    // 3. Call Gemini API
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                ocrItems = mockData.map((d, i) => ({ ...d, id: Date.now() + i, checked: true }));
 
-                    const payload = {
-                        "contents": [{
-                            "parts": [
-                                { "text": "你是一個專業的會計助手。請仔細分析這張收據圖片，提取「消費項目」與「金額」。\n規則：\n1. 請將所有日文品項名稱翻譯成繁體中文(台灣)。\n2. 回傳純 JSON 格式，不要有 markdown 標記 (不要 ```json)。\n3. 格式範例：[{\"item\": \"炸豬排定食\", \"amount\": 1200}, {\"item\": \"可樂\", \"amount\": 300}]\n4. 只包含有明確金額的消費項目，忽略地址、電話、小計、合計、找零等雜訊。" },
-                                {
-                                    "inline_data": {
-                                        "mime_type": "image/jpeg",
-                                        "data": rawBase64
-                                    }
-                                }
-                            ]
-                        }]
-                    };
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const err = await response.json();
-                        throw new Error(err.error?.message || 'Gemini API Error');
-                    }
-
-                    const data = await response.json();
-                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                    if (!text) throw new Error("AI 無法識別內容");
-
-                    // 4. Parse JSON
-                    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    let items = [];
-                    try {
-                        items = JSON.parse(jsonStr);
-                    } catch (e) {
-                        console.error('JSON Parse Error', text);
-                        throw new Error("AI 回傳格式錯誤，無法解析。");
-                    }
-
-                    if (!Array.isArray(items) || items.length === 0) {
-                        alert('未能識別出項目，請確認圖片清晰度或手動輸入');
-                    }
-
-                    ocrItems = items.map((d, i) => ({
-                        id: Date.now() + i,
-                        item: d.item,
-                        amount: d.amount,
-                        checked: true
-                    }));
-
-                    // Open Modal
-                    document.getElementById('ocr-modal').style.display = 'flex';
-                    renderOCRList();
-                    listEl.style.display = 'flex';
-                    loadingEl.style.display = 'none';
-
-                } catch (e) {
-                    console.error('OCR Error:', e);
-                    alert('辨識失敗: ' + e.message);
-                    document.body.style.overflow = '';
-                    document.getElementById('ocr-modal').style.display = 'none';
-                } finally {
-                    safeHideGlobalLoading();
-                    input.value = ''; // Reset input
-                }
+                renderOCRList();
+                loadingEl.style.display = 'none';
+                listEl.style.display = 'flex';
             }
-        }
-
-        function compressImageForOCR(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        const maxDim = 1024; // Limit to 1024px
-
-                        if (width > height) {
-                            if (width > maxDim) {
-                                height *= maxDim / width;
-                                width = maxDim;
-                            }
-                        } else {
-                            if (height > maxDim) {
-                                width *= maxDim / height;
-                                height = maxDim;
-                            }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        // Compress to JPEG 0.6
-                        resolve(canvas.toDataURL('image/jpeg', 0.6));
-                    };
-                    img.onerror = reject;
-                };
-                reader.onerror = reject;
-            });
         }
 
         function renderOCRList() {
