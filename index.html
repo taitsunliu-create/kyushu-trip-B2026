@@ -12081,19 +12081,33 @@
 
         function renderImagePreviews() {
             const container = document.getElementById('note-image-preview');
+            // [修正] 即使清空也要呼叫 updateLedgerSubmitState，確保按鈕狀態正確
             if (!window.currentNoteImages || window.currentNoteImages.length === 0) {
                 container.style.display = 'none';
                 container.innerHTML = '';
+                updateLedgerSubmitState(); // [新增] 更新按鈕狀態
                 return;
             }
 
+            // [修正] 改用 horizontal-scroll-container 樣式，並加入防誤觸
             container.style.display = 'flex';
+            // 注意：要確保 style 中有 overflow-x: auto; 這裡透過 class 控制，但若原本沒有 CSS class 定義，需手動加 inline style
+            // 這裡為了保險，加上 inline style
+            container.style.overflowX = 'auto';
+            container.style.paddingBottom = '4px'; // 讓捲軸不遮擋
+
+            // [關鍵] 加入防誤觸事件
+            container.ontouchstart = (e) => e.stopPropagation();
+            container.ontouchmove = (e) => e.stopPropagation();
+
             container.innerHTML = window.currentNoteImages.map((src, index) => `
-                <div class="preview-thumb-box" onclick="openGallery(${index})">
-                    <img src="${src}" class="preview-thumb-img">
-                    <div class="btn-remove-img" onclick="removeImage(event, ${index})">✕</div>
+                <div class="preview-thumb-box" onclick="openGallery(${index})" style="flex-shrink: 0; width: 60px; height: 60px; margin-right: 8px;">
+                    <img src="${src}" class="preview-thumb-img" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">
+                    <div class="btn-remove-img" onclick="removeImage(event, ${index})" style="position:absolute; top:-6px; right:-6px; background:red; color:white; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer;">✕</div>
                 </div>
             `).join('');
+
+            updateLedgerSubmitState(); // [新增] 更新按鈕狀態
         }
 
         function removeImage(e, index) {
