@@ -3779,34 +3779,6 @@
                 <path d="M15 17h2" />
             </symbol>
 
-            <symbol id="icon-ai" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                </path>
-            </symbol>
-            <symbol id="icon-consult" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-            </symbol>
-
-            <symbol id="icon-trans" viewBox="0 0 24 24">
-                <path d="M7 10h14"></path>
-                <path d="M17 6l4 4-4 4"></path>
-                <path d="M17 14H3"></path>
-                <path d="M7 18l-4-4 4-4"></path>
-            </symbol>
-
-            <symbol id="icon-voice" viewBox="0 0 24 24">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" y1="19" x2="12" y2="23"></line>
-                <line x1="8" y1="23" x2="16" y2="23"></line>
-            </symbol>
-
-            <symbol id="icon-camera" viewBox="0 0 24 24">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-            </symbol>
-
             <symbol id="icon-info" viewBox="0 0 24 24">
                 <path
                     d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
@@ -6675,92 +6647,33 @@
 
                 <div id="ledger-finance-fields">
                     <div style="display: flex; gap: 6px; align-items: center;">
-                        <!-- Scan Button -->
-                        <button onclick="openOCR()"
-                            style="width: 44px; height: 42px; padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;"
-                            title="掃描單據">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-                                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-                                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-                                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                            </svg>
-                        </button>
-                        <input type="file" id="ocr-input" accept="image/*" capture="environment" style="display: none;"
-                            onchange="handleOCRFile(this)">
-
-                        <input type="text" id="ledger-item" placeholder="項目內容..." oninput="validateLedgerInputs()"
+                        <input type="text" id="ledger-item" placeholder="項目內容..."
                             style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-
-                        <input type="number" id="ledger-amount" placeholder="金額" oninput="validateLedgerInputs()"
-                            style="flex: 0.8; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger" disabled
-                            style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; transition: all 0.2s;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB"
+                        <input type="number" id="ledger-amount" placeholder="金額"
+                            style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                            style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
                         </button>
-                        <!-- Cancel Button (Finance) -->
-                        <button id="btn-cancel-finance" onclick="cancelEditMode()"
-                            style="display: none; width: 24px; height: 24px; border-radius: 50%; background: #EF4444; color: white; border: none; align-items: center; justify-content: center; font-size: 14px; margin-left: 2px;">✕</button>
                     </div>
                 </div>
 
                 <div id="ledger-note-fields" style="display: none;">
-                    <div style="flex: 1; width: 100%;">
-                        <!-- 圖片預覽區域 -->
-                        <!-- 圖片預覽區域 (改為橫向捲動多張圖) -->
-                        <div id="note-image-preview"
-                            style="display:none; gap: 8px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 4px; touch-action: pan-x;"
-                            ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()"
-                            ontouchend="event.stopPropagation()">
-                            <!-- 動態生成圖片預覽 -->
-                        </div>
-
-                        <div style="display: flex; gap: 8px; align-items: flex-end;">
-                            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..." oninput="validateLedgerInputs()"
-                                style="flex: 1; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; min-width: 0;"></textarea>
-
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <!-- 隱藏的檔案輸入框 (支援多選) -->
-                                <input type="file" id="note-img-input" accept="image/*" multiple style="display: none;"
-                                    onchange="handleImageSelect(this)">
-
-                                <!-- 圖片上傳按鈕 -->
-                                <button onclick="document.getElementById('note-img-input').click()"
-                                    class="btn-submit-ghost"
-                                    style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; background: transparent;"
-                                    title="添加圖片">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                        <polyline points="21 15 16 10 5 21"></polyline>
-                                    </svg>
-                                </button>
-
-                                <!-- Submit & Cancel Wrapper -->
-                                <div style="display: flex; align-items: center; gap: 4px;">
-                                    <!-- 送出按鈕 -->
-                                    <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                                        disabled
-                                        style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent; transition: all 0.2s;">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB"
-                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                                        </svg>
-                                    </button>
-                                    <!-- Cancel Button (Note) -->
-                                    <button id="btn-cancel-note" onclick="cancelEditMode()"
-                                        style="display: none; width: 24px; height: 24px; border-radius: 50%; background: #EF4444; color: white; border: none; align-items: center; justify-content: center; font-size: 14px;">✕</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div style="display: flex; gap: 8px; align-items: flex-end;">
+                        <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
+                            style="flex: 1; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; min-width: 0;"></textarea>
+                        <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                            style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -7147,7 +7060,7 @@
         // 用於 Google Places (分享位置時抓地標名稱)
         const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ==";
         // [安插在其他 ENC_ 變數群組中]
-        const encryptedGasUrl = "U2FsdGVkX18ZXIDpL2O9at5HxfiCAn7Kql96xQsAJigVhEjgMIcSNUirljmzi5lVU9AsE/Gs6P5j3T+4demykqbFgIVmWB5QjvP1j69O6e7EqzUU/z7wZcFXsgtyUEmvx3oSN44QO9vslyix2vUmZGlYGIp0TOYBqoou3aoMd5ynuIFpm3Vy/+A5duQIFK5N"; // 填入您的 URL 密文
+        const encryptedGasUrl = "U2FsdGVkX1/N8lC3t1o4YjL4fFX/Hqby3QwyFW9uoaJiZGkObB2Yjew72R07HTplFjfouthc3O6Kwd3VSxDeGGWFk9ShlTlj8JbfRdRfnBclVq89sND7GpD4nRNhLF0YaklqDDEuqw8GQClvHjEts7kcvTFY/+VRTEJ7Y07Nu4AC0JjRykHplWloHUvPdWC/"; // 填入您的 URL 密文
         const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
         // [安插在其他 API_KEY 全域變數群組中]
@@ -10936,105 +10849,6 @@
         }
         // [結束] 替換身分定義相關邏輯
 
-        // Global variable for storing compressed images (Array of Strings: Base64 or URL)
-        window.currentImages = [];
-        // [New] Global map to store images by Item ID for gallery viewing
-        window.ledgerImagesMap = {};
-
-        // 圖片處理函式
-        async function handleImageSelect(input) {
-            if (input.files && input.files.length > 0) {
-                try {
-                    // 顯示 Loading UX (可選)
-
-                    // 處理每一張圖片
-                    for (let i = 0; i < input.files.length; i++) {
-                        const file = input.files[i];
-                        const compressedBase64 = await compressImage(file, 0.7, 1024);
-                        window.currentImages.push(compressedBase64);
-                    }
-
-                    renderPreviewItems();
-
-                } catch (e) {
-                    console.error("圖片處理失敗", e);
-                    alert("圖片處理失敗，請重試");
-                }
-            }
-            // 清空 input 讓選同樣檔案也能觸發 onchange
-            input.value = '';
-        }
-
-        // 渲染預覽區域
-        function renderPreviewItems() {
-            const previewContainer = document.getElementById('note-image-preview');
-            previewContainer.innerHTML = ''; // 清空
-
-            if (window.currentImages.length > 0) {
-                previewContainer.style.display = 'flex';
-
-                window.currentImages.forEach((imgSrc, index) => {
-                    // 產生預覽項目
-                    const div = document.createElement('div');
-                    div.style.position = 'relative';
-                    div.style.flexShrink = '0';
-
-                    div.innerHTML = `
-                        <img src="${imgSrc}" style="height: 80px; width: auto; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;">
-                        <button onclick="removeImage(${index})" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✕</button>
-                    `;
-                    previewContainer.appendChild(div);
-                });
-            } else {
-                previewContainer.style.display = 'none';
-            }
-        }
-
-        // 移除單張圖片
-        function removeImage(index) {
-            window.currentImages.splice(index, 1);
-            renderPreviewItems();
-        }
-
-        function compressImage(file, quality = 0.7, maxWidth = 1024) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = event => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        let width = img.width;
-                        let height = img.height;
-
-                        // 計算新尺寸
-                        if (width > maxWidth) {
-                            height = Math.round((height * maxWidth) / width);
-                            width = maxWidth;
-                        }
-
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        // 輸出壓縮後的 Base64 (移除前綴以便 GAS 處理，或保留視後端需求而定，這裡保留標準 DataURL)
-                        // data:image/jpeg;base64,...
-                        resolve(canvas.toDataURL('image/jpeg', quality));
-                    };
-                    img.onerror = error => reject(error);
-                };
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        function clearImage() {
-            window.currentImages = [];
-            renderPreviewItems();
-            document.getElementById('note-img-input').value = ''; // Reset input
-        }
-
         // [最終淨化版] 處理記帳送出 (徹底防止資料污染 + 按鈕回饋優化)
         async function handleLedgerSubmit() {
             // 判斷是否為記帳模式 (決定要用哪種 Loading 方式)
@@ -11053,7 +10867,7 @@
             // let originalContent = activeBtn ? activeBtn.innerHTML : '';
             // 改為：不管原本是什麼，我們都預期恢復成標準的「紙飛機」圖示 (因為 Edit 模式會把圖示改成打勾，submit 完要變回紙飛機)
             const originalIconSVG = `
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${isFinance ? '#F97316' : '#2563EB'}"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -11138,8 +10952,7 @@
                     twdAmount: finalAmountTwd,
                     item: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     content: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
-                    amount: finalAmountJpy,
-                    images: window.currentImages || [] // 修正: 改傳 images 陣列
+                    amount: finalAmountJpy
                 };
 
                 // ============================================================
@@ -11153,19 +10966,9 @@
                     // 清空輸入
                     document.getElementById('ledger-item').value = '';
                     document.getElementById('ledger-amount').value = '';
-                    document.getElementById('ledger-item').value = '';
-                    document.getElementById('ledger-amount').value = '';
                     document.getElementById('ledger-note-content').value = '';
-                    // 清除圖片
-                    clearImage();
 
                     if (window.editingId) window.editingId = null;
-
-                    // Hide Cancel Buttons
-                    const btnFin = document.getElementById('btn-cancel-finance');
-                    const btnNote = document.getElementById('btn-cancel-note');
-                    if (btnFin) btnFin.style.display = 'none';
-                    if (btnNote) btnNote.style.display = 'none';
 
                     // [回饋顯示邏輯]
                     // [回饋顯示邏輯]
@@ -11177,9 +10980,9 @@
                             if (activeBtn) {
                                 // 還原回紙飛機
                                 activeBtn.innerHTML = originalIconSVG;
+                                // 修正顏色：Finance 用橘色，Note 用藍色
                                 // activeBtn.querySelector('svg').style.stroke = isFinance ? '#F97316' : '#2563EB'; 
                                 activeBtn.disabled = false;
-                                if (typeof validateLedgerInputs === 'function') validateLedgerInputs();
                             }
                         }, 1500);
                     } else {
@@ -11208,7 +11011,6 @@
                             // 暫時統一變回紙飛機，因為失敗通常需要重新檢查
                             activeBtn.innerHTML = originalIconSVG;
                             activeBtn.disabled = false;
-                            if (typeof validateLedgerInputs === 'function') validateLedgerInputs();
                         }
                     }, 2000);
                 } else {
@@ -11460,58 +11262,6 @@
                             </div>`;
                         }
 
-                        // 圖片顯示邏輯 (支援多張)
-
-                        let imageHtml = '';
-                        if (item.image) {
-                            // 分割圖片字串
-                            // ★ 修正：如果開頭是 "data:"，代表它是後端上傳失敗或其他原因存的「單張 Raw Base64」，絕對不能用逗號切分！
-                            let imgList = [];
-                            const rawImgStr = item.image.trim();
-
-                            if (rawImgStr.startsWith('data:')) {
-                                imgList = [rawImgStr];
-                            } else {
-                                if (rawImgStr.includes('\n')) {
-                                    imgList = rawImgStr.split('\n');
-                                } else {
-                                    imgList = rawImgStr.split(',');
-                                }
-                            }
-
-                            // [New] Store in global map for gallery
-                            window.ledgerImagesMap[item.id] = [];
-
-                            let imgs = '';
-                            let validIndex = 0;
-
-                            imgList.forEach(src => {
-                                if (src && src.trim()) {
-                                    // 簡單判斷如果是 Base64 就補前綴
-                                    const pSrc = src.trim().startsWith('http') || src.trim().startsWith('data:') ? src.trim() : `data:image/jpeg;base64,${src.trim()}`;
-
-                                    // Store valid image
-                                    window.ledgerImagesMap[item.id].push(pSrc);
-
-                                    // Render ID for gallery linking
-                                    imgs += `
-                                        <img src="${pSrc}" style="height: 100px; border-radius: 8px; cursor: zoom-in; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-shrink: 0; scroll-snap-align: start;" 
-                                        onclick="showFullGallery('${item.id}', ${validIndex})">
-                                     `;
-                                    validIndex++;
-                                }
-                            });
-
-                            if (imgs) {
-                                // Added touch-action and overscroll-behavior for better swipe experience
-                                imageHtml = `
-                                <div style="margin-top: 10px; margin-bottom: 5px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; touch-action: pan-x;"
-                                     ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()" ontouchend="event.stopPropagation()">
-                                    ${imgs}
-                                </div>`;
-                            }
-                        }
-
                         html += `
                         <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #2563EB; background: white; border-radius: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px;">
@@ -11522,7 +11272,6 @@
                                 <div style="font-size: 0.75rem; color: #9ca3af;">${timeStr}</div>
                             </div>
                             <div style="font-size: 1rem; color: #374151; line-height: 1.6; white-space: pre-wrap;">${noteContent}</div>
-                            ${imageHtml}
                             ${actionButtons}
                         </div>`;
                     }
@@ -11875,504 +11624,27 @@
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
                 if (btn) {
-                    // 改為顯示「編輯(打勾)」圖示 (藍色)
-                    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                    // [Fix] Enable button immediately for editing
-                    btn.disabled = false;
-                    // Show Cancel
-                    const cBtn = document.getElementById('btn-cancel-finance');
-                    if (cBtn) cBtn.style.display = 'flex';
+                    // 改為顯示「編輯(打勾)」圖示 (橘色)
+                    btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                 }
             } else {
                 filterLedgerView('note');
                 // 填入資料
                 document.getElementById('ledger-note-content').value = item.content || item.item || '';
-
-                // 處理圖片 (如果編輯時已經有圖片，應該顯示預覽)
-                if (item.image) {
-                    // ★ 同樣修正切割邏輯
-                    let imgList = [];
-                    const rawImgStr = item.image.trim();
-                    if (rawImgStr.startsWith('data:')) {
-                        imgList = [rawImgStr];
-                    } else {
-                        if (rawImgStr.includes('\n')) {
-                            imgList = rawImgStr.split('\n');
-                        } else {
-                            imgList = rawImgStr.split(',');
-                        }
-                    }
-
-                    window.currentImages = imgList.map(src => {
-                        return src.trim().startsWith('http') || src.trim().startsWith('data:') ? src.trim() : `data:image/jpeg;base64,${src.trim()}`;
-                    });
-                    renderPreviewItems();
-                } else {
-                    clearImage();
-                }
-
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
                 if (btn) {
                     // 改為顯示「編輯(打勾)」圖示 (藍色)
                     btn.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                    // [Fix] Enable button immediately for editing
-                    btn.disabled = false;
-                    // Show Cancel
-                    const cBtn = document.getElementById('btn-cancel-note');
-                    if (cBtn) cBtn.style.display = 'flex';
                 }
             }
 
             // 滾動到輸入區
             document.getElementById('ledger-input-card').scrollIntoView({ behavior: 'smooth' });
 
-            // [New] Trigger validation to ensure UI state is synced
-            if (typeof validateLedgerInputs === 'function') validateLedgerInputs();
-
             // 提示
             // alert('請修改上方內容後，點擊按鈕送出。');
         }
-
-
-        // [新增] 編輯與刪除功能 (需配合 GAS 後端更新)
-        // ==========================================
-        window.editingId = null; // 全域變數：紀錄目前正在編輯的 ID
-        window.deleteConfirmMap = {}; // [新增] 用來記錄哪些 ID 處於刪除確認狀態
-
-        // ... existing codes ...
-
-
-        const aiInput = document.getElementById('ai-user-input');
-        const aiTitle = document.getElementById('ai-modal-title');
-        const aiInputArea = document.getElementById('ai-input-area');
-        const btnBackTrans = document.getElementById('btn-back-trans');
-
-        // Voice Recognition Variables
-        let recognition = null;
-        let pendingImageBase64 = null; // For AI Vision
-
-        // Initialize AI Chat Welcome Message
-        function initAiChat() {
-            if (!chatHistory || chatHistory.children.length > 0) return;
-
-            // 定義樣式變數，讓程式碼較整潔
-            const iconStyle = 'width:16px; height:16px; vertical-align:text-bottom; margin-right:2px; display:inline-block;';
-            const spanStyle = 'font-weight:700; display:inline-flex; align-items:center; vertical-align:middle; margin:0 2px;';
-
-            // 1. 行程諮詢 (藍色)
-            const iconConsult = `<svg style="${iconStyle}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>`;
-            const txtConsult = `<span style="${spanStyle} color:#2563EB;">${iconConsult}行程諮詢</span>`;
-
-            // 2. 中/日翻譯 (天空藍)
-            const iconTrans = `<svg style="${iconStyle}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10h14"></path><path d="M17 6l4 4-4 4"></path><path d="M17 14H3"></path><path d="M7 18l-4-4 4-4"></path></svg>`;
-            const txtTrans = `<span style="${spanStyle} color:#0EA5E9;">${iconTrans}中/日翻譯</span>`;
-
-            // 3. 語音輸入 (青色)
-            const iconVoice = `<svg style="${iconStyle}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`;
-            const txtVoice = `<span style="${spanStyle} color:#06B6D4;">${iconVoice}語音輸入</span>`;
-
-            // 4. 拍照辨識 (紫色/粉色)
-            const iconCam = `<svg style="${iconStyle}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`;
-            const txtCam = `<span style="${spanStyle} color:#D946EF;">${iconCam}拍照辨識</span>`;
-
-            const welcomeHtml = `
-                    你好！我是你的九州旅遊 AI 助手。
-                    <br><br>
-                    你可以點選下方的 ${txtConsult} 詢問路線，或使用 ${txtTrans} 與當地人溝通。
-                    點選 ${txtVoice} 搭配語言切換還能用說的喔！
-                    更有 ${txtCam} 功能可以方便點餐及獲得商品資訊。
-                `;
-            appendMessage('ai', welcomeHtml);
-        }
-
-        // Helper to switch to AI tab programmatically
-        function goToAiTab() {
-            const aiTabBtn = document.querySelector('[data-target="view-ai"]');
-            if (aiTabBtn && typeof switchTab === 'function') switchTab(aiTabBtn);
-        }
-
-        // Switch to AI Translation Mode UI
-        function showAiTranslatorMode() {
-            if (!aiTitle) return;
-            const iconSvg = '<svg class="icon-mini" style="width: 24px; height: 24px; color: #F59E0B; margin-right: 8px;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>';
-            aiTitle.innerHTML = iconSvg + '<span>隨身 AI 翻譯與助手</span>';
-            aiInputArea.style.display = 'block';
-            btnBackTrans.style.display = 'none';
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-            setupVoiceButton();
-        }
-
-        // Append Message Loop
-        function appendMessage(sender, htmlContent, isAudio = false) {
-            if (!chatHistory) return;
-            const row = document.createElement('div');
-            row.className = `chat-row ${sender}`;
-
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble ${sender}`;
-            bubble.innerHTML = htmlContent;
-
-            if (sender === 'ai' && isAudio) {
-                const btn = document.createElement('button');
-                btn.className = 'btn-audio-inline';
-                btn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>';
-                const textToSpeak = bubble.innerText.replace('🔊', '').trim();
-                btn.onclick = () => speakText(textToSpeak);
-                bubble.appendChild(btn);
-            }
-
-            row.appendChild(bubble);
-            chatHistory.appendChild(row);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-            return bubble;
-        }
-
-        // Loading Logic for AI
-        function showLoading() {
-            const container = document.getElementById('chat-history');
-            if (!container) return;
-            const row = document.createElement('div');
-            row.className = 'chat-row ai loading-row';
-            row.id = 'loading-indicator';
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble ai loading-bubble';
-            bubble.innerHTML = 'AI 正在思考中<span class="loading-dots"></span>';
-            row.appendChild(bubble);
-            container.appendChild(row);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function removeLoading() {
-            const loading = document.getElementById('loading-indicator');
-            if (loading) loading.remove();
-        }
-
-        // Update Placeholder based on lang selection
-        function updatePlaceholder() {
-            const langRadio = document.querySelector('input[name="voice_lang"]:checked');
-            if (!langRadio) return;
-            const lang = langRadio.value;
-            const input = document.getElementById('ai-user-input');
-            if (lang === 'zh-TW') {
-                input.placeholder = '請輸入中文 (或使用語音)...';
-            } else {
-                input.placeholder = '請輸入日文 (或切換語音)...';
-            }
-        }
-
-        // TTS
-        function speakText(text) {
-            speechSynthesis.cancel();
-            let cleanText = text.replace(/\([^\)]+\)/g, '').replace(/\*/g, '').replace(/[a-zA-ZāēīōūĀĒĪŌŪ]+/g, '').trim();
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'ja-JP';
-            utterance.rate = 0.9;
-            const voices = speechSynthesis.getVoices();
-            const jaVoice = voices.find(v => v.lang.includes('ja'));
-            if (jaVoice) utterance.voice = jaVoice;
-            speechSynthesis.speak(utterance);
-        }
-
-        // Voice Button Logic
-        function setupVoiceButton() {
-            if (recognition) return;
-            const voiceBtn = document.getElementById('btn-voice-ja');
-            if (!voiceBtn) return;
-
-            voiceBtn.oncontextmenu = (e) => { e.preventDefault(); return false; };
-
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
-
-                recognition.onstart = function () {
-                    voiceBtn.classList.add('recording');
-                    const selectedLang = document.querySelector('input[name="voice_lang"]:checked').value;
-                    const langText = selectedLang === 'zh-TW' ? '中文' : '日文';
-                    voiceBtn.innerHTML = `<span style="animation: pulse 1s infinite;">🔴 聆聽${langText}...</span>`;
-                    document.getElementById('ai-user-input').placeholder = `正在聆聽${langText} (說完自動停止)...`;
-                };
-
-                recognition.onend = function () {
-                    voiceBtn.classList.remove('recording');
-                    voiceBtn.innerHTML = `<svg class="icon-sprite"><use href="#icon-voice"></use></svg>語音輸入`;
-                    updatePlaceholder();
-                };
-
-                recognition.onerror = function (event) {
-                    if (event.error === 'no-speech' || event.error === 'aborted') {
-                        voiceBtn.classList.remove('recording');
-                        return;
-                    }
-                    voiceBtn.classList.remove('recording');
-                    alert("語音連線中斷，請重新點擊按鈕。");
-                };
-
-                recognition.onresult = function (event) {
-                    let finalTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        }
-                    }
-                    if (finalTranscript.trim().length > 0) {
-                        recognition.stop();
-                        document.getElementById('ai-user-input').value = finalTranscript;
-                        sendToGemini('voice_direct');
-                    }
-                };
-
-                voiceBtn.onclick = (e) => {
-                    if (e && e.cancelable) e.preventDefault();
-                    if (voiceBtn.classList.contains('recording')) {
-                        recognition.stop();
-                    } else {
-                        const selectedLang = document.querySelector('input[name="voice_lang"]:checked').value;
-                        recognition.lang = selectedLang;
-                        try { recognition.start(); } catch (err) { console.error("Start Error:", err); }
-                    }
-                };
-            } else {
-                voiceBtn.style.display = 'none';
-            }
-        }
-
-        // Guide Mode
-        function askGeminiGuide(spotName, customPrompt) {
-            goToAiTab();
-            const iconSvg = '<svg class="icon-mini" style="width: 24px; height: 24px; color: #F59E0B; margin-right: 8px;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>';
-            aiTitle.innerHTML = iconSvg + `<span>${spotName} 小故事</span>`;
-            aiInputArea.style.display = 'none';
-            btnBackTrans.style.display = 'block';
-            appendMessage('ai', `正在為您生成關於「${spotName}」的故事...`);
-
-            const prompt = `
-                你是一位帶領親子旅遊的九州導遊。
-                請針對景點「${spotName}」生成一段給 5-8 歲小孩聽的導覽詞。
-                要求：
-                1. 語氣生動活潑，使用台灣繁體中文。
-                2. 內容包含一個關於該景點的有趣冷知識。
-                3. 給孩子一個「小小觀察任務」（例如：找找看某個顏色的東西）。
-                4. 整體長度控制在 150 字以內。
-                5. ${customPrompt}
-            `;
-            callGemini(prompt);
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') sendToGemini('auto');
-        }
-
-        // Shared Call Function
-        async function callGemini(promptText) {
-            showLoading();
-            try {
-                let rawText = await getGeminiResponse(promptText);
-                removeLoading();
-                const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF]/.test(rawText);
-                const isTranslation = hasJapanese && rawText.length < 500;
-                const formattedText = rawText.replace(/\n/g, '<br>');
-                appendMessage('ai', formattedText, isTranslation);
-            } catch (error) {
-                removeLoading();
-                appendMessage('ai', `<span style="color:red">發生錯誤: ${error.message}</span>`);
-            }
-        }
-
-        // Core Send Function with modes
-        async function sendToGemini(mode) {
-            const text = aiInput.value.trim();
-            if (!text && mode !== 'voice_direct') return; // Voice direct might auto-trigger
-
-            if (text) {
-                appendMessage('user', text);
-                aiInput.value = '';
-            }
-
-            let finalPrompt = "";
-            const selectedLang = document.querySelector('input[name="voice_lang"]:checked').value;
-            const isInputZh = selectedLang === 'zh-TW';
-
-            if (mode === 'consult' || mode === 'auto') {
-                let liveContext = "";
-                if (window.appCache && window.appCache['my_location_combined']) {
-                    const d = window.appCache['my_location_combined'].data;
-                    liveContext = `目前位置：${d.city}, 天氣：${d.code}, 氣溫：${d.temp}°C`;
-                }
-                // Use global history if available
-                const historyText = (typeof conversationHistory !== 'undefined' && Array.isArray(conversationHistory)) ? conversationHistory.join('\n') : "";
-                finalPrompt = `${systemPrompt}\n${liveContext}\n${historyText}\n【使用者問題】： "${text}"`;
-            } else if (mode === 'translate') {
-                finalPrompt = `Role: Professional JP/TW Translator.\nInput: "${text}"\nRules: 1. If Chinese -> JP (Polite). 2. If JP -> TW.\nOutput: Translation ONLY.`;
-            } else if (mode === 'voice_direct') {
-                if (isInputZh) {
-                    finalPrompt = `Task: Translate TW Chinese to Japanese (Polite).\nInput: "${text}"\nOutput: Japanese ONLY.`;
-                } else {
-                    finalPrompt = `Task: Translate Japanese to Traditional Chinese (TW).\nInput: "${text}"\nOutput: Chinese ONLY.`;
-                }
-            }
-
-            showLoading();
-            try {
-                const responseText = await getGeminiResponse(finalPrompt);
-                removeLoading();
-                let showAudioBtn = false;
-                if (mode === 'voice_direct') {
-                    if (isInputZh) showAudioBtn = true;
-                } else {
-                    showAudioBtn = (mode === 'translate') && /[\u3040-\u309F\u30A0-\u30FF]/.test(responseText);
-                }
-                const formattedText = responseText.replace(/\n/g, '<br>');
-                appendMessage('ai', formattedText, showAudioBtn);
-
-                if ((mode === 'consult' || mode === 'auto') && typeof conversationHistory !== 'undefined' && Array.isArray(conversationHistory)) {
-                    conversationHistory.push(`User: ${text}`);
-                    conversationHistory.push(`Guide: ${responseText}`);
-                    if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-20);
-                }
-            } catch (e) {
-                removeLoading();
-                appendMessage('ai', `<span style="color:red">連線錯誤: ${e.message}</span>`);
-            }
-        }
-
-        // AI Vision: Confirm Logic
-        async function confirmImageAnalysis() {
-            if (!pendingImageBase64) return;
-            document.getElementById('img-preview-modal').style.display = 'none';
-            showLoading();
-
-            try {
-                const imgHtml = `<img src="data:image/jpeg;base64,${pendingImageBase64}" onclick="openLightbox(this.src)" style="max-width:100%; border-radius:10px; border:1px solid #ccc; margin-top:5px; cursor:zoom-in;">`;
-                appendMessage('user', imgHtml);
-
-                let curLoc = "";
-                if (window.appCache && window.appCache['my_location_combined']) {
-                    curLoc = window.appCache['my_location_combined'].data.city;
-                }
-
-                const visionPrompt = `
-                ${systemPrompt}
-                【使用者傳送了一張圖片】
-                【使用者目前位置】：${curLoc}
-                任務：請擔任專業導遊與購物助手。
-                請判斷圖片內容並提供協助：
-                1. 若是商品/藥妝/零食：說明這是什麼 (名稱與功效)，並推薦在「${curLoc}」哪裡買得到。
-                2. 若是菜單：翻譯菜名並推薦必吃。
-                3. 若是景點/路牌：告訴我這在哪裡。
-                請用簡潔、像朋友般的口吻回答。
-            `;
-
-                const responseText = await getGeminiResponse(visionPrompt, pendingImageBase64);
-                removeLoading();
-                const formattedText = responseText.replace(/\n/g, '<br>');
-                appendMessage('ai', formattedText, false);
-
-            } catch (e) {
-                removeLoading();
-                appendMessage('ai', `<span style="color:red">圖片辨識失敗：${e.message}</span>`);
-            } finally {
-                pendingImageBase64 = null;
-            }
-        }
-
-        function cancelImagePreview() {
-            document.getElementById('img-preview-modal').style.display = 'none';
-            pendingImageBase64 = null;
-        }
-
-        // Handle File Select
-        async function handleImageSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            try {
-                pendingImageBase64 = await compressImage(file, 800, 0.7);
-                const previewImg = document.getElementById('img-preview-content');
-                previewImg.src = `data:image/jpeg;base64,${pendingImageBase64}`;
-                document.getElementById('img-preview-modal').style.display = 'flex';
-            } catch (e) {
-                alert("圖片處理失敗，請重試");
-                console.error(e);
-            }
-            event.target.value = '';
-        }
-
-        // Compress Image Helper (Redefined to ensure availability)
-        // If it exists, this overwrites it or works as compatible.
-        function compressImage(file, maxWidth, quality) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        let w = img.width;
-                        let h = img.height;
-                        if (w > maxWidth) {
-                            h = Math.round(h * (maxWidth / w));
-                            w = maxWidth;
-                        }
-                        const canvas = document.createElement('canvas');
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                        const base64 = dataUrl.split(',')[1];
-                        resolve(base64);
-                    };
-                    img.onerror = (err) => reject(err);
-                };
-                reader.onerror = (err) => reject(err);
-            });
-        }
-
-        // Reset Password Logic
-        function resetAppPassword() {
-            if (confirm("您確定要清除已記憶的密碼並重新輸入嗎？")) {
-                localStorage.removeItem("app_password");
-                alert("密碼已清除！頁面將重新整理，請重新輸入新密碼。");
-                window.location.reload();
-            }
-        }
-
-        // Initialize on load for AI
-        document.addEventListener('DOMContentLoaded', () => {
-            // Init AI Chat if element exists
-            if (document.getElementById('chat-history')) {
-                initAiChat();
-                setupVoiceButton();
-            }
-        });
-
-        // [New] Global Loading for OCR/System
-        // (Ensures robust loading if previous one was partial)
-        function safeShowGlobalLoading() {
-            if (typeof showGlobalLoading === 'function') {
-                showGlobalLoading();
-            } else {
-                if (document.getElementById('global-loading-overlay')) return;
-                const overlay = document.createElement('div');
-                overlay.id = 'global-loading-overlay';
-                overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(2px);';
-                overlay.innerHTML = '<div style="background:white; padding:20px 30px; border-radius:12px; display:flex; flex-direction:column; align-items:center;"><div class="loading-spinner" style="border:4px solid #f3f3f3; border-top:4px solid #2563EB; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin-bottom:10px;"></div><div>Loading...</div></div>';
-                document.body.appendChild(overlay);
-            }
-        }
-        function safeHideGlobalLoading() {
-            if (typeof hideGlobalLoading === 'function') {
-                hideGlobalLoading();
-            } else {
-                const overlay = document.getElementById('global-loading-overlay');
-                if (overlay) overlay.remove();
-            }
-        }
-
 
     </script>
     <!-- [新增] 歡迎與身分選擇 Modal -->
@@ -12389,189 +11661,6 @@
             <button class="btn-start-trip" onclick="handleLogin()">開始記錄旅程 </button>
         </div>
     </div>
-
-    <!-- [修正] 圖片放大 Modal (Gallery Mode) -->
-    <div id="image-modal" class="modal-overlay" onclick="closeImageModal()">
-        <div class="modal-box"
-            style="background: transparent; box-shadow: none; width: 100%; max-width: 100%; padding: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative;">
-
-            <!-- Close Button -->
-            <button onclick="closeImageModal()"
-                style="position: absolute; top: 20px; right: 20px; z-index: 9999; background: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3); cursor: pointer; transform: scale(0.7); transform-origin: top right;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-
-            <!-- Gallery Slider -->
-            <div id="gallery-container" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()"
-                ontouchmove="event.stopPropagation()" ontouchend="event.stopPropagation()"
-                style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; width: 100%; height: 80vh; align-items: center; gap: 20px; padding: 0 20px; box-sizing: border-box; overscroll-behavior-x: contain; touch-action: pan-x;">
-                <!-- Dynamic Images injected here -->
-            </div>
-
-            <!-- Dots Indicator (Optional) -->
-            <div id="gallery-dots"
-                style="display: flex; justify-content: center; gap: 8px; margin-top: 10px; pointer-events: none;"></div>
-
-        </div>
-    </div>
-    <script>
-        // [Modified] Show Gallery
-        function showFullGallery(itemId, startIndex) {
-            const images = window.ledgerImagesMap[itemId] || [];
-            if (images.length === 0) return;
-
-            const container = document.getElementById('gallery-container');
-            const dotsContainer = document.getElementById('gallery-dots');
-            container.innerHTML = '';
-            dotsContainer.innerHTML = '';
-
-            images.forEach((src, index) => {
-                // Slide Wrapper
-                const slide = document.createElement('div');
-                slide.style.flex = '0 0 100%';
-                slide.style.scrollSnapAlign = 'center';
-                slide.style.display = 'flex';
-                slide.style.justifyContent = 'center';
-                slide.style.alignItems = 'center';
-                slide.style.height = '100%';
-
-                // Image
-                const img = document.createElement('img');
-                img.src = src;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '100%';
-                img.style.objectFit = 'contain';
-                img.style.borderRadius = '8px';
-                img.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
-
-                slide.appendChild(img);
-                container.appendChild(slide);
-
-                // Dot
-                const dot = document.createElement('div');
-                dot.style.width = '8px';
-                dot.style.height = '8px';
-                dot.style.borderRadius = '50%';
-                dot.style.background = index === startIndex ? 'white' : 'rgba(255,255,255,0.4)';
-                dot.style.transition = 'background 0.3s';
-                dot.id = `dot-${index}`;
-                dotsContainer.appendChild(dot);
-            });
-
-            document.getElementById('image-modal').style.display = 'flex';
-
-            // Scroll to start index
-            setTimeout(() => {
-                if (container.children[startIndex]) {
-                    container.children[startIndex].scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
-                }
-            }, 10);
-
-            // Update dots on scroll
-            container.onscroll = () => {
-                const scrollLeft = container.scrollLeft;
-                const width = container.offsetWidth;
-                const index = Math.round(scrollLeft / width);
-                // Update dots
-                Array.from(dotsContainer.children).forEach((d, i) => {
-                    d.style.background = i === index ? 'white' : 'rgba(255,255,255,0.4)';
-                });
-            };
-        }
-
-        function closeImageModal() {
-            document.getElementById('image-modal').style.display = 'none';
-        }
-
-        // [New] Input Validation Logic
-        function validateLedgerInputs() {
-            // Finance Validation
-            const itemInput = document.getElementById('ledger-item');
-            const amountInput = document.getElementById('ledger-amount');
-            const financeBtn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
-
-            if (itemInput && amountInput && financeBtn) {
-                const hasFinanceVal = itemInput.value.trim() !== '' && amountInput.value.trim() !== '';
-                financeBtn.disabled = !hasFinanceVal;
-                // Update SVG Color directly (Gray #D1D5DB vs Blue #2563EB)
-                const svg = financeBtn.querySelector('svg');
-                if (svg) svg.style.stroke = hasFinanceVal ? '#2563EB' : '#D1D5DB';
-            }
-
-            // Note Validation
-            const noteInput = document.getElementById('ledger-note-content');
-            const noteBtn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
-
-            if (noteInput && noteBtn) {
-                const hasNoteVal = noteInput.value.trim() !== '';
-                noteBtn.disabled = !hasNoteVal;
-                // Update SVG Color directly (Gray #D1D5DB vs Blue #2563EB)
-                // Note: If Editing (Edit Mode), the icon might be different (Checkmark), but color logic still applies mostly.
-                // However, handleLedgerSubmit re-renders the icon. Here we just control stroke.
-                // Special check: If in Edit mode (id present), user might want to submit.
-                // But generally fields must not be empty.
-                const svg = noteBtn.querySelector('svg');
-                if (svg) svg.style.stroke = hasNoteVal ? '#2563EB' : '#D1D5DB';
-            }
-        }
-
-    </script>
-    <script>
-        // Additional Event Listeners for Validation
-        document.addEventListener('DOMContentLoaded', () => {
-            validateLedgerInputs();
-
-            // Bind click events to view buttons to trigger validation on switch
-            const btnFinance = document.getElementById('btn-view-finance');
-            const btnNote = document.getElementById('btn-view-note');
-
-            if (btnFinance) {
-                btnFinance.addEventListener('click', () => {
-                    setTimeout(validateLedgerInputs, 50); // Small delay to allow view switch
-                });
-            }
-            if (btnNote) {
-                btnNote.addEventListener('click', () => {
-                    setTimeout(validateLedgerInputs, 50);
-                });
-            }
-        });
-
-        // [New] Cancel Edit Mode
-        function cancelEditMode() {
-            window.editingId = null;
-            document.getElementById('ledger-item').value = '';
-            document.getElementById('ledger-amount').value = '';
-            document.getElementById('ledger-note-content').value = '';
-            clearImage();
-
-            // Restore Buttons
-            const btnFin = document.getElementById('btn-cancel-finance');
-            const btnNote = document.getElementById('btn-cancel-note');
-            if (btnFin) btnFin.style.display = 'none';
-            if (btnNote) btnNote.style.display = 'none';
-
-            // Restore Submit Icons
-            const submitFin = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
-            const submitNote = document.querySelector('#ledger-note-fields .btn-submit-ledger');
-
-            const originalIcon = `
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>`;
-
-            if (submitFin) submitFin.innerHTML = originalIcon;
-            if (submitNote) submitNote.innerHTML = originalIcon;
-
-            validateLedgerInputs();
-        }
-    </script>
 
     <!-- [新增] 登出/切換身分確認 Modal -->
     <div id="logout-popup" class="modal-overlay">
@@ -12590,296 +11679,7 @@
             </div>
         </div>
     </div>
-
-    <!-- [New] OCR Modal -->
-    <div id="ocr-modal" class="modal-overlay"
-        style="z-index: 10001; align-items: flex-end; justify-content: flex-end; display: none;">
-        <div class="modal-box"
-            style="width: 100%; max-width: 100%; border-radius: 20px 20px 0 0; padding: 0; max-height: 80vh; height: auto; display: flex; flex-direction: column; overflow: hidden; background: #F3F4F6;">
-            <!-- Header -->
-            <div
-                style="padding: 15px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-size: 1.1rem; color: #1F2937;">🧾 識別結果</h3>
-                <button onclick="closeOCR()"
-                    style="background: none; border: none; font-size: 1.5rem; color: #6B7280;">&times;</button>
-            </div>
-
-            <!-- Content -->
-            <div style="flex: 1; overflow-y: auto; padding: 15px; overscroll-behavior: contain;"
-                id="ocr-results-container">
-                <div id="ocr-loading"
-                    style="display: none; flex-direction: column; align-items: center; padding: 40px;">
-                    <svg width="40" height="40" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2" fill="none"
-                        stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
-                    </svg>
-                    <p style="margin-top: 15px; color: #4B5563;">正在分析單據...</p>
-                </div>
-
-                <div id="ocr-list" style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- Result Items -->
-                </div>
-
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #D1D5DB;">
-                    <div style="font-size: 0.9rem; color: #6B7280; margin-bottom: 10px;">手動追加</div>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="manual-ocr-item" placeholder="品項"
-                            style="flex: 1.5; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-                        <input type="number" id="manual-ocr-amount" placeholder="金額"
-                            style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
-                        <button onclick="addManualOCRItem()"
-                            style="background: #E5E7EB; border: none; width: 36px; border-radius: 6px; color: #374151; font-size: 1.2rem;">+</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div style="padding: 15px; background: white; border-top: 1px solid #e5e7eb;">
-                <button onclick="submitOCRResults()"
-                    style="width: 100%; background: #2563EB; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    確認送出 <span id="ocr-total-count"
-                        style="background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 10px; font-size: 0.8rem;">0</span>
-                </button>
-            </div>
-        </div>
     </div>
-    </div>
-
-    <script>
-        // Use a separate script block for OCR logic to keep things clean
-        let ocrItems = [];
-
-        function openOCR() {
-            document.getElementById('ocr-input').click();
-        }
-
-        function closeOCR() {
-            document.getElementById('ocr-modal').style.display = 'none';
-            document.body.style.overflow = ''; // Unlock scroll
-            document.getElementById('ocr-input').value = ''; // Reset
-        }
-
-        async function handleOCRFile(input) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-
-                // Open Modal & Show Loading
-                document.getElementById('ocr-modal').style.display = 'flex';
-                document.body.style.overflow = 'hidden'; // Lock scroll
-
-                const listEl = document.getElementById('ocr-list');
-                const loadingEl = document.getElementById('ocr-loading');
-                const resultContainer = document.getElementById('ocr-results-container');
-
-                listEl.innerHTML = '';
-                listEl.style.display = 'none';
-                loadingEl.style.display = 'flex';
-                document.getElementById('manual-ocr-item').value = '';
-                document.getElementById('manual-ocr-amount').value = '';
-                updateOCRTotal();
-
-                // Mock OCR Process (2 seconds)
-                // In real app, you would upload 'file' to Vision API/Gemini API here
-                await new Promise(r => setTimeout(r, 2000));
-
-                // Mock Results (Randomized for demo)
-                const mockData = [
-                    { item: '餐廳消費 (Restaurant)', amount: Math.floor(Math.random() * 5000) + 500 },
-                    { item: '交通費 (Transport)', amount: Math.floor(Math.random() * 1000) + 100 },
-                    { item: '便利商店 (Combini)', amount: Math.floor(Math.random() * 800) + 100 }
-                ];
-
-                ocrItems = mockData.map((d, i) => ({ ...d, id: Date.now() + i, checked: true }));
-
-                renderOCRList();
-                loadingEl.style.display = 'none';
-                listEl.style.display = 'flex';
-            }
-        }
-
-        function renderOCRList() {
-            const listEl = document.getElementById('ocr-list');
-            listEl.innerHTML = '';
-
-            ocrItems.forEach((item, index) => {
-                const row = document.createElement('div');
-                row.style.display = 'flex';
-                row.style.alignItems = 'center';
-                row.style.gap = '8px';
-                row.style.padding = '10px';
-                row.style.background = 'white';
-                row.style.borderRadius = '8px';
-                row.style.border = '1px solid #E5E7EB';
-
-                row.innerHTML = `
-                    <input type="checkbox" onchange="toggleOCRItem(${index})" ${item.checked ? 'checked' : ''} style="width: 20px; height: 20px;">
-                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-                        <input type="text" value="${item.item}" onchange="updateOCRItem(${index}, 'item', this.value)" style="border: none; font-weight: 500; font-size: 1rem; width: 100%; color: #1F2937;">
-                    </div>
-                    <div style="width: 100px;">
-                        <input type="number" value="${item.amount}" onchange="updateOCRItem(${index}, 'amount', this.value)" style="border: 1px solid #ddd; padding: 4px; border-radius: 4px; width: 100%; text-align: right;">
-                    </div>
-                    <button onclick="removeOCRItem(${index})" style="background: none; border: none; color: #EF4444; font-size: 1.2rem;">&times;</button>
-                `;
-                listEl.appendChild(row);
-            });
-            updateOCRTotal();
-        }
-
-        function toggleOCRItem(index) {
-            ocrItems[index].checked = !ocrItems[index].checked;
-            updateOCRTotal();
-        }
-
-        function updateOCRItem(index, field, value) {
-            ocrItems[index][field] = value;
-            updateOCRTotal();
-        }
-
-        function removeOCRItem(index) {
-            ocrItems.splice(index, 1);
-            renderOCRList();
-        }
-
-        function addManualOCRItem() {
-            const itemInput = document.getElementById('manual-ocr-item');
-            const amountInput = document.getElementById('manual-ocr-amount');
-
-            const item = itemInput.value.trim();
-            const amount = amountInput.value.trim();
-
-            if (item && amount) {
-                ocrItems.push({
-                    id: Date.now(),
-                    item: item,
-                    amount: parseInt(amount),
-                    checked: true
-                });
-                itemInput.value = '';
-                amountInput.value = '';
-                renderOCRList();
-                // Scroll to bottom
-                const container = document.getElementById('ocr-results-container');
-                container.scrollTop = container.scrollHeight;
-            }
-        }
-
-        function updateOCRTotal() {
-            const count = ocrItems.filter(i => i.checked).length;
-            document.getElementById('ocr-total-count').innerText = count;
-        }
-
-        // Helper to safely handle loading overlay
-        function safeShowGlobalLoading() {
-            let loader = document.getElementById('global-loading');
-            if (loader) {
-                loader.style.display = 'flex';
-            } else {
-                const tempLoader = document.createElement('div');
-                tempLoader.id = 'ocr-temp-loading';
-                tempLoader.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:20000;display:flex;align-items:center;justify-content:center;';
-                tempLoader.innerHTML = `
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
-                            <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
-                            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
-                        </svg>
-                        <p style="margin-top:15px; font-weight:bold; color:#374151;">處理中...</p>
-                    </div>`;
-                document.body.appendChild(tempLoader);
-            }
-        }
-
-        function safeHideGlobalLoading() {
-            let loader = document.getElementById('global-loading');
-            if (loader) loader.style.display = 'none';
-            let temp = document.getElementById('ocr-temp-loading');
-            if (temp) temp.remove();
-        }
-
-        async function submitOCRResults() {
-            const selectedItems = ocrItems.filter(i => i.checked);
-            if (selectedItems.length === 0) {
-                alert('請至少選擇一個項目');
-                return;
-            }
-
-            // Show global loading
-            // Show global loading (Safe)
-            safeShowGlobalLoading();
-
-            let successCount = 0;
-            let failCount = 0;
-
-            // Simple loop to submit items sequentially to ensure order (or parallel if backend supports)
-            // GAS might have rate limits, so sequential is safer
-            for (const item of selectedItems) {
-                try {
-                    // Reuse logic similar to handleLedgerSubmit but stripped down
-                    // We need to construct payload manually since handleLedgerSubmit reads DOM
-
-                    // 1. Prepare Data
-                    let userName = localStorage.getItem('last_user_name') || '匿名';
-                    if (userName.startsWith('{')) userName = '匿名'; // Sanity check
-                    let userAvatar = localStorage.getItem('last_user_emoji') || '🦁';
-
-                    // Rate logic (Duplicate from main logic)
-                    let finalRate = 0.21;
-                    const cached = localStorage.getItem('live_exchange_rate_cache');
-                    if (cached) { try { finalRate = JSON.parse(cached).rate || 0.21; } catch (e) { } }
-
-                    const amountJpy = parseFloat(item.amount) || 0;
-                    const amountTwd = Math.round(amountJpy * finalRate);
-
-                    const payloadData = {
-                        action: 'upload', // Batch is always new upload
-                        token: (typeof getKey === 'function') ? getKey('gas_token') : '',
-                        type: 'finance', // OCR is usually finance
-                        id: 'ocr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-                        userName: userName,
-                        userAvatar: userAvatar,
-                        date: new Date().toISOString().split('T')[0],
-                        timestamp: new Date().toISOString(),
-                        rate: String(finalRate),
-                        twdAmount: String(amountTwd),
-                        item: item.item,
-                        content: item.item, // Sync content
-                        amount: String(amountJpy),
-                        images: [] // OCR usually adds text, user can attach images later? Or we should attach the scanned image? 
-                        // For now, no image attachment to individual items to keep it simple, or attach the same source image to all?
-                        // User requirement didn't specify, but usually receipt image is attached.
-                        // Im skipping image to save bandwidth/complexity for now unless needed.
-                    };
-
-                    const url = (typeof getKey === 'function') ? getKey('gas_url') : '';
-                    if (!url) throw new Error("GAS URL missing or not found");
-
-                    await fetch(url, { method: 'POST', body: JSON.stringify(payloadData) });
-                    successCount++;
-
-                } catch (e) {
-                    console.error('Batch Item Error:', e);
-                    failCount++;
-                }
-            }
-
-            // Hide Loading
-            // Hide Loading (Safe)
-            safeHideGlobalLoading();
-
-            if (failCount === 0) {
-                alert(`✅ 成功匯入 ${successCount} 筆資料！`);
-                closeOCR();
-                if (typeof syncLedgerData === 'function') await syncLedgerData();
-            } else {
-                alert(`⚠️ 部分完成：成功 ${successCount} 筆，失敗 ${failCount} 筆。`);
-                if (successCount > 0) {
-                    closeOCR();
-                    if (typeof syncLedgerData === 'function') await syncLedgerData();
-                }
-            }
-        }
-    </script>
 </body>
 
 </html>
