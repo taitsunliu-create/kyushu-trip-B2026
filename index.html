@@ -11019,6 +11019,9 @@
                     throw new Error(result.message || "未知錯誤");
                 }
 
+                // [新增] 成功送出後，也要檢查狀態
+                updateLedgerSubmitState();
+
             } catch (e) {
                 console.error("執行錯誤:", e);
                 // 失敗回饋
@@ -11069,6 +11072,9 @@
 
             // 重新渲染清單
             renderLedgerList(rawLedgerData);
+
+            // [新增] 切換視圖時同步更新檢查按鈕狀態
+            updateLedgerSubmitState();
         }
 
         // [新增] 確保全域變數存在 (解決 Delete/Edit 找不到資料的問題)
@@ -11678,6 +11684,9 @@
 
             // 提示
             // alert('請修改上方內容後，點擊按鈕送出。');
+
+            // [新增] 填入資料後立即檢查狀態
+            updateLedgerSubmitState();
         }
 
         // [新增] 放棄變更模式
@@ -11709,6 +11718,9 @@
                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                 </svg>`;
             });
+
+            // [新增] 清空後檢查狀態
+            updateLedgerSubmitState();
         }
 
     </script>
