@@ -12592,34 +12592,56 @@
             }
         }
 
-        // [提取] 獨立的記帳送出函式 (簡化版，不依賴 DOM Input)
+        // [提取] 獨立的記帳送出函式 (修正版：對齊 handleLedgerSubmit 邏輯)
         async function submitFinanceEntrySimple(item, amount, avatar, userName, userKey) {
-            const scriptUrl = getKey('gas_url');
-            if (!scriptUrl) throw new Error("API URL Missing");
+            const url = getKey('gas_url');
+            const token = getKey('gas_token');
+            if (!url || !token) throw new Error("API URL/Token Missing");
 
+            // 1. 計算匯率 (比照 handleLedgerSubmit)
+            let finalRate = 0.21;
+            const manualRateEl = document.getElementById('calc-rate');
+            if (manualRateEl && parseFloat(manualRateEl.value) > 0) {
+                finalRate = parseFloat(manualRateEl.value);
+            } else {
+                try {
+                    const cached = localStorage.getItem('live_exchange_rate_cache');
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        if (parsed.rate > 0) finalRate = parsed.rate;
+                    }
+                } catch (e) { }
+            }
+
+            const amountJpy = parseFloat(amount) || 0;
+            const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
+
+            // 2. 建構標準 Payload
             const payload = {
-                action: 'add_ledger',
-                sheet_name: 'Kyushu_2026',
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-                date: new Date().toISOString(),
+                action: 'upload', // 修正為正確的 action
+                token: token,
                 type: 'finance',
+                // 產生 UUID
+                id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now() + Math.random().toString(36).substr(2, 5)),
+                userName: userName,
+                userAvatar: avatar,
+                date: new Date().toISOString().split('T')[0],
+                timestamp: new Date().toISOString(),
+                rate: String(finalRate),
+                twdAmount: String(amountTwd),
                 item: item,
-                amount: amount,
-                user: avatar,
-                user_name: userName, // 使用者名稱
-                user_key: userKey    // 使用者 Key
+                content: item, // 為了相容性，兩者都填
+                amount: String(amountJpy),
+                images: [] // 掃描項目暫不附圖
             };
 
-            // 傳送 (不等待回應細節，只要不噴錯)
-            // 使用 no-cors 可能無法得知成功與否，建議還是用 cors
-            // 由於原本 handleLedgerSubmit 是用 form submit 或是 fetch
-            // 這裡參考 handleLedgerSubmit 的 fetch 邏輯
+            // 3. 發送請求
+            const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await resp.json();
 
-            await fetch(scriptUrl, {
-                method: "POST",
-                body: JSON.stringify(payload)
-                // mode: 'no-cors' // 視原本實作而定
-            });
+            if (result.status !== 'success' && result.result !== 'success') {
+                throw new Error(result.message || "Submit Failed");
+            }
         }
 
     </script>
