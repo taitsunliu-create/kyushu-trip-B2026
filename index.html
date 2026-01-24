@@ -11689,6 +11689,60 @@
             updateLedgerSubmitState();
         }
 
+        // [新增] 檢查記帳/記事輸入狀態，控制送出按鈕可用性
+        function updateLedgerSubmitState() {
+            // 1. Finance Check
+            const itemVal = document.getElementById('ledger-item').value.trim();
+            const amountVal = document.getElementById('ledger-amount').value.trim();
+            // 注意：這裡改成更精確的選擇器，避免選錯
+            const financeBtn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
+
+            if (financeBtn) {
+                if (itemVal && amountVal) {
+                    financeBtn.disabled = false;
+                    financeBtn.style.opacity = '1';
+                    financeBtn.style.cursor = 'pointer';
+                    financeBtn.style.filter = 'none';
+                } else {
+                    financeBtn.disabled = true;
+                    financeBtn.style.opacity = '0.3';
+                    financeBtn.style.cursor = 'not-allowed';
+                    financeBtn.style.filter = 'grayscale(100%)';
+                }
+            }
+
+            // 2. Note Check
+            const noteVal = document.getElementById('ledger-note-content').value.trim();
+            const noteBtn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
+
+            if (noteBtn) {
+                if (noteVal) {
+                    noteBtn.disabled = false;
+                    noteBtn.style.opacity = '1';
+                    noteBtn.style.cursor = 'pointer';
+                    noteBtn.style.filter = 'none';
+                } else {
+                    noteBtn.disabled = true;
+                    noteBtn.style.opacity = '0.3';
+                    noteBtn.style.cursor = 'not-allowed';
+                    noteBtn.style.filter = 'grayscale(100%)';
+                }
+            }
+        }
+
+        // [新增] 綁定輸入監聽
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = ['ledger-item', 'ledger-amount', 'ledger-note-content'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updateLedgerSubmitState);
+                }
+            });
+            // 初始化檢查 (稍微延遲確保 DOM 完全就緒)
+            setTimeout(updateLedgerSubmitState, 100);
+        });
+
         // [新增] 放棄變更模式
         function cancelEditMode() {
             window.editingId = null;
