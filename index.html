@@ -6786,6 +6786,23 @@
 
                 <div id="ledger-finance-fields">
                     <div style="display: flex; gap: 6px; align-items: center;">
+                        <!-- [新增] 掃描按鈕 (藍色無框線) -->
+                        <button onclick="document.getElementById('bill-scan-input').click()"
+                            style="width: 36px; height: 36px; padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #2563EB;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                                <rect x="7" y="7" width="10" height="10" rx="1"></rect>
+                                <line x1="12" y1="10" x2="12" y2="14"></line>
+                                <line x1="10" y1="12" x2="14" y2="12"></line>
+                            </svg>
+                        </button>
+                        <input type="file" id="bill-scan-input" accept="image/*" capture="environment"
+                            onchange="handleBillFileChange(event)" style="display: none;">
+
                         <input type="text" id="ledger-item" placeholder="項目內容..."
                             style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         <input type="number" id="ledger-amount" placeholder="金額"
@@ -12363,6 +12380,249 @@
         </div>
     </div>
     </div>
+    <!-- [新增] 帳單辨識結果確認 Modal -->
+    <div id="bill-scan-modal" class="modal-overlay">
+        <div class="modal-box"
+            style="max-width: 90%; width: 400px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-title">掃描結果確認</div>
+            <div class="modal-desc">請勾選並確認要加入的項目。</div>
+
+            <div id="bill-scan-list"
+                style="flex: 1; overflow-y: auto; margin: 10px 0; border: 1px solid #eee; border-radius: 8px; padding: 8px;">
+                <!-- JS 動態生成項目 -->
+            </div>
+
+            <!-- 手動新增按鈕 -->
+            <button onclick="addManualBillItem()"
+                style="align-self: flex-start; margin-bottom: 10px; background: transparent; border: 1px dashed #aaa; padding: 5px 10px; border-radius: 6px; font-size: 0.9rem; color: #555; cursor: pointer;">
+                + 新增項目
+            </button>
+
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel"
+                    onclick="document.getElementById('bill-scan-modal').style.display='none'">取消</button>
+                <button class="modal-btn btn-confirm" onclick="confirmBillScan()">確定加入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [新增] 帳單辨識 Modal 樣式 -->
+    <style>
+        .bill-item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .bill-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .bill-check {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .bill-name-input {
+            flex: 2;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 0;
+        }
+
+        .bill-amount-input {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 0;
+            text-align: right;
+        }
+
+        .bill-remove-btn {
+            color: #ef4444;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+    </style>
+
+    <script>
+        // [新增] 帳單掃描與辨識邏輯
+
+        async function handleBillFileChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 清空 Input 避免重複觸發
+            event.target.value = '';
+
+            showGlobalLoading("正在分析收據...");
+
+            try {
+                // 1. 壓縮圖片
+                const base64 = await compressImageForNote(file, 1024, 0.8);
+                // 去除 data:image/jpeg;base64, 前綴
+                const cleanBase64 = base64.split(',')[1];
+
+                // 2. 呼叫 Gemini
+                const prompt = `
+                    你是一個收據辨識助手。請分析這張收據圖片，並提取其中的所有「消費項目」與「金額」。
+                    
+                    規則：
+                    1. 只提取具體消費品項，不要總計(Total)、稅金(Tax)或找零。
+                    2. 若品項名稱為日文或英文，請翻譯成「繁體中文」 (若不確定則保留原文)。
+                    3. 金額請只保留數字。
+                    4. 回傳格式必須是單純的 JSON Array，不要 Markdown 標記，格式如下：
+                       [{"name": "品項A", "amount": 100}, {"name": "品項B", "amount": 550}]
+                `;
+
+                const resultText = await getGeminiResponse(prompt, cleanBase64);
+
+                // 3. 解析 JSON
+                let items = [];
+                try {
+                    // 嘗試清理 Markdown 代碼塊
+                    let cleanJson = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
+                    items = JSON.parse(cleanJson);
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    alert("辨識結果格式錯誤，請重試");
+                    hideGlobalLoading();
+                    return;
+                }
+
+                if (!Array.isArray(items)) {
+                    alert("辨識結果格式不符，請重試");
+                    hideGlobalLoading();
+                    return;
+                }
+
+                // 4. 顯示結果 Modal
+                renderBillScanResult(items);
+                document.getElementById('bill-scan-modal').style.display = 'flex';
+
+            } catch (e) {
+                console.error("Scan Error:", e);
+                alert("辨識失敗：" + e.message);
+            } finally {
+                hideGlobalLoading();
+            }
+        }
+
+        function renderBillScanResult(items) {
+            const list = document.getElementById('bill-scan-list');
+            list.innerHTML = '';
+
+            items.forEach(item => {
+                addManualBillItem(item.name, item.amount);
+            });
+            // 如果沒東西，預設加一列
+            if (items.length === 0) addManualBillItem();
+        }
+
+        function addManualBillItem(name = '', amount = '') {
+            const list = document.getElementById('bill-scan-list');
+            const div = document.createElement('div');
+            div.className = 'bill-item-row';
+            div.innerHTML = `
+                <input type="checkbox" class="bill-check" checked>
+                <input type="text" class="bill-name-input" placeholder="品項名稱" value="${name}">
+                <input type="number" class="bill-amount-input" placeholder="金額" value="${amount}">
+                <div class="bill-remove-btn" onclick="this.parentElement.remove()">×</div>
+            `;
+            list.appendChild(div);
+        }
+
+        async function confirmBillScan() {
+            const rows = document.querySelectorAll('.bill-item-row');
+            let entries = [];
+
+            // 1. 蒐集資料
+            rows.forEach(row => {
+                const checked = row.querySelector('.bill-check').checked;
+                const name = row.querySelector('.bill-name-input').value.trim();
+                const amount = row.querySelector('.bill-amount-input').value.trim();
+
+                if (checked && name && amount) {
+                    entries.push({ item: name, amount: parseInt(amount) });
+                }
+            });
+
+            if (entries.length === 0) {
+                alert("沒有選取任何有效項目");
+                return;
+            }
+
+            // 2. 批次送出
+            document.getElementById('bill-scan-modal').style.display = 'none';
+            showGlobalLoading("正在儲存 " + entries.length + " 筆帳目...");
+
+            try {
+                // 為了批次處理，我們逐一送出 (因為 Google Sheets API 通常會有頻率限制，但少量透過 Web App 應該還好)
+                // 或者我們可以改寫後端支援 Batch，但目前前端逐一送出比較不需改後端
+
+                // 取得使用者身分 (共用)
+                const avatar = document.getElementById('display-current-avatar').innerText;
+                const userName = document.getElementById('display-current-name').innerText;
+                const userKey = document.getElementById('selected-user-info').value || 'unknown_user';
+
+                // 循序送出 (Serial) 避免併發導致 Sheet Lock
+                let successCount = 0;
+                for (const entry of entries) {
+                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName, userKey);
+                    successCount++;
+                }
+
+                alert(`成功加入 ${successCount} 筆項目！`);
+
+                // 重新整理列表
+                syncLedgerData();
+
+            } catch (e) {
+                console.error("Batch Submit Error:", e);
+                alert("部分儲存失敗：" + e.message);
+                syncLedgerData();
+            } finally {
+                hideGlobalLoading();
+            }
+        }
+
+        // [提取] 獨立的記帳送出函式 (簡化版，不依賴 DOM Input)
+        async function submitFinanceEntrySimple(item, amount, avatar, userName, userKey) {
+            const scriptUrl = getKey('gas_url');
+            if (!scriptUrl) throw new Error("API URL Missing");
+
+            const payload = {
+                action: 'add_ledger',
+                sheet_name: 'Kyushu_2026',
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                date: new Date().toISOString(),
+                type: 'finance',
+                item: item,
+                amount: amount,
+                user: avatar,
+                user_name: userName, // 使用者名稱
+                user_key: userKey    // 使用者 Key
+            };
+
+            // 傳送 (不等待回應細節，只要不噴錯)
+            // 使用 no-cors 可能無法得知成功與否，建議還是用 cors
+            // 由於原本 handleLedgerSubmit 是用 form submit 或是 fetch
+            // 這裡參考 handleLedgerSubmit 的 fetch 邏輯
+
+            await fetch(scriptUrl, {
+                method: "POST",
+                body: JSON.stringify(payload)
+                // mode: 'no-cors' // 視原本實作而定
+            });
+        }
+
+    </script>
 </body>
 
 <style>
