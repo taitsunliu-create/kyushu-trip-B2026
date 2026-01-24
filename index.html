@@ -11187,6 +11187,10 @@
                     document.getElementById('ledger-amount').value = '';
                     document.getElementById('ledger-note-content').value = '';
 
+                    // [修正] 清空圖片暫存與預覽
+                    window.currentNoteImages = [];
+                    renderImagePreviews();
+
                     // [修正] 先判斷是否為編輯模式 (因為下面 cancelEditMode 會清空 window.editingId)
                     const wasEditing = !!window.editingId;
 
