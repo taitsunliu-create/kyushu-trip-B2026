@@ -6497,7 +6497,7 @@
 
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: #666;">
                     <label>匯率:</label>
-                    <input type="number" id="calc-rate" step="0.0001"
+                    <input type="number" id="calc-rate" step="0.001"
                         style="width: 65px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight:bold; color:#D97706;"
                         oninput="reCalcTotal()">
                 </div>
@@ -7869,7 +7869,7 @@
 
         function updateRateUI(rate, type) {
             const rateInput = document.getElementById('calc-rate');
-            if (rateInput) rateInput.value = rate;
+            if (rateInput) rateInput.value = Number(rate).toFixed(3);
 
             // [修正] 加入檢查：確認 statusEl 存在才更新，避免報錯
             const statusEl = document.getElementById('rate-status');
@@ -8634,6 +8634,26 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
 
             return bubble;
+        }
+
+        // [新增] 全域載入指示器 (用於記帳與系統操作)
+        function showGlobalLoading() {
+            if (document.getElementById('global-loading-overlay')) return;
+
+            const overlay = document.createElement('div');
+            overlay.id = 'global-loading-overlay';
+            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(2px);';
+            overlay.innerHTML = '<div style="background:white; padding:20px 30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2); display:flex; flex-direction:column; align-items:center;">' +
+                '<div class="loading-spinner" style="border:4px solid #f3f3f3; border-top:4px solid #2563EB; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin-bottom:10px;"></div>' +
+                '<div style="font-weight:bold; color:#374151;">Loading...</div>' +
+                '<style>@keyframes spin {0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);}}</style>' +
+                '</div>';
+            document.body.appendChild(overlay);
+        }
+
+        function hideGlobalLoading() {
+            const overlay = document.getElementById('global-loading-overlay');
+            if (overlay) overlay.remove();
         }
 
         function showLoading() {
@@ -10456,7 +10476,10 @@
         }
 
         // [開始] 替換身分定義相關邏輯
-        const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷'];
+        const AVATAR_OPTIONS = [
+            '🦁', '🐰', '🐼', '🐨', '🦊', '🐱', '🐶', '🐯', '🐵', '🐷',
+            '🐹', '🐻', '🐮', '🐸', '🐔', '🐧', '🦄', '🐙', '🦖', '🐬'
+        ];
 
         // [已修正] 初始化頭像選擇器 (內建淨水器功能)
         function initAvatarSelector() {
@@ -10565,7 +10588,7 @@
 
         // [最終淨化版] 處理記帳送出 (徹底防止資料污染)
         async function handleLedgerSubmit() {
-            showLoading();
+            showGlobalLoading();
             console.log("【執行版本：v2026-CLEAN-FLOW】");
 
             try {
@@ -10695,7 +10718,7 @@
                 console.error("執行錯誤:", e);
                 alert("❌ 程式錯誤: " + e.message);
             } finally {
-                if (typeof hideLoading === 'function') hideLoading();
+                hideGlobalLoading();
             }
         }
 
