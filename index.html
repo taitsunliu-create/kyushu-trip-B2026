@@ -12003,7 +12003,8 @@
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     // 簡單壓縮: Max 1024px
-                    const base64 = await compressImage(file, 1024, 0.8);
+                    // [修正] 改名避免與 AI 助手衝突
+                    const base64 = await compressImageForNote(file, 1024, 0.8);
                     window.currentNoteImages.push(base64);
                 }
                 renderImagePreviews();
@@ -12017,7 +12018,8 @@
             }
         }
 
-        function compressImage(file, maxWidth, quality) {
+        // [修正] 改名為 compressImageForNote 以免覆蓋 AI 助手原本的 compressImage
+        function compressImageForNote(file, maxWidth, quality) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
