@@ -12545,6 +12545,7 @@
             // 1. 蒐集資料
             rows.forEach(row => {
                 const checked = row.querySelector('.bill-check').checked;
+                // [修正] 確保去除前後空白
                 const name = row.querySelector('.bill-name-input').value.trim();
                 const amount = row.querySelector('.bill-amount-input').value.trim();
 
@@ -12563,19 +12564,30 @@
             showGlobalLoading("正在儲存 " + entries.length + " 筆帳目...");
 
             try {
-                // 為了批次處理，我們逐一送出 (因為 Google Sheets API 通常會有頻率限制，但少量透過 Web App 應該還好)
-                // 或者我們可以改寫後端支援 Batch，但目前前端逐一送出比較不需改後端
+                // [修正] 採用與 handleLedgerSubmit 完全一致的使用者抓取邏輯
+                // 這樣能避免抓到 "請登入" 或是錯誤的文字
+                let userName = localStorage.getItem('last_user_name');
+                if (!userName && window.TEMP_USER_NAME) userName = window.TEMP_USER_NAME.trim();
+                if (!userName) {
+                    const el = document.getElementById('custom-user-name') || document.querySelector('.user-name-input');
+                    if (el) userName = el.value.trim();
+                }
+                if (!userName || userName === 'undefined' || userName === 'null' || userName === '請登入') userName = '匿名';
 
-                // 取得使用者身分 (共用)
-                const avatar = document.getElementById('display-current-avatar').innerText;
-                const userName = document.getElementById('display-current-name').innerText;
-                const userKey = document.getElementById('selected-user-info').value || 'unknown_user';
+                let avatar = localStorage.getItem('last_user_emoji') || '🦁';
+                // 如果 localStorage 沒東西，才試著抓 DOM
+                if (avatar === '🦁') {
+                    const domAvatar = document.getElementById('display-current-avatar').innerText;
+                    if (domAvatar && domAvatar !== '👤') avatar = domAvatar;
+                }
 
-                // 循序送出 (Serial) 避免併發導致 Sheet Lock
+                // 循序送出 (Serial) 並加入延遲，避免後端鎖死 (Script Lock)
                 let successCount = 0;
                 for (const entry of entries) {
-                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName, userKey);
+                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName);
                     successCount++;
+                    // [新增] 延遲 300ms
+                    await new Promise(r => setTimeout(r, 300));
                 }
 
                 alert(`成功加入 ${successCount} 筆項目！`);
@@ -12585,15 +12597,15 @@
 
             } catch (e) {
                 console.error("Batch Submit Error:", e);
-                alert("部分儲存失敗：" + e.message);
+                alert("儲存過程發生錯誤：" + e.message);
                 syncLedgerData();
             } finally {
                 hideGlobalLoading();
             }
         }
 
-        // [提取] 獨立的記帳送出函式 (修正版：對齊 handleLedgerSubmit 邏輯)
-        async function submitFinanceEntrySimple(item, amount, avatar, userName, userKey) {
+        // [提取] 獨立的記帳送出函式 (修正版：移除 userKey 參數，因為 handleLedgerSubmit 沒用到它)
+        async function submitFinanceEntrySimple(item, amount, avatar, userName) {
             const url = getKey('gas_url');
             const token = getKey('gas_token');
             if (!url || !token) throw new Error("API URL/Token Missing");
