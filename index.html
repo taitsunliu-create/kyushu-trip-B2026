@@ -12227,8 +12227,20 @@
 
         function bindGalleryEvents() {
             const container = document.getElementById('gallery-container');
+            const modal = document.getElementById('gallery-modal');
+
+            // [新增] 阻擋 Modal 背景的觸控事件冒泡，防止底層滑動
+            const blockTouch = (e) => {
+                e.stopPropagation();
+                // 如果是在背景滑動，也阻止默認捲動
+                if (e.type === 'touchmove') e.preventDefault();
+            };
+            modal.ontouchstart = blockTouch;
+            modal.ontouchmove = blockTouch;
+            modal.ontouchend = blockTouch;
 
             container.ontouchstart = (e) => {
+                e.stopPropagation(); // [新增] 阻止冒泡
                 if (e.touches.length === 1) {
                     // 單指：可能是滑動
                     touchStartX = e.touches[0].clientX;
@@ -12241,6 +12253,7 @@
             };
 
             container.ontouchmove = (e) => {
+                e.stopPropagation(); // [新增] 阻止冒泡
                 e.preventDefault(); // 阻止瀏覽器預設行為
 
                 if (isZooming && e.touches.length === 2) {
@@ -12259,6 +12272,7 @@
             };
 
             container.ontouchend = (e) => {
+                e.stopPropagation(); // [新增] 阻止冒泡
                 if (isZooming) {
                     // 縮放結束，紀錄當前倍率
                     isZooming = false;
