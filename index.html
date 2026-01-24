@@ -12381,8 +12381,9 @@
     </div>
     </div>
     <!-- [新增] 帳單辨識結果確認 Modal -->
+    <!-- [修正] 增加 ontouchmove="event.stopPropagation()" 防止捲動穿透到 Body -->
     <div id="bill-scan-modal" class="modal-overlay">
-        <div class="modal-box"
+        <div class="modal-box" onclick="event.stopPropagation()" ontouchmove="event.stopPropagation()"
             style="max-width: 90%; width: 400px; max-height: 85vh; display: flex; flex-direction: column;">
             <div class="modal-title">掃描結果確認</div>
             <div class="modal-desc">請勾選並確認要加入的項目。</div>
@@ -12400,7 +12401,7 @@
 
             <div class="modal-btns">
                 <button class="modal-btn btn-cancel"
-                    onclick="document.getElementById('bill-scan-modal').style.display='none'">取消</button>
+                    onclick="document.getElementById('bill-scan-modal').style.display='none'; document.body.style.overflow='';">取消</button>
                 <button class="modal-btn btn-confirm" onclick="confirmBillScan()">確定加入</button>
             </div>
         </div>
@@ -12505,6 +12506,8 @@
                 // 4. 顯示結果 Modal
                 renderBillScanResult(items);
                 document.getElementById('bill-scan-modal').style.display = 'flex';
+                // [新增] 鎖定背景捲動
+                document.body.style.overflow = 'hidden';
 
             } catch (e) {
                 console.error("Scan Error:", e);
@@ -12561,6 +12564,9 @@
 
             // 2. 批次送出
             document.getElementById('bill-scan-modal').style.display = 'none';
+            // [新增] 解除背景捲動鎖定
+            document.body.style.overflow = '';
+
             showGlobalLoading("正在儲存 " + entries.length + " 筆帳目...");
 
             try {
