@@ -11161,13 +11161,18 @@
                     // [修改] 如果是 Note 模式且有選日期，就用選的日期；否則由後端決定 (通常是今日)
                     date: (!isFinance && document.getElementById('ledger-note-date')?.value) ? document.getElementById('ledger-note-date').value : new Date().toISOString().split('T')[0],
                     timestamp: (() => {
-                        // [新增] 修正邏輯：如果有選日期，timestamp 也要跟著變，這樣排序分類才會對
-                        if (!isFinance && document.getElementById('ledger-note-date')?.value) {
-                            const dVal = document.getElementById('ledger-note-date').value;
-                            const now = new Date();
-                            // 組合: 選的日期 + 當下的時間 (HH:mm:ss)
-                            const combined = new Date(`${dVal}T${now.toTimeString().split(' ')[0]}`);
-                            return combined.toISOString();
+                        try {
+                            const dateEl = document.getElementById('ledger-note-date');
+                            if (!isFinance && dateEl && dateEl.value) {
+                                const dVal = dateEl.value; // YYYY-MM-DD
+                                const now = new Date();
+                                const [y, m, d] = dVal.split('-').map(Number);
+                                // 使用本地時間構造，然後轉 ISO (確保與當下時間一致)
+                                const combined = new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds());
+                                return combined.toISOString();
+                            }
+                        } catch (e) {
+                            console.warn("Date construction error, fallback to now:", e);
                         }
                         return new Date().toISOString();
                     })(),
