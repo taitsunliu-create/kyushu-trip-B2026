@@ -6785,6 +6785,19 @@
                 </div>
 
                 <div id="ledger-finance-fields">
+                    <!-- [新增] 日期與付款方式列 -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="date" id="ledger-finance-date"
+                            style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; -webkit-appearance: none; appearance: none; height: 44px;">
+
+                        <select id="ledger-finance-payment-method"
+                            style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; height: 44px; appearance: none; -webkit-appearance: none;">
+                            <option value="現金">現金</option>
+                            <option value="信用卡">信用卡</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+
                     <div style="display: flex; gap: 6px; align-items: center;">
                         <!-- [新增] 掃描按鈕 (藍色無框線) -->
                         <button onclick="document.getElementById('bill-scan-input').click()"
@@ -7275,7 +7288,7 @@
         // 用於 Google Places (分享位置時抓地標名稱)
         const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ==";
         // [安插在其他 ENC_ 變數群組中]
-        const encryptedGasUrl = "U2FsdGVkX1+YIvIqkQeXbm5ZlSEYymhuDl30XWZl/xiz94GuC60kIKqNtgIMXAGxmH9+p6TDPODrAGdsP36fQ+1DeAmcQWUUavWnutSyAh79t3BvAlhDjA49Sew0inOaKuKJX/SUoZWHTnTNx1nq/Q0W0rTHQKm/K5RHzdbdu1GRSUSJtp78S3Kc5IJs5nYP"; // 填入您的 URL 密文
+        const encryptedGasUrl = "U2FsdGVkX1+jyLcGz5h6/puIllH6scxL6gQTEdcE01W0d/maHqzXnGTGJpYoKh67LQuur3verT5b33vP358A3NlTcYCgZWe3widFG6kZ/R2re9NxcIT9JgaFAbVS05TYc1RO1GdnK+jOThwkmVay+TntL+AfgkOFQbpo3uq8yuD4DX/+32NMh3NZAFK/rBit"; // 填入您的 URL 密文
         const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
         // [安插在其他 API_KEY 全域變數群組中]
@@ -11162,11 +11175,21 @@
                     userName: userName,
                     userAvatar: userAvatar,
                     // [修改] 如果是 Note 模式且有選日期，就用選的日期；否則由後端決定 (通常是今日)
-                    date: (!isFinance && document.getElementById('ledger-note-date')?.value) ? document.getElementById('ledger-note-date').value : new Date().toISOString().split('T')[0],
+                    // [修改] 日期邏輯：記帳與記事現在都有自己的日期選擇器
+                    date: (() => {
+                        if (isFinance) {
+                            return document.getElementById('ledger-finance-date')?.value || new Date().toISOString().split('T')[0];
+                        } else {
+                            return document.getElementById('ledger-note-date')?.value || new Date().toISOString().split('T')[0];
+                        }
+                    })(),
+                    paymentMethod: isFinance ? (document.getElementById('ledger-finance-payment-method')?.value || '現金') : '', // [新增]
                     timestamp: (() => {
                         try {
-                            const dateEl = document.getElementById('ledger-note-date');
-                            if (!isFinance && dateEl && dateEl.value) {
+                            // [修改] 支援 Finance 與 Note 的自訂日期
+                            const dateEl = isFinance ? document.getElementById('ledger-finance-date') : document.getElementById('ledger-note-date');
+
+                            if (dateEl && dateEl.value) {
                                 const dVal = dateEl.value; // YYYY-MM-DD
                                 const now = new Date();
                                 const [y, m, d] = dVal.split('-').map(Number);
@@ -11938,6 +11961,29 @@
                 // 填入資料
                 document.getElementById('ledger-item').value = item.item || item.content || '';
                 document.getElementById('ledger-amount').value = item.amount || '';
+
+                // [新增] 填入日期
+                const finDate = document.getElementById('ledger-finance-date');
+                if (finDate) {
+                    let dStr = item.date;
+                    // ISO 時間處理
+                    if (dStr && dStr.includes('T')) {
+                        const dateObj = new Date(dStr);
+                        const y = dateObj.getFullYear();
+                        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const d = String(dateObj.getDate()).padStart(2, '0');
+                        dStr = `${y}-${m}-${d}`;
+                    }
+                    finDate.value = dStr || '';
+                }
+
+                // [新增] 填入付款方式
+                const finPay = document.getElementById('ledger-finance-payment-method');
+                if (finPay) {
+                    // 若 item.paymentMethod 為空，預設現金
+                    finPay.value = item.paymentMethod || '現金';
+                }
+
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
                 if (btn) {
@@ -12441,6 +12487,19 @@
             <div class="modal-title">掃描結果確認</div>
             <div class="modal-desc">請勾選並確認要加入的項目。</div>
 
+            <!-- [新增] 掃描結果的日期與付款方式 -->
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="date" id="scan-date"
+                    style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; -webkit-appearance: none; appearance: none; height: 44px;">
+
+                <select id="scan-payment-method"
+                    style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; height: 44px; appearance: none; -webkit-appearance: none;">
+                    <option value="現金">現金</option>
+                    <option value="信用卡">信用卡</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
             <div id="bill-scan-list"
                 style="flex: 1; overflow-y: auto; margin: 10px 0; border: 1px solid #eee; border-radius: 8px; padding: 8px;">
                 <!-- JS 動態生成項目 -->
@@ -12525,24 +12584,37 @@
 
                 // 2. 呼叫 Gemini
                 const prompt = `
-                    你是一個收據辨識助手。請分析這張收據圖片，並提取其中的所有「消費項目」與「金額」。
+                    你是一個收據辨識助手。請分析這張收據圖片，並提取其中的所有「消費項目」與「金額」以及「消費日期」。
                     
                     規則：
                     1. 只提取具體消費品項，不要總計(Total)、稅金(Tax)或找零。
                     2. 若品項名稱為日文或英文，請翻譯成「繁體中文」 (若不確定則保留原文)。
                     3. 金額請只保留數字。
-                    4. 回傳格式必須是單純的 JSON Array，不要 Markdown 標記，格式如下：
-                       [{"name": "品項A", "amount": 100}, {"name": "品項B", "amount": 550}]
+                    4. 嘗試提取消費日期，格式為 YYYY-MM-DD。若找不到日期，則忽略或回傳 null。
+                    5. 回傳格式必須是單純的 JSON Object，包含 `items` 陣列與 optional 的 `date` 欄位，格式如下：
+                       {
+                         "date": "2026-01-30",
+                         "items": [{"name": "品項A", "amount": 100}, {"name": "品項B", "amount": 550}]
+                       }
                 `;
 
                 const resultText = await getGeminiResponse(prompt, cleanBase64);
 
                 // 3. 解析 JSON
                 let items = [];
+                let extractedDate = null;
+
                 try {
                     // 嘗試清理 Markdown 代碼塊
                     let cleanJson = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
-                    items = JSON.parse(cleanJson);
+                    const parsed = JSON.parse(cleanJson);
+
+                    if (Array.isArray(parsed)) {
+                        items = parsed;
+                    } else if (parsed && typeof parsed === 'object') {
+                        items = parsed.items || [];
+                        extractedDate = parsed.date;
+                    }
                 } catch (e) {
                     console.error("JSON Parse Error:", e);
                     alert("辨識結果格式錯誤，請重試");
@@ -12555,6 +12627,21 @@
                     hideGlobalLoading();
                     return;
                 }
+
+                // 填入日期 (若有抓到)
+                const scanDateInput = document.getElementById('scan-date');
+                if (scanDateInput) {
+                    if (extractedDate) {
+                        scanDateInput.value = extractedDate;
+                    } else {
+                        // 預設今天
+                        scanDateInput.value = new Date().toISOString().split('T')[0];
+                    }
+                }
+
+                // 重置付款方式
+                const scanPaymentInput = document.getElementById('scan-payment-method');
+                if (scanPaymentInput) scanPaymentInput.value = '現金';
 
                 // 4. 顯示結果 Modal
                 renderBillScanResult(items);
@@ -12620,6 +12707,10 @@
             // [新增] 解除背景捲動鎖定
             document.body.style.overflow = '';
 
+            // [新增] 取得全域設定 (日期 & 付款方式)
+            const globalDate = document.getElementById('scan-date').value || new Date().toISOString().split('T')[0];
+            const globalPayment = document.getElementById('scan-payment-method').value || '現金';
+
             showGlobalLoading("正在儲存 " + entries.length + " 筆帳目...");
 
             try {
@@ -12643,7 +12734,7 @@
                 // 循序送出 (Serial) 並加入延遲，避免後端鎖死 (Script Lock)
                 let successCount = 0;
                 for (const entry of entries) {
-                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName);
+                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName, globalDate, globalPayment);
                     successCount++;
                     // [新增] 延遲 300ms
                     await new Promise(r => setTimeout(r, 300));
@@ -12664,7 +12755,7 @@
         }
 
         // [提取] 獨立的記帳送出函式 (修正版：移除 userKey 參數，因為 handleLedgerSubmit 沒用到它)
-        async function submitFinanceEntrySimple(item, amount, avatar, userName) {
+        async function submitFinanceEntrySimple(item, amount, avatar, userName, date, paymentMethod) {
             const url = getKey('gas_url');
             const token = getKey('gas_token');
             if (!url || !token) throw new Error("API URL/Token Missing");
@@ -12687,6 +12778,10 @@
             const amountJpy = parseFloat(amount) || 0;
             const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
 
+            // 使用傳入的日期 (若無則預設今天)
+            const finalDate = date || new Date().toISOString().split('T')[0];
+            const finalPayment = paymentMethod || '現金';
+
             // 2. 建構標準 Payload
             const payload = {
                 action: 'upload', // 修正為正確的 action
@@ -12696,13 +12791,14 @@
                 id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now() + Math.random().toString(36).substr(2, 5)),
                 userName: userName,
                 userAvatar: avatar,
-                date: new Date().toISOString().split('T')[0],
-                timestamp: new Date().toISOString(),
+                date: finalDate,
+                timestamp: new Date().toISOString(), // 這裡維持建立時間，因為是紀錄資料建立的時間
                 rate: String(finalRate),
                 twdAmount: String(amountTwd),
                 item: item,
                 content: item, // 為了相容性，兩者都填
                 amount: String(amountJpy),
+                paymentMethod: finalPayment, // [新增] 付款方式
                 images: [] // 掃描項目暫不附圖
             };
 
@@ -12729,6 +12825,12 @@
 
             const dateInput = document.getElementById('ledger-note-date');
             if (dateInput) dateInput.value = todayStr;
+
+            // [新增] 重置 Finance 日期與付款方式
+            const finDate = document.getElementById('ledger-finance-date');
+            if (finDate) finDate.value = todayStr;
+            const finPay = document.getElementById('ledger-finance-payment-method');
+            if (finPay) finPay.value = '現金';
 
             // 2. 清空輸入框
             if (document.getElementById('ledger-note-content')) document.getElementById('ledger-note-content').value = '';
