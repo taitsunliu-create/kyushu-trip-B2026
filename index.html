@@ -6828,13 +6828,15 @@
                 </div>
 
                 <div id="ledger-note-fields" style="display: none;">
-                    <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                    <!-- [修正] 佈局結構：日期欄位獨立一列，置於上方切齊 -->
+                    <div style="margin-bottom: 8px;">
                         <input type="date" id="ledger-note-date"
-                            style="max-width: 130px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff;">
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box;">
+                    </div>
 
+                    <div style="display: flex; gap: 8px; align-items: flex-end;">
                         <div
                             style="flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid #ddd; border-radius: 8px; padding: 8px; background: white;">
-
                             <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
                                 style="width: 100%; height: 80px; padding: 4px; border: none; outline: none; resize: none;"></textarea>
 
@@ -6843,15 +6845,6 @@
                                 style="display: none; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px;">
                             </div>
                         </div>
-
-                        <!-- [修正] 將按鈕包在容器內並垂直置中對齊 -->
-                        <!-- [新增] 圖片上傳按鈕與預覽區容器 -->
-                        <!-- [Layout Change] Side-by-side buttons at bottom -->
-                        <!-- [Layout Change] Vertical stack: Image on top, Submit/Cancel row on bottom -->
-                        <!-- Total height target <= 80px -->
-                        <!-- [Layout Change] Vertical stack: Image on top, Submit/Cancel row on bottom -->
-                        <!-- [Refactor] Group Image + Submit vertically, Cancel on the side -->
-                        <!-- This ensures Image button stays strictly aligned with Submit button -->
 
                         <div style="display: flex; align-items: flex-end; gap: 8px; padding-bottom: 0;">
 
@@ -7279,7 +7272,7 @@
         // 用於 Google Places (分享位置時抓地標名稱)
         const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ==";
         // [安插在其他 ENC_ 變數群組中]
-        const encryptedGasUrl = "U2FsdGVkX18MVWS2j99ut9KVSF8vwnzg1YVW97h0GR7+GHBB4X3dtlP+YuARPzdPoIBGY5mvrqUg3KccayfqzZsCSTwl3LVY3BVwC7W2Wok0Bj3g7hv3mrnfdH6tE3s0i3HOD10pMVC7+HobZxWgpBKDTDnyuzESpqLWMSz7zcQ4yFcJOvvyNqhAHeiqcdw8"; // 填入您的 URL 密文
+        const encryptedGasUrl = "U2FsdGVkX1+yda2DISfP/aTxamY3PtlJS5VXqENI8D6Q6aQ+ogeGRQIgHQQdcG+fNU+/6sTcIgQ1Gp/nz1UM7mhRIAjn3cbxI/zpB99ohNG35KZFaaoLmKaCeD9vFg0Jj5LhYnsHxHGISfd12yqyFI6fHZoq9v7Yke2v2lBzPGKe8BhNZduLHgW3icrILARo"; // 填入您的 URL 密文
         const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
         // [安插在其他 API_KEY 全域變數群組中]
