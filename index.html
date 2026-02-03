@@ -12756,7 +12756,7 @@
 
             // 6. 清空圖片預覽
             window.currentNoteImages = [];
-            if (typeof renderNoteImagePreview === 'function') renderNoteImagePreview();
+            if (typeof renderImagePreviews === 'function') renderImagePreviews();
 
             // 7. 更新按鈕狀態
             if (typeof updateLedgerSubmitState === 'function') updateLedgerSubmitState();
