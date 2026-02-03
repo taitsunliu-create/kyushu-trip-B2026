@@ -6831,6 +6831,10 @@
                     <div style="display: flex; gap: 8px; align-items: flex-end;">
                         <div
                             style="flex: 1; display: flex; flex-direction: column; min-width: 0; border: 1px solid #ddd; border-radius: 8px; padding: 8px; background: white;">
+                            <!-- [新增] 日期選擇器 -->
+                            <input type="date" id="ledger-note-date"
+                                style="width: 100%; padding: 6px; margin-bottom: 6px; border: 1px solid #eee; border-radius: 4px; font-family: inherit; color: #4B5563;">
+
                             <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
                                 style="width: 100%; height: 80px; padding: 4px; border: none; outline: none; resize: none;"></textarea>
 
@@ -6840,8 +6844,6 @@
                             </div>
                         </div>
 
-                        <!-- [修正] 將按鈕包在容器內並垂直置中對齊 -->
-                        <!-- [新增] 圖片上傳按鈕與預覽區容器 -->
                         <!-- [修正] 將按鈕包在容器內並垂直置中對齊 -->
                         <!-- [新增] 圖片上傳按鈕與預覽區容器 -->
                         <!-- [Layout Change] Side-by-side buttons at bottom -->
@@ -11163,7 +11165,8 @@
                     id: window.editingId ? window.editingId : ((window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now())),
                     userName: userName,
                     userAvatar: userAvatar,
-                    date: new Date().toISOString().split('T')[0],
+                    // [修改] 如果是 Note 模式且有選日期，就用選的日期；否則由後端決定 (通常是今日)
+                    date: (!isFinance && document.getElementById('ledger-note-date')?.value) ? document.getElementById('ledger-note-date').value : new Date().toISOString().split('T')[0],
                     timestamp: new Date().toISOString(),
                     rate: String(finalRate),
                     twdAmount: finalAmountTwd,
@@ -11186,6 +11189,16 @@
                     document.getElementById('ledger-item').value = '';
                     document.getElementById('ledger-amount').value = '';
                     document.getElementById('ledger-note-content').value = '';
+
+                    // [新增] 重置日期為今天
+                    const dateInput = document.getElementById('ledger-note-date');
+                    if (dateInput) {
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(2, '0');
+                        const dd = String(today.getDate()).padStart(2, '0');
+                        dateInput.value = `${yyyy}-${mm}-${dd}`;
+                    }
 
                     // [修正] 清空圖片暫存與預覽
                     window.currentNoteImages = [];
@@ -11777,6 +11790,15 @@
             if (typeof fetchLiveRate === 'function') {
                 fetchLiveRate();
             }
+            // [新增] 初始化日期為今天
+            const dateInput = document.getElementById('ledger-note-date');
+            if (dateInput && !dateInput.value) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
         });
 
         // [新增] 編輯與刪除功能 (需配合 GAS 後端更新)
@@ -11915,6 +11937,15 @@
                 filterLedgerView('note');
                 // 填入資料
                 document.getElementById('ledger-note-content').value = item.content || item.item || '';
+
+                // [新增] 填入日期
+                const dateInput = document.getElementById('ledger-note-date');
+                if (dateInput) {
+                    // item.date 可能是 "2026-01-25" 或 ISO "2026-01-25T..."
+                    let dStr = item.date;
+                    if (dStr && dStr.includes('T')) dStr = dStr.split('T')[0];
+                    dateInput.value = dStr || '';
+                }
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
                 if (btn) {
