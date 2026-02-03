@@ -11952,9 +11952,16 @@
                 // [新增] 填入日期
                 const dateInput = document.getElementById('ledger-note-date');
                 if (dateInput) {
-                    // item.date 可能是 "2026-01-25" 或 ISO "2026-01-25T..."
                     let dStr = item.date;
-                    if (dStr && dStr.includes('T')) dStr = dStr.split('T')[0];
+                    // 如果是 ISO 格式 (e.g. 2026-01-27T16:00:00.000Z)，直接切字串會是 UTC 日期 (可能是前一天)
+                    // 改為先轉成 Date 物件，再取當地時間的 YYYY-MM-DD
+                    if (dStr && dStr.includes('T')) {
+                        const dateObj = new Date(dStr);
+                        const y = dateObj.getFullYear();
+                        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const d = String(dateObj.getDate()).padStart(2, '0');
+                        dStr = `${y}-${m}-${d}`;
+                    }
                     dateInput.value = dStr || '';
                 }
                 // 為了讓使用者知道正在編輯，改變按鈕文字
@@ -12706,6 +12713,53 @@
             if (result.status !== 'success' && result.result !== 'success') {
                 throw new Error(result.message || "Submit Failed");
             }
+        }
+
+        // [新增] 取消編輯模式
+        function cancelEditMode() {
+            window.editingId = null;
+
+            // 1. 重置日期為今天
+            // 使用本地時區，避免 ISO UTC 誤差
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            const d = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${y}-${m}-${d}`;
+
+            const dateInput = document.getElementById('ledger-note-date');
+            if (dateInput) dateInput.value = todayStr;
+
+            // 2. 清空輸入框
+            if (document.getElementById('ledger-note-content')) document.getElementById('ledger-note-content').value = '';
+            if (document.getElementById('ledger-item')) document.getElementById('ledger-item').value = '';
+            if (document.getElementById('ledger-amount')) document.getElementById('ledger-amount').value = '';
+
+            // 3. 隱藏 Cancel 按鈕
+            const cBtnNote = document.getElementById('btn-cancel-edit-note');
+            if (cBtnNote) cBtnNote.style.display = 'none';
+
+            const cBtnFinance = document.getElementById('btn-cancel-edit-finance');
+            if (cBtnFinance) cBtnFinance.style.display = 'none';
+
+            // 4. 還原按鈕圖示 (Note)
+            const btnNote = document.querySelector('#ledger-note-fields .btn-submit-ledger');
+            if (btnNote) {
+                btnNote.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+            }
+
+            // 5. 還原按鈕圖示 (Finance)
+            const btnFinance = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
+            if (btnFinance) {
+                btnFinance.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+            }
+
+            // 6. 清空圖片預覽
+            window.currentNoteImages = [];
+            if (typeof renderNoteImagePreview === 'function') renderNoteImagePreview();
+
+            // 7. 更新按鈕狀態
+            if (typeof updateLedgerSubmitState === 'function') updateLedgerSubmitState();
         }
 
     </script>
