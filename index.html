@@ -11193,17 +11193,26 @@
                     // [修改] 統一日期邏輯 (Finance 也可以選日期)
                     date: (() => {
                         const el = isFinance ? document.getElementById('ledger-date') : document.getElementById('ledger-note-date');
-                        return el && el.value ? el.value : new Date().toISOString().split('T')[0];
+                        // 優先使用 ISO 值 (因為顯示值可能是 2026/2/4)
+                        return el ? (el.dataset.isoValue || el.value) : new Date().toISOString().split('T')[0];
                     })(),
                     timestamp: (() => {
                         try {
                             const dateEl = isFinance ? document.getElementById('ledger-date') : document.getElementById('ledger-note-date');
-                            if (dateEl && dateEl.value) {
-                                const dVal = dateEl.value; // YYYY-MM-DD
-                                const now = new Date();
-                                const [y, m, d] = dVal.split('-').map(Number);
-                                const combined = new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds());
-                                return combined.toISOString();
+                            if (dateEl) {
+                                const dVal = dateEl.dataset.isoValue || dateEl.value; // YYYY-MM-DD
+                                if (dVal) {
+                                    // 支援兩種分隔符
+                                    let y, m, d;
+                                    if (dVal.includes('/')) {
+                                        [y, m, d] = dVal.split('/').map(Number);
+                                    } else {
+                                        [y, m, d] = dVal.split('-').map(Number);
+                                    }
+                                    const now = new Date();
+                                    const combined = new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds());
+                                    return combined.toISOString();
+                                }
                             }
                         } catch (e) {
                             console.warn("Date construction error, fallback to now:", e);
@@ -12040,6 +12049,8 @@
                         dStr = `${y}-${m}-${d}`;
                     }
                     fDateInput.value = dStr || '';
+                    // 觸發格式化
+                    if (typeof formatCompactDate === 'function') formatCompactDate(fDateInput);
                 }
 
                 // [新增] 填入付款方式
@@ -12073,6 +12084,8 @@
                         dStr = `${y}-${m}-${d}`;
                     }
                     dateInput.value = dStr || '';
+                    // 觸發格式化
+                    if (typeof formatCompactDate === 'function') formatCompactDate(dateInput);
                 }
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-note-fields .btn-submit-ledger');
@@ -12946,7 +12959,86 @@
 
             // 7. 更新按鈕狀態
             if (typeof updateLedgerSubmitState === 'function') updateLedgerSubmitState();
+
+            // [新增] 強制格式化日期 (縮短顯示)
+            if (typeof formatCompactDate === 'function') {
+                formatCompactDate(document.getElementById('ledger-date'));
+                formatCompactDate(document.getElementById('ledger-note-date'));
+            }
         }
+
+        // [新增] 緊湊日期顯示邏輯 (YYYY/M/D)
+        function initCompactDateInput(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            // 初始格式化
+            formatCompactDate(el);
+
+            // 聚焦時切換回原生 Date Picker
+            el.addEventListener('focus', function () {
+                this.type = 'date';
+
+                // 還原 ISO 格式 (YYYY-MM-DD) 給 Picker
+                if (this.dataset.isoValue) {
+                    this.value = this.dataset.isoValue;
+                }
+            });
+
+            // 失焦或改變時切換回 Text 並格式化
+            el.addEventListener('blur', function () {
+                handleDateBlur(this);
+            });
+            el.addEventListener('change', function () {
+                handleDateBlur(this);
+            });
+        }
+
+        function handleDateBlur(el) {
+            if (el.value) {
+                // 如果是 ISO 格式，存起來
+                if (el.value.includes('-')) {
+                    el.dataset.isoValue = el.value;
+                }
+            } else {
+                // 如果清空了，也許要保留原值或設為今天？
+                // 這裡暫時保持原樣
+            }
+
+            el.type = 'text';
+            formatCompactDate(el);
+        }
+
+        function formatCompactDate(el) {
+            if (!el) return;
+
+            // 如果當前是 date type，先取值存起來
+            if (el.type === 'date' && el.value) {
+                el.dataset.isoValue = el.value;
+            }
+
+            const rawVal = el.dataset.isoValue || el.value;
+            if (!rawVal) return;
+
+            // 嘗試解析 YYYY-MM-DD
+            if (rawVal.includes('-')) {
+                const parts = rawVal.split('-');
+                if (parts.length === 3) {
+                    const y = parts[0];
+                    const m = parseInt(parts[1], 10);
+                    const d = parseInt(parts[2], 10);
+                    // 切換為 Text
+                    el.type = 'text';
+                    el.value = `${y}/${m}/${d}`;
+                }
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initCompactDateInput('ledger-date');
+            initCompactDateInput('ledger-note-date');
+        });
 
     </script>
 </body>
