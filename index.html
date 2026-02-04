@@ -12599,24 +12599,37 @@
 
                 // 2. 呼叫 Gemini
                 const prompt = `
-                    你是一個收據辨識助手。請分析這張收據圖片，並提取其中的所有「消費項目」與「金額」。
+                    你是一個收據辨識助手。請分析這張收據圖片，並提取「交易日期」與所有「消費項目」。
                     
                     規則：
                     1. 只提取具體消費品項，不要總計(Total)、稅金(Tax)或找零。
                     2. 若品項名稱為日文或英文，請翻譯成「繁體中文」 (若不確定則保留原文)。
                     3. 金額請只保留數字。
-                    4. 回傳格式必須是單純的 JSON Array，不要 Markdown 標記，格式如下：
-                       [{"name": "品項A", "amount": 100}, {"name": "品項B", "amount": 550}]
+                    4. 辨識收據上的日期，格式為 YYYY-MM-DD (若找不到或不確定則回傳 null)。
+                    5. 回傳格式必須是單純的 JSON Object，不要 Markdown 標記，格式如下：
+                       {
+                         "date": "2024-01-01",
+                         "items": [{"name": "品項A", "amount": 100}, {"name": "品項B", "amount": 550}]
+                       }
                 `;
 
                 const resultText = await getGeminiResponse(prompt, cleanBase64);
 
                 // 3. 解析 JSON
                 let items = [];
+                let detectedDate = null;
+
                 try {
                     // 嘗試清理 Markdown 代碼塊
                     let cleanJson = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
-                    items = JSON.parse(cleanJson);
+                    const parsed = JSON.parse(cleanJson);
+
+                    if (Array.isArray(parsed)) {
+                        items = parsed; // 相容舊格式 (雖然 Prompt 改了，但以防萬一)
+                    } else if (parsed && typeof parsed === 'object') {
+                        items = parsed.items || [];
+                        detectedDate = parsed.date;
+                    }
                 } catch (e) {
                     console.error("JSON Parse Error:", e);
                     alert("辨識結果格式錯誤，請重試");
@@ -12635,13 +12648,19 @@
                 document.getElementById('bill-scan-modal').style.display = 'flex';
 
                 // [新增] 初始化日期與付款方式
-                const today = new Date();
-                const yyyy = today.getFullYear();
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const dd = String(today.getDate()).padStart(2, '0');
-
                 const bsDate = document.getElementById('bill-scan-date');
-                if (bsDate) bsDate.value = `${yyyy}-${mm}-${dd}`;
+                if (bsDate) {
+                    if (detectedDate) {
+                        bsDate.value = detectedDate;
+                    } else {
+                        // 若沒抓到，預設為今天
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(2, '0');
+                        const dd = String(today.getDate()).padStart(2, '0');
+                        bsDate.value = `${yyyy}-${mm}-${dd}`;
+                    }
+                }
 
                 const bsPay = document.getElementById('bill-scan-payment-method');
                 if (bsPay) bsPay.value = 'card'; // 掃描通常是刷卡單? 或保持預設
