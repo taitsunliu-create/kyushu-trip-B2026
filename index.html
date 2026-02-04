@@ -11267,6 +11267,12 @@
                     const finDate = document.getElementById('ledger-date');
                     if (finDate) finDate.value = todayStr;
 
+                    // [新增] 重置後觸發緊湊格式化
+                    if (typeof formatCompactDate === 'function') {
+                        formatCompactDate(noteDate);
+                        formatCompactDate(finDate);
+                    }
+
                     // [新增] 重置付款方式
                     const payMethod = document.getElementById('ledger-payment-method');
                     if (payMethod) payMethod.value = 'cash';
@@ -11372,7 +11378,7 @@
 
             // 切換標題文字
             const title = document.getElementById('ledger-view-title');
-            if (title) title.innerText = type === 'finance' ? '總支出 (JPY)' : '記事總數';
+            if (title) title.innerText = type === 'finance' ? '公費總支出 (JPY)' : '記事總數';
 
             // 重新渲染清單
             renderLedgerList(rawLedgerData);
