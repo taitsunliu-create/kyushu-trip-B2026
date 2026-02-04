@@ -11836,14 +11836,17 @@
                 fetchLiveRate();
             }
             // [新增] 初始化日期為今天
-            const dateInput = document.getElementById('ledger-note-date');
-            if (dateInput && !dateInput.value) {
-                const today = new Date();
-                const yyyy = today.getFullYear();
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const dd = String(today.getDate()).padStart(2, '0');
-                dateInput.value = `${yyyy}-${mm}-${dd}`;
-            }
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+
+            const noteDate = document.getElementById('ledger-note-date');
+            if (noteDate && !noteDate.value) noteDate.value = dateStr;
+
+            const finDate = document.getElementById('ledger-date');
+            if (finDate && !finDate.value) finDate.value = dateStr;
         });
 
         // [新增] 編輯與刪除功能 (需配合 GAS 後端更新)
