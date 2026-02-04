@@ -6734,7 +6734,7 @@
         <div class="card" style="margin-bottom: 12px; background: #5A92E8; color: white;">
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
                 <div id="ledger-header-info">
-                    <div style="font-size: 0.8rem; opacity: 0.9;" id="ledger-view-title">總支出 (JPY)</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;" id="ledger-view-title">公費總支出 (JPY)</div>
                     <div id="ledger-total-amount" style="font-size: 1.5rem; font-weight: 700;">¥ 0</div>
                 </div>
 
@@ -6775,7 +6775,11 @@
                         <div id="display-current-avatar" class="current-avatar">👤</div>
                         <div class="current-user-text">
                             <span class="current-user-label">目前記錄身分</span>
-                            <span id="display-current-name" class="current-user-name">請登入</span>
+                            <div style="display: flex; align-items: baseline; gap: 8px;">
+                                <span id="display-current-name" class="current-user-name">請登入</span>
+                                <span id="user-private-total"
+                                    style="color: #2563EB; font-weight: bold; font-size: 0.9rem;"></span>
+                            </div>
                         </div>
                     </div>
                     <div class="btn-switch-user">切換</div>
@@ -6788,13 +6792,18 @@
                     <!-- [新增] Row 1: 日期與付款方式 -->
                     <div style="display: flex; gap: 6px; margin-bottom: 8px;">
                         <input type="date" id="ledger-date"
-                            style="flex: 1; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; -webkit-appearance: none; appearance: none; background: #fff; color: #4B5563;">
+                            style="flex: 1.3; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; -webkit-appearance: none; appearance: none; background: #fff; color: #4B5563;">
                         <select id="ledger-payment-method"
                             style="flex: 1; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #4B5563;">
                             <option value="cash" selected>💵 現金</option>
                             <option value="card">💳 刷卡</option>
                             <option value="ic">🐧 IC卡</option>
                             <option value="pay">📱 Pay</option>
+                        </select>
+                        <select id="ledger-pay-type"
+                            style="flex: 1; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #4B5563;">
+                            <option value="public" selected>公費</option>
+                            <option value="private">個人</option>
                         </select>
                     </div>
 
@@ -7289,7 +7298,7 @@
         // 用於 Google Places (分享位置時抓地標名稱)
         const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ==";
         // [安插在其他 ENC_ 變數群組中]
-        const encryptedGasUrl = "U2FsdGVkX19MmIOji4tzHMn0B1XvpMYw3vMxkiBu9NEyfT3Px2Ae0WPHFw+ONXI63PNEz6WP5kp5XaWrGgoVs34kKPNYU17Jwp8QhIpHgWKjzBOJwKxOUm4kjA3o4H/UGTY+Jm+QbSs7p1Lx84E+tCaA/NsDyKm/gw9zkFf2Gxe2krzdMCSqSwHWRU1ocPb0"; // 填入您的 URL 密文
+        const encryptedGasUrl = "U2FsdGVkX18o/nXK4LwVnsGuZPJacgxufbjYbBCeMWBkTOR1J7cw2h9HeOCKMd+suYPzgL+/AOAYmOuEZyoFERqqFxeTbC10KRkRQUvYsWp3JkLXYmGGBksQnIFbYL/iSEgj35tX2oSjYIL3jtj84Hv/oM+MSHVp+p1XdkU+0j9L/U2eLAFa3mih/s6ATelg"; // 填入您的 URL 密文
         const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
         // [安插在其他 API_KEY 全域變數群組中]
@@ -11073,6 +11082,12 @@
             // ★ 關鍵：只存入「乾淨的純文字」到快取
             localStorage.setItem('last_user_name', name);
 
+            // [新增] 同步更新 "個人" 選項的顯示名稱
+            const privateOptions = document.querySelectorAll('#ledger-pay-type option[value="private"], #bill-scan-pay-type option[value="private"]');
+            privateOptions.forEach(opt => {
+                opt.innerText = name || '個人';
+            });
+
             // 更新全域變數 (配合 handleLedgerSubmit)
             window.TEMP_USER_NAME = name;
         }
@@ -11202,6 +11217,8 @@
                     amount: finalAmountJpy,
                     // [新增] 付款方式
                     paymentMethod: isFinance ? (document.getElementById('ledger-payment-method')?.value || 'cash') : '',
+                    // [新增] 支付者類型 (Public or UserName)
+                    paymentType: isFinance ? (document.getElementById('ledger-pay-type')?.value === 'public' ? 'Public' : userName) : '',
                     // [新增] 加入圖片欄位 (Array of Base64 or URLs)
                     images: window.currentNoteImages || []
                 };
@@ -11382,10 +11399,18 @@
 
             let totalJPY = 0;
             let totalTWD = 0;
+            // [新增] 私人支出統計
+            let privateJPY = 0;
+            let privateTWD = 0;
+
+            const currentUserName = localStorage.getItem('last_user_name') || '匿名';
 
             if (filteredData.length === 0) {
                 listContainer.innerHTML = `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
                 updateTotalDisplay(0, 0);
+                // 清空私人顯示
+                const pTotalEl = document.getElementById('user-private-total');
+                if (pTotalEl) pTotalEl.innerText = '';
                 return;
             }
 
@@ -11410,10 +11435,33 @@
                 if (item.type === 'finance') {
                     const jpy = parseFloat(item.amount || 0);
                     const twd = item.twdAmount ? parseInt(item.twdAmount) : Math.round(jpy * (item.rate || 0.21));
-                    totalJPY += jpy;
-                    totalTWD += twd;
+
+                    const pType = item.paymentType || 'Public';
+
+                    // 公費總計
+                    if (pType === 'Public' || pType === 'public') {
+                        totalJPY += jpy;
+                        totalTWD += twd;
+                    }
+                    // 私人總計 (只算目前登入者的)
+                    else if (pType === currentUserName) {
+                        privateJPY += jpy;
+                        privateTWD += twd;
+                    }
                 }
             });
+
+            // 更新 UI顯示
+            updateTotalDisplay(totalJPY, totalTWD);
+
+            const pTotalEl = document.getElementById('user-private-total');
+            if (pTotalEl) {
+                if (privateJPY > 0) {
+                    pTotalEl.innerHTML = `( 私帳: ¥${privateJPY.toLocaleString()} <span style="font-size:0.8em; opacity:0.8;">≈NT$${privateTWD.toLocaleString()}</span> )`;
+                } else {
+                    pTotalEl.innerText = '';
+                }
+            }
 
             // 2. 渲染分組
             let html = '';
@@ -12506,7 +12554,7 @@
                     <input type="date" id="bill-scan-date"
                         style="flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 6px; -webkit-appearance: none; appearance: none; background: white;">
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="display: flex; gap: 6px; align-items: center;">
                     <label style="font-size: 0.85rem; color: #666; width: 40px;">付款</label>
                     <select id="bill-scan-payment-method"
                         style="flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 6px; background: white;">
@@ -12514,6 +12562,12 @@
                         <option value="card" selected>💳 刷卡</option>
                         <option value="ic">🐧 IC卡</option>
                         <option value="pay">📱 Pay</option>
+                    </select>
+                    <label style="font-size: 0.85rem; color: #2563EB; font-weight: bold; margin: 0 2px;">支付</label>
+                    <select id="bill-scan-pay-type"
+                        style="flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 6px; background: white;">
+                        <option value="public" selected>公費</option>
+                        <option value="private">個人</option>
                     </select>
                 </div>
             </div>
@@ -12710,6 +12764,7 @@
             // [新增] 讀取全域日期與付款方式
             const dateVal = document.getElementById('bill-scan-date')?.value || new Date().toISOString().split('T')[0];
             const payVal = document.getElementById('bill-scan-payment-method')?.value || 'cash';
+            const pType = document.getElementById('bill-scan-pay-type')?.value || 'public';
 
             // 1. 蒐集資料
             rows.forEach(row => {
@@ -12756,7 +12811,7 @@
                 // 循序送出 (Serial) 並加入延遲，避免後端鎖死 (Script Lock)
                 let successCount = 0;
                 for (const entry of entries) {
-                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName, dateVal, payVal);
+                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName, dateVal, payVal, pType);
                     successCount++;
                     // [新增] 延遲 300ms
                     await new Promise(r => setTimeout(r, 300));
@@ -12776,8 +12831,8 @@
             }
         }
 
-        // [提取] 獨立的記帳送出函式 (修正版：移除 userKey 參數，因為 handleLedgerSubmit 沒用到它)
-        async function submitFinanceEntrySimple(item, amount, avatar, userName, dateStr, paymentMethod) {
+        // [提取] 獨立的記帳送出函式 (修正版：增加 payType 參數)
+        async function submitFinanceEntrySimple(item, amount, avatar, userName, dateStr, paymentMethod, payType) {
             const url = getKey('gas_url');
             const token = getKey('gas_token');
             if (!url || !token) throw new Error("API URL/Token Missing");
@@ -12809,7 +12864,6 @@
                 id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now() + Math.random().toString(36).substr(2, 5)),
                 userName: userName,
                 userAvatar: avatar,
-                userAvatar: avatar,
                 date: dateStr || new Date().toISOString().split('T')[0], // 使用傳入的日期
                 timestamp: (() => {
                     // 簡易構造 timestamp
@@ -12820,7 +12874,8 @@
                     }
                     return new Date().toISOString();
                 })(),
-                paymentMethod: paymentMethod || 'cash', // [新增]
+                paymentMethod: paymentMethod || 'cash',
+                paymentType: (payType === 'public' ? 'Public' : userName), // [新增]
                 rate: String(finalRate),
                 twdAmount: String(amountTwd),
                 item: item,
