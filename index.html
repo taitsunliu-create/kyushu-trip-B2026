@@ -6785,19 +6785,20 @@
                 </div>
 
                 <div id="ledger-finance-fields">
-                    <!-- [新增] 日期與付款方式列 -->
-                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                        <input type="date" id="ledger-finance-date"
-                            style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; -webkit-appearance: none; appearance: none; height: 44px;">
-
-                        <select id="ledger-finance-payment-method"
-                            style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; height: 44px; appearance: none; -webkit-appearance: none;">
-                            <option value="現金">現金</option>
-                            <option value="信用卡">信用卡</option>
-                            <option value="其他">其他</option>
+                    <!-- [新增] Row 1: 日期與付款方式 -->
+                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <input type="date" id="ledger-date"
+                            style="flex: 1; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; -webkit-appearance: none; appearance: none; background: #fff; color: #4B5563;">
+                        <select id="ledger-payment-method"
+                            style="flex: 1; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #4B5563;">
+                            <option value="cash" selected>💵 現金</option>
+                            <option value="card">💳 刷卡</option>
+                            <option value="ic">🐧 IC卡</option>
+                            <option value="pay">📱 Pay</option>
                         </select>
                     </div>
 
+                    <!-- Row 2: 品項與金額 -->
                     <div style="display: flex; gap: 6px; align-items: center;">
                         <!-- [新增] 掃描按鈕 (藍色無框線) -->
                         <button onclick="document.getElementById('bill-scan-input').click()"
@@ -6818,7 +6819,7 @@
 
                         <input type="text" id="ledger-item" placeholder="項目內容..."
                             style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <input type="number" id="ledger-amount" placeholder="金額"
+                        <input type="number" id="ledger-amount" placeholder="金額" inputmode="decimal"
                             style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
                             style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">
@@ -7288,7 +7289,7 @@
         // 用於 Google Places (分享位置時抓地標名稱)
         const encryptedPlacesKey = "U2FsdGVkX18lboyLOHvSireLOqo+Tfbx70XCgJaQinOaeYW+husBH5S/JaqTRG1zw3ggoldpqX89EHoR9R87iQ==";
         // [安插在其他 ENC_ 變數群組中]
-        const encryptedGasUrl = "U2FsdGVkX1+jyLcGz5h6/puIllH6scxL6gQTEdcE01W0d/maHqzXnGTGJpYoKh67LQuur3verT5b33vP358A3NlTcYCgZWe3widFG6kZ/R2re9NxcIT9JgaFAbVS05TYc1RO1GdnK+jOThwkmVay+TntL+AfgkOFQbpo3uq8yuD4DX/+32NMh3NZAFK/rBit"; // 填入您的 URL 密文
+        const encryptedGasUrl = "U2FsdGVkX1+YIvIqkQeXbm5ZlSEYymhuDl30XWZl/xiz94GuC60kIKqNtgIMXAGxmH9+p6TDPODrAGdsP36fQ+1DeAmcQWUUavWnutSyAh79t3BvAlhDjA49Sew0inOaKuKJX/SUoZWHTnTNx1nq/Q0W0rTHQKm/K5RHzdbdu1GRSUSJtp78S3Kc5IJs5nYP"; // 填入您的 URL 密文
         const encryptedGasToken = "U2FsdGVkX1+l7O90wSEHws4JnNtBIIx1S4beZi/bXLQ="; // 填入您的 Token 密文
 
         // [安插在其他 API_KEY 全域變數群組中]
@@ -11174,26 +11175,18 @@
                     id: window.editingId ? window.editingId : ((window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now())),
                     userName: userName,
                     userAvatar: userAvatar,
-                    // [修改] 如果是 Note 模式且有選日期，就用選的日期；否則由後端決定 (通常是今日)
-                    // [修改] 日期邏輯：記帳與記事現在都有自己的日期選擇器
+                    // [修改] 統一日期邏輯 (Finance 也可以選日期)
                     date: (() => {
-                        if (isFinance) {
-                            return document.getElementById('ledger-finance-date')?.value || new Date().toISOString().split('T')[0];
-                        } else {
-                            return document.getElementById('ledger-note-date')?.value || new Date().toISOString().split('T')[0];
-                        }
+                        const el = isFinance ? document.getElementById('ledger-date') : document.getElementById('ledger-note-date');
+                        return el && el.value ? el.value : new Date().toISOString().split('T')[0];
                     })(),
-                    paymentMethod: isFinance ? (document.getElementById('ledger-finance-payment-method')?.value || '現金') : '', // [新增]
                     timestamp: (() => {
                         try {
-                            // [修改] 支援 Finance 與 Note 的自訂日期
-                            const dateEl = isFinance ? document.getElementById('ledger-finance-date') : document.getElementById('ledger-note-date');
-
+                            const dateEl = isFinance ? document.getElementById('ledger-date') : document.getElementById('ledger-note-date');
                             if (dateEl && dateEl.value) {
                                 const dVal = dateEl.value; // YYYY-MM-DD
                                 const now = new Date();
                                 const [y, m, d] = dVal.split('-').map(Number);
-                                // 使用本地時間構造，然後轉 ISO (確保與當下時間一致)
                                 const combined = new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds());
                                 return combined.toISOString();
                             }
@@ -11207,6 +11200,8 @@
                     item: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     content: isFinance ? (document.getElementById('ledger-item')?.value || '') : (document.getElementById('ledger-note-content')?.value || ''),
                     amount: finalAmountJpy,
+                    // [新增] 付款方式
+                    paymentMethod: isFinance ? (document.getElementById('ledger-payment-method')?.value || 'cash') : '',
                     // [新增] 加入圖片欄位 (Array of Base64 or URLs)
                     images: window.currentNoteImages || []
                 };
@@ -11224,15 +11219,22 @@
                     document.getElementById('ledger-amount').value = '';
                     document.getElementById('ledger-note-content').value = '';
 
-                    // [新增] 重置日期為今天
-                    const dateInput = document.getElementById('ledger-note-date');
-                    if (dateInput) {
-                        const today = new Date();
-                        const yyyy = today.getFullYear();
-                        const mm = String(today.getMonth() + 1).padStart(2, '0');
-                        const dd = String(today.getDate()).padStart(2, '0');
-                        dateInput.value = `${yyyy}-${mm}-${dd}`;
-                    }
+                    // [新增] 重置日期為今天 (Finance & Note)
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+                    const noteDate = document.getElementById('ledger-note-date');
+                    if (noteDate) noteDate.value = todayStr;
+
+                    const finDate = document.getElementById('ledger-date');
+                    if (finDate) finDate.value = todayStr;
+
+                    // [新增] 重置付款方式
+                    const payMethod = document.getElementById('ledger-payment-method');
+                    if (payMethod) payMethod.value = 'cash';
 
                     // [修正] 清空圖片暫存與預覽
                     window.currentNoteImages = [];
@@ -11962,11 +11964,10 @@
                 document.getElementById('ledger-item').value = item.item || item.content || '';
                 document.getElementById('ledger-amount').value = item.amount || '';
 
-                // [新增] 填入日期
-                const finDate = document.getElementById('ledger-finance-date');
-                if (finDate) {
+                // [新增] 填入日期 (Finance)
+                const fDateInput = document.getElementById('ledger-date');
+                if (fDateInput) {
                     let dStr = item.date;
-                    // ISO 時間處理
                     if (dStr && dStr.includes('T')) {
                         const dateObj = new Date(dStr);
                         const y = dateObj.getFullYear();
@@ -11974,16 +11975,15 @@
                         const d = String(dateObj.getDate()).padStart(2, '0');
                         dStr = `${y}-${m}-${d}`;
                     }
-                    finDate.value = dStr || '';
+                    fDateInput.value = dStr || '';
                 }
 
                 // [新增] 填入付款方式
-                const finPay = document.getElementById('ledger-finance-payment-method');
-                if (finPay) {
-                    // 若 item.paymentMethod 為空，預設現金
-                    finPay.value = item.paymentMethod || '現金';
+                const payMethod = document.getElementById('ledger-payment-method');
+                if (payMethod) {
+                    // 若舊資料沒有 paymentMethod 則預設 cash
+                    payMethod.value = item.paymentMethod || 'cash';
                 }
-
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
                 if (btn) {
@@ -12487,17 +12487,23 @@
             <div class="modal-title">掃描結果確認</div>
             <div class="modal-desc">請勾選並確認要加入的項目。</div>
 
-            <!-- [新增] 掃描結果的日期與付款方式 -->
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="date" id="scan-date"
-                    style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; -webkit-appearance: none; appearance: none; height: 44px;">
-
-                <select id="scan-payment-method"
-                    style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; color: #4B5563; background: #fff; box-sizing: border-box; height: 44px; appearance: none; -webkit-appearance: none;">
-                    <option value="現金">現金</option>
-                    <option value="信用卡">信用卡</option>
-                    <option value="其他">其他</option>
-                </select>
+            <div
+                style="background: #F9FAFB; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px dashed #E5E7EB;">
+                <div style="display: flex; gap: 10px; margin-bottom: 8px; align-items: center;">
+                    <label style="font-size: 0.85rem; color: #666; width: 40px;">日期</label>
+                    <input type="date" id="bill-scan-date"
+                        style="flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 6px; -webkit-appearance: none; appearance: none; background: white;">
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-size: 0.85rem; color: #666; width: 40px;">付款</label>
+                    <select id="bill-scan-payment-method"
+                        style="flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 6px; background: white;">
+                        <option value="cash">💵 現金</option>
+                        <option value="card" selected>💳 刷卡</option>
+                        <option value="ic">🐧 IC卡</option>
+                        <option value="pay">📱 Pay</option>
+                    </select>
+                </div>
             </div>
 
             <div id="bill-scan-list"
@@ -12584,37 +12590,24 @@
 
                 // 2. 呼叫 Gemini
                 const prompt = `
-                    你是一個收據辨識助手。請分析這張收據圖片，並提取其中的所有「消費項目」與「金額」以及「消費日期」。
+                    你是一個收據辨識助手。請分析這張收據圖片，並提取其中的所有「消費項目」與「金額」。
                     
                     規則：
                     1. 只提取具體消費品項，不要總計(Total)、稅金(Tax)或找零。
                     2. 若品項名稱為日文或英文，請翻譯成「繁體中文」 (若不確定則保留原文)。
                     3. 金額請只保留數字。
-                    4. 嘗試提取消費日期，格式為 YYYY-MM-DD。若找不到日期，則忽略或回傳 null。
-                    5. 回傳格式必須是單純的 JSON Object，包含 `items` 陣列與 optional 的 `date` 欄位，格式如下：
-                       {
-                         "date": "2026-01-30",
-                         "items": [{"name": "品項A", "amount": 100}, {"name": "品項B", "amount": 550}]
-                       }
+                    4. 回傳格式必須是單純的 JSON Array，不要 Markdown 標記，格式如下：
+                       [{"name": "品項A", "amount": 100}, {"name": "品項B", "amount": 550}]
                 `;
 
                 const resultText = await getGeminiResponse(prompt, cleanBase64);
 
                 // 3. 解析 JSON
                 let items = [];
-                let extractedDate = null;
-
                 try {
                     // 嘗試清理 Markdown 代碼塊
                     let cleanJson = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const parsed = JSON.parse(cleanJson);
-
-                    if (Array.isArray(parsed)) {
-                        items = parsed;
-                    } else if (parsed && typeof parsed === 'object') {
-                        items = parsed.items || [];
-                        extractedDate = parsed.date;
-                    }
+                    items = JSON.parse(cleanJson);
                 } catch (e) {
                     console.error("JSON Parse Error:", e);
                     alert("辨識結果格式錯誤，請重試");
@@ -12628,24 +12621,22 @@
                     return;
                 }
 
-                // 填入日期 (若有抓到)
-                const scanDateInput = document.getElementById('scan-date');
-                if (scanDateInput) {
-                    if (extractedDate) {
-                        scanDateInput.value = extractedDate;
-                    } else {
-                        // 預設今天
-                        scanDateInput.value = new Date().toISOString().split('T')[0];
-                    }
-                }
-
-                // 重置付款方式
-                const scanPaymentInput = document.getElementById('scan-payment-method');
-                if (scanPaymentInput) scanPaymentInput.value = '現金';
-
                 // 4. 顯示結果 Modal
                 renderBillScanResult(items);
                 document.getElementById('bill-scan-modal').style.display = 'flex';
+
+                // [新增] 初始化日期與付款方式
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+
+                const bsDate = document.getElementById('bill-scan-date');
+                if (bsDate) bsDate.value = `${yyyy}-${mm}-${dd}`;
+
+                const bsPay = document.getElementById('bill-scan-payment-method');
+                if (bsPay) bsPay.value = 'card'; // 掃描通常是刷卡單? 或保持預設
+
                 // [新增] 鎖定背景捲動
                 document.body.style.overflow = 'hidden';
 
@@ -12685,6 +12676,10 @@
             const rows = document.querySelectorAll('.bill-item-row');
             let entries = [];
 
+            // [新增] 讀取全域日期與付款方式
+            const dateVal = document.getElementById('bill-scan-date')?.value || new Date().toISOString().split('T')[0];
+            const payVal = document.getElementById('bill-scan-payment-method')?.value || 'cash';
+
             // 1. 蒐集資料
             rows.forEach(row => {
                 const checked = row.querySelector('.bill-check').checked;
@@ -12706,10 +12701,6 @@
             document.getElementById('bill-scan-modal').style.display = 'none';
             // [新增] 解除背景捲動鎖定
             document.body.style.overflow = '';
-
-            // [新增] 取得全域設定 (日期 & 付款方式)
-            const globalDate = document.getElementById('scan-date').value || new Date().toISOString().split('T')[0];
-            const globalPayment = document.getElementById('scan-payment-method').value || '現金';
 
             showGlobalLoading("正在儲存 " + entries.length + " 筆帳目...");
 
@@ -12734,7 +12725,7 @@
                 // 循序送出 (Serial) 並加入延遲，避免後端鎖死 (Script Lock)
                 let successCount = 0;
                 for (const entry of entries) {
-                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName, globalDate, globalPayment);
+                    await submitFinanceEntrySimple(entry.item, entry.amount, avatar, userName, dateVal, payVal);
                     successCount++;
                     // [新增] 延遲 300ms
                     await new Promise(r => setTimeout(r, 300));
@@ -12755,7 +12746,7 @@
         }
 
         // [提取] 獨立的記帳送出函式 (修正版：移除 userKey 參數，因為 handleLedgerSubmit 沒用到它)
-        async function submitFinanceEntrySimple(item, amount, avatar, userName, date, paymentMethod) {
+        async function submitFinanceEntrySimple(item, amount, avatar, userName, dateStr, paymentMethod) {
             const url = getKey('gas_url');
             const token = getKey('gas_token');
             if (!url || !token) throw new Error("API URL/Token Missing");
@@ -12778,10 +12769,6 @@
             const amountJpy = parseFloat(amount) || 0;
             const amountTwd = amountJpy > 0 ? Math.round(amountJpy * finalRate) : 0;
 
-            // 使用傳入的日期 (若無則預設今天)
-            const finalDate = date || new Date().toISOString().split('T')[0];
-            const finalPayment = paymentMethod || '現金';
-
             // 2. 建構標準 Payload
             const payload = {
                 action: 'upload', // 修正為正確的 action
@@ -12791,14 +12778,23 @@
                 id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('id-' + Date.now() + Math.random().toString(36).substr(2, 5)),
                 userName: userName,
                 userAvatar: avatar,
-                date: finalDate,
-                timestamp: new Date().toISOString(), // 這裡維持建立時間，因為是紀錄資料建立的時間
+                userAvatar: avatar,
+                date: dateStr || new Date().toISOString().split('T')[0], // 使用傳入的日期
+                timestamp: (() => {
+                    // 簡易構造 timestamp
+                    if (dateStr) {
+                        const now = new Date();
+                        const [y, m, d] = dateStr.split('-').map(Number);
+                        return new Date(y, m - 1, d, now.getHours(), now.getMinutes()).toISOString();
+                    }
+                    return new Date().toISOString();
+                })(),
+                paymentMethod: paymentMethod || 'cash', // [新增]
                 rate: String(finalRate),
                 twdAmount: String(amountTwd),
                 item: item,
                 content: item, // 為了相容性，兩者都填
                 amount: String(amountJpy),
-                paymentMethod: finalPayment, // [新增] 付款方式
                 images: [] // 掃描項目暫不附圖
             };
 
@@ -12826,16 +12822,14 @@
             const dateInput = document.getElementById('ledger-note-date');
             if (dateInput) dateInput.value = todayStr;
 
-            // [新增] 重置 Finance 日期與付款方式
-            const finDate = document.getElementById('ledger-finance-date');
-            if (finDate) finDate.value = todayStr;
-            const finPay = document.getElementById('ledger-finance-payment-method');
-            if (finPay) finPay.value = '現金';
-
             // 2. 清空輸入框
             if (document.getElementById('ledger-note-content')) document.getElementById('ledger-note-content').value = '';
             if (document.getElementById('ledger-item')) document.getElementById('ledger-item').value = '';
             if (document.getElementById('ledger-amount')) document.getElementById('ledger-amount').value = '';
+
+            // [新增] 重置 Finance 日期與付款
+            if (document.getElementById('ledger-date')) document.getElementById('ledger-date').value = todayStr;
+            if (document.getElementById('ledger-payment-method')) document.getElementById('ledger-payment-method').value = 'cash';
 
             // 3. 隱藏 Cancel 按鈕
             const cBtnNote = document.getElementById('btn-cancel-edit-note');
