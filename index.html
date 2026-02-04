@@ -11404,7 +11404,27 @@
             // 排序：新的在上面
             data.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
 
-            const filteredData = data.filter(item => item.type === currentLedgerFilter);
+            const currentUserName = localStorage.getItem('last_user_name') || '匿名'; // [移動到前面定義]
+
+            const filteredData = data.filter(item => {
+                // 1. 基本 Tab 過濾 (finance / note)
+                if (item.type !== currentLedgerFilter) return false;
+
+                // 2. [新增] 隱私過濾：只顯示公費 OR 自己的私人支出
+                if (item.type === 'finance') {
+                    const pType = item.paymentType || 'Public';
+                    // 如果是公費，保留
+                    if (pType === 'Public' || pType === 'public') return true;
+                    // 如果是私人，檢查是否為自己
+                    if (currentUserName && pType === currentUserName) return true;
+
+                    // 其他人的私人支出 -> 隱藏
+                    return false;
+                }
+
+                // Note 暫時不過濾 (或視需求而定)
+                return true;
+            });
 
             let totalJPY = 0;
             let totalTWD = 0;
@@ -11412,7 +11432,8 @@
             let privateJPY = 0;
             let privateTWD = 0;
 
-            const currentUserName = localStorage.getItem('last_user_name') || '匿名';
+            // [刪除] 重複宣告
+            // const currentUserName = localStorage.getItem('last_user_name') || '匿名';
 
             if (filteredData.length === 0) {
                 listContainer.innerHTML = `<div style="text-align: center; color: #999; padding: 60px;">尚無紀錄</div>`;
