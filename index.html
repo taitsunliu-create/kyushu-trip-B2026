@@ -11500,6 +11500,13 @@
                         const currentUserName = localStorage.getItem('last_user_name');
                         let actionButtons = '';
 
+                        // [新增] 付款方式圖示對應
+                        let payIcon = '💵'; // 預設現金
+                        const pm = (item.paymentMethod || '').toLowerCase();
+                        if (pm.includes('card') || pm.includes('刷卡')) payIcon = '💳';
+                        else if (pm.includes('ic') || pm.includes('suica')) payIcon = '🐧';
+                        else if (pm.includes('pay')) payIcon = '📱';
+
                         if (currentUserName && displayUser.name === currentUserName) {
                             actionButtons = `
                             <div style="display: flex; gap: 10px; margin-top: 8px; justify-content: flex-end;">
@@ -11532,7 +11539,9 @@
                                     </div>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-weight: 700; font-size: 1.2rem; color: #F97316;">¥${jpy.toLocaleString()}</div>
+                                    <div style="font-weight: 700; font-size: 1.2rem; color: #F97316;">
+                                        <span style="font-size: 1rem; margin-right: 4px; filter: grayscale(0.2);" title="${item.paymentMethod || '現金'}">${payIcon}</span>¥${jpy.toLocaleString()}
+                                    </div>
                                     <div style="font-size: 0.85rem; color: #6B7280;">≈ NT$${twd.toLocaleString()}</div>
                                 </div>
                             </div>
