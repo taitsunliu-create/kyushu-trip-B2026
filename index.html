@@ -6790,30 +6790,30 @@
 
                 <div id="ledger-finance-fields">
                     <!-- [新增] Row 1: 日期與付款方式 -->
-                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
                         <input type="date" id="ledger-date"
-                            style="flex: 1.4; height: 40px; padding: 0 12px; border: 1px solid #E2E8F0; border-radius: 50px; font-family: inherit; -webkit-appearance: none; appearance: none; background: #fff; color: #4B5563;">
+                            style="flex: 1.3; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; -webkit-appearance: none; appearance: none; background: #fff; color: #4B5563;">
                         <select id="ledger-payment-method"
-                            style="flex: 1; height: 40px; padding: 0 12px; border: 1px solid #E2E8F0; border-radius: 50px; background: white; color: #4B5563;">
+                            style="flex: 1; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #4B5563;">
                             <option value="cash" selected>💵 現金</option>
                             <option value="card">💳 刷卡</option>
                             <option value="ic">🐧 IC卡</option>
                             <option value="pay">📱 Pay</option>
                         </select>
                         <select id="ledger-pay-type"
-                            style="flex: 1; height: 40px; padding: 0 12px; border: 1px solid #E2E8F0; border-radius: 50px; background: white; color: #4B5563;">
-                            <option value="public" selected>PUBLIC</option>
-                            <option value="private">Kenzo</option>
+                            style="flex: 1; height: 38px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #4B5563;">
+                            <option value="public" selected>公費</option>
+                            <option value="private">個人</option>
                         </select>
                     </div>
 
                     <!-- Row 2: 品項與金額 -->
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <!-- [新增] 掃描按鈕 (藍色無框線 -> 圓形按鈕) -->
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <!-- [新增] 掃描按鈕 (藍色無框線) -->
                         <button onclick="document.getElementById('bill-scan-input').click()"
-                            style="width: 40px; height: 40px; border: 1.5px solid #3B82F6; border-radius: 12px; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #2563EB; flex-shrink: 0;">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            style="width: 36px; height: 36px; padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #2563EB;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
                                 <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
                                 <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
@@ -6827,98 +6827,97 @@
                             onchange="handleBillFileChange(event)" style="display: none;">
 
                         <input type="text" id="ledger-item" placeholder="項目內容..."
-                            style="flex: 1.5; min-width: 0; height: 40px; padding: 0 16px; border: 1px solid #E2E8F0; border-radius: 50px;">
+                            style="flex: 1.5; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         <input type="number" id="ledger-amount" placeholder="金額" inputmode="decimal"
-                            style="flex: 1; min-width: 0; height: 40px; padding: 0 16px; border: 1px solid #E2E8F0; border-radius: 50px;">
-
+                            style="flex: 1; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                         <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                            style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: #9CA3AF; flex-shrink: 0;">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            style="width: 44px; height: 42px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
                         </button>
-                    </div> <!-- [新增] 放棄變更按鈕 (Finance) 縮小 (26->22) -->
-                    <button id="btn-cancel-edit-finance" onclick="cancelEditMode()" class="btn-cancel-edit"
-                        style="display: none; width: 22px; height: 22px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div id="ledger-note-fields" style="display: none;">
-                <div style="display: flex; gap: 8px; align-items: flex-end;">
-                    <!-- Left Column: Date + Note -->
-                    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
-                        <!-- Date Input (Compact: 32px) -->
-                        <input type="date" id="ledger-note-date"
-                            style="display: block; width: 100%; height: 32px; margin: 0 0 6px 0; padding: 4px 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; color: #4B5563; background: #fff; box-sizing: border-box; -webkit-appearance: none; appearance: none;">
-
-                        <!-- Note Textarea Box (Adjusted Height) -->
-                        <div
-                            style="display: flex; flex-direction: column; width: 100%; margin: 0; border: 1px solid #ddd; border-radius: 8px; padding: 6px; background: white; box-sizing: border-box;">
-                            <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
-                                style="width: 100%; height: 60px; padding: 2px; border: none; outline: none; resize: none; font-size: 0.95rem; line-height: 1.4;"></textarea>
-
-                            <!-- 圖片預覽水平捲軸 (移入輸入框內) -->
-                            <div id="note-image-preview" class="horizontal-scroll-container"
-                                style="display: none; margin-top: 6px; border-top: 1px dashed #eee; padding-top: 6px;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Buttons -->
-                    <div style="display: flex; align-items: flex-end; gap: 8px; padding-bottom: 0;">
-
-                        <!-- Column: Image + Submit -->
-                        <div
-                            style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px;">
-                            <!-- Image Button (Compact Height ~28px) -->
-                            <button onclick="document.getElementById('multi-img-input').click()"
-                                style="width: 44px; height: 28px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                    <polyline points="21 15 16 10 5 21"></polyline>
-                                </svg>
-                            </button>
-                            <!-- Submit Button -->
-                            <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
-                                style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <!-- Cancel Button (Outside the column, aligned to bottom right) -->
-                        <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
-                            style="display: none; width: 22px; height: 22px; margin: 0 0 9px 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
+                        <!-- [新增] 放棄變更按鈕 (Finance) 縮小 (26->22) -->
+                        <button id="btn-cancel-edit-finance" onclick="cancelEditMode()" class="btn-cancel-edit"
+                            style="display: none; width: 22px; height: 22px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
                         </button>
+                    </div>
+                </div>
 
-                        <!-- Hidden Input -->
-                        <input type="file" id="multi-img-input" multiple accept="image/*" style="display: none;"
-                            onchange="handleMultiImageSelect(event)">
+                <div id="ledger-note-fields" style="display: none;">
+                    <div style="display: flex; gap: 8px; align-items: flex-end;">
+                        <!-- Left Column: Date + Note -->
+                        <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                            <!-- Date Input (Compact: 32px) -->
+                            <input type="date" id="ledger-note-date"
+                                style="display: block; width: 100%; height: 32px; margin: 0 0 6px 0; padding: 4px 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; color: #4B5563; background: #fff; box-sizing: border-box; -webkit-appearance: none; appearance: none;">
+
+                            <!-- Note Textarea Box (Adjusted Height) -->
+                            <div
+                                style="display: flex; flex-direction: column; width: 100%; margin: 0; border: 1px solid #ddd; border-radius: 8px; padding: 6px; background: white; box-sizing: border-box;">
+                                <textarea id="ledger-note-content" placeholder="寫下旅程點滴..."
+                                    style="width: 100%; height: 60px; padding: 2px; border: none; outline: none; resize: none; font-size: 0.95rem; line-height: 1.4;"></textarea>
+
+                                <!-- 圖片預覽水平捲軸 (移入輸入框內) -->
+                                <div id="note-image-preview" class="horizontal-scroll-container"
+                                    style="display: none; margin-top: 6px; border-top: 1px dashed #eee; padding-top: 6px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Buttons -->
+                        <div style="display: flex; align-items: flex-end; gap: 8px; padding-bottom: 0;">
+
+                            <!-- Column: Image + Submit -->
+                            <div
+                                style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px;">
+                                <!-- Image Button (Compact Height ~28px) -->
+                                <button onclick="document.getElementById('multi-img-input').click()"
+                                    style="width: 44px; height: 28px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: transparent; cursor: pointer;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                </button>
+                                <!-- Submit Button -->
+                                <button onclick="handleLedgerSubmit()" class="btn-submit-ghost btn-submit-ledger"
+                                    style="width: 44px; height: 44px; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #E5E7EB; flex-shrink: 0; background: transparent;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Cancel Button (Outside the column, aligned to bottom right) -->
+                            <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
+                                style="display: none; width: 22px; height: 22px; margin: 0 0 9px 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white"
+                                    stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+
+                            <!-- Hidden Input -->
+                            <input type="file" id="multi-img-input" multiple accept="image/*" style="display: none;"
+                                onchange="handleMultiImageSelect(event)">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="ledger-list" style="margin-bottom: 80px;"></div>
+        <div id="ledger-list" style="margin-bottom: 80px;"></div>
     </div>
 
     <!-- 自定義彈出視窗 HTML -->
@@ -11459,9 +11458,9 @@
             if (pTotalEl) {
                 if (privateJPY > 0) {
                     pTotalEl.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; margin-left: 12px; line-height: 1.2;">
-                        <span style="font-size: 1.1rem; font-weight: 700; color: #2563EB;">¥ ${privateJPY.toLocaleString()}</span>
-                        <span style="font-size: 0.75rem; color: #64748B;">≈ NT$ ${privateTWD.toLocaleString()}</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: 8px; line-height: 1.2;">
+                        <span style="font-weight: 700; color: #2563EB; font-size: 1rem;">¥ ${privateJPY.toLocaleString()}</span>
+                        <span style="font-size: 0.75rem; color: #6B7280;">≈ NT$ ${privateTWD.toLocaleString()}</span>
                     </div>`;
                 } else {
                     pTotalEl.innerText = '';
