@@ -11262,15 +11262,17 @@
                     const todayStr = `${yyyy}-${mm}-${dd}`;
 
                     const noteDate = document.getElementById('ledger-note-date');
-                    if (noteDate) noteDate.value = todayStr;
+                    if (noteDate) {
+                        noteDate.type = 'date';
+                        noteDate.value = todayStr;
+                        if (typeof formatCompactDate === 'function') formatCompactDate(noteDate);
+                    }
 
                     const finDate = document.getElementById('ledger-date');
-                    if (finDate) finDate.value = todayStr;
-
-                    // [新增] 重置後觸發緊湊格式化
-                    if (typeof formatCompactDate === 'function') {
-                        formatCompactDate(noteDate);
-                        formatCompactDate(finDate);
+                    if (finDate) {
+                        finDate.type = 'date';
+                        finDate.value = todayStr;
+                        if (typeof formatCompactDate === 'function') formatCompactDate(finDate);
                     }
 
                     // [新增] 重置付款方式
