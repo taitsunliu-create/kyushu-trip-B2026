@@ -11626,9 +11626,11 @@
                         <div class="card" style="margin-bottom: 12px; padding: 15px; border-left: 4px solid #F97316; background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div style="display: flex; gap: 12px;">
-                                    <div style="display:flex; flex-direction:column; align-items:center; min-width:40px;">
+                                    <div style="display:flex; flex-direction:column; align-items:center; min-width:44px;">
                                         <span style="font-size: 1.8rem; line-height: 1;">${displayUser.avatar || '👤'}</span>
-                                        <span style="font-size: 0.7rem; color: #6B7280; margin-top:2px; font-weight:500;">${displayUser.name || '成員'}</span>
+                                        <span style="font-size: 0.7rem; color: #6B7280; margin-top:2px; font-weight:500; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:44px;">${displayUser.name || '成員'}</span>
+                                        <!-- [新增] 支付圖示移至此處 -->
+                                        <span style="font-size: 0.9rem; margin-top: 2px; filter: grayscale(0.1);" title="${item.paymentMethod || '現金'}">${payIcon}</span>
                                     </div>
                                     <div>
                                         <div style="font-weight: 700; font-size: 1.1rem; color: #1F2937; margin-bottom: 4px;">${displayTitle}</div>
@@ -11637,7 +11639,7 @@
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="font-weight: 700; font-size: 1.2rem; color: #F97316;">
-                                        <span style="font-size: 1rem; margin-right: 4px; filter: grayscale(0.2);" title="${item.paymentMethod || '現金'}">${payIcon}</span>¥${jpy.toLocaleString()}
+                                        ¥${jpy.toLocaleString()}
                                     </div>
                                     <div style="font-size: 0.85rem; color: #6B7280;">≈ NT$${twd.toLocaleString()}</div>
                                 </div>
