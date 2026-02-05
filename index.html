@@ -6848,7 +6848,7 @@
                             </svg>
                         </button>
                         <!-- [新增] 放棄變更按鈕 (Finance) 縮小 (26->22) -->
-                        <button id="btn-cancel-edit-finance" onclick="cancelEditMode()" class="btn-cancel-edit"
+                        <button id="btn-cancel-edit-finance" onclick="exitEditMode()" class="btn-cancel-edit"
                             style="display: none; width: 22px; height: 22px; margin: 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -6908,7 +6908,7 @@
                             </div>
 
                             <!-- Cancel Button (Outside the column, aligned to bottom right) -->
-                            <button id="btn-cancel-edit-note" onclick="cancelEditMode()" class="btn-cancel-edit"
+                            <button id="btn-cancel-edit-note" onclick="exitEditMode()" class="btn-cancel-edit"
                                 style="display: none; width: 22px; height: 22px; margin: 0 0 9px 0; padding: 0; align-items: center; justify-content: center; border-radius: 50%; border: none; background: #EF4444; flex-shrink: 0; cursor: pointer;">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white"
                                     stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -11285,14 +11285,14 @@
                     window.currentNoteImages = [];
                     renderImagePreviews();
 
-                    // [修正] 先判斷是否為編輯模式 (因為下面 cancelEditMode 會清空 window.editingId)
+                    // [修正] 先判斷是否為編輯模式 (因為下面 exitEditMode 會清空 window.editingId)
                     const wasEditing = !!window.editingId;
 
                     if (window.editingId) {
                         try {
-                            cancelEditMode(); // [新增] 成功送出後，呼叫取消模式來復原 UI
+                            exitEditMode(); // [新增] 成功送出後，呼叫取消模式來復原 UI
                         } catch (e) {
-                            console.error("Cancel edit mode error:", e);
+                            console.error("Exit edit mode error:", e);
                             window.editingId = null;
                         }
                     }
@@ -12253,8 +12253,8 @@
             setTimeout(updateLedgerSubmitState, 100);
         });
 
-        // [新增] 放棄變更模式
-        function cancelEditMode() {
+        // [新增] 放棄變更模式 (更名為 exitEditMode 以避免衝突)
+        function exitEditMode() {
             window.editingId = null;
 
             // 清空輸入
