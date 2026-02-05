@@ -12079,14 +12079,22 @@
                 // [新增] 填入日期 (Finance)
                 const fDateInput = document.getElementById('ledger-date');
                 if (fDateInput) {
-                    let dStr = item.date;
-                    if (dStr && dStr.includes('T')) {
-                        const dateObj = new Date(dStr);
-                        const y = dateObj.getFullYear();
-                        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-                        const d = String(dateObj.getDate()).padStart(2, '0');
-                        dStr = `${y}-${m}-${d}`;
+                    let dStr = item.date || item.timestamp; // Fallback to timestamp
+
+                    if (dStr) {
+                        // 嘗試標準化為 YYYY-MM-DD
+                        try {
+                            // 如果是 ISO 格式 或 時間戳
+                            const dObj = new Date(dStr);
+                            if (!isNaN(dObj.getTime())) {
+                                const y = dObj.getFullYear();
+                                const m = String(dObj.getMonth() + 1).padStart(2, '0');
+                                const d = String(dObj.getDate()).padStart(2, '0');
+                                dStr = `${y}-${m}-${d}`;
+                            }
+                        } catch (e) { }
                     }
+
                     fDateInput.value = dStr || '';
                     // 觸發格式化
                     if (typeof formatCompactDate === 'function') formatCompactDate(fDateInput);
@@ -12097,6 +12105,20 @@
                 if (payMethod) {
                     // 若舊資料沒有 paymentMethod 則預設 cash
                     payMethod.value = item.paymentMethod || 'cash';
+
+                    // [修正] 如果是 Public/Private，應該設定 payType
+                    // 但目前 payType 是根據 item.paymentType
+                    const payTypeSelect = document.getElementById('ledger-pay-type');
+                    if (payTypeSelect) {
+                        const pType = item.paymentType || 'Public';
+                        // 如果是 'Public' 或 'public' -> value='public'
+                        // 如果是 userName 或 其他 -> value='private'
+                        if (pType.toLowerCase() === 'public') {
+                            payTypeSelect.value = 'public';
+                        } else {
+                            payTypeSelect.value = 'private';
+                        }
+                    }
                 }
                 // 為了讓使用者知道正在編輯，改變按鈕文字
                 const btn = document.querySelector('#ledger-finance-fields .btn-submit-ledger');
@@ -12112,15 +12134,17 @@
                 // [新增] 填入日期
                 const dateInput = document.getElementById('ledger-note-date');
                 if (dateInput) {
-                    let dStr = item.date;
-                    // 如果是 ISO 格式 (e.g. 2026-01-27T16:00:00.000Z)，直接切字串會是 UTC 日期 (可能是前一天)
-                    // 改為先轉成 Date 物件，再取當地時間的 YYYY-MM-DD
-                    if (dStr && dStr.includes('T')) {
-                        const dateObj = new Date(dStr);
-                        const y = dateObj.getFullYear();
-                        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-                        const d = String(dateObj.getDate()).padStart(2, '0');
-                        dStr = `${y}-${m}-${d}`;
+                    let dStr = item.date || item.timestamp;
+                    if (dStr) {
+                        try {
+                            const dObj = new Date(dStr);
+                            if (!isNaN(dObj.getTime())) {
+                                const y = dObj.getFullYear();
+                                const m = String(dObj.getMonth() + 1).padStart(2, '0');
+                                const d = String(dObj.getDate()).padStart(2, '0');
+                                dStr = `${y}-${m}-${d}`;
+                            }
+                        } catch (e) { }
                     }
                     dateInput.value = dStr || '';
                     // 觸發格式化
