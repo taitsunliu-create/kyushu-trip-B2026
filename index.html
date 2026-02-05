@@ -12079,6 +12079,8 @@
                 // [新增] 填入日期 (Finance)
                 const fDateInput = document.getElementById('ledger-date');
                 if (fDateInput) {
+                    // [關鍵修正] 先強制轉回 date 類型
+                    fDateInput.type = 'date';
                     let dStr = item.date || item.timestamp; // Fallback to timestamp
 
                     if (dStr) {
@@ -12134,6 +12136,8 @@
                 // [新增] 填入日期
                 const dateInput = document.getElementById('ledger-note-date');
                 if (dateInput) {
+                    // [關鍵修正] 先強制轉回 date 類型
+                    dateInput.type = 'date';
                     let dStr = item.date || item.timestamp;
                     if (dStr) {
                         try {
