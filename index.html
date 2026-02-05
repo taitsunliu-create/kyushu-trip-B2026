@@ -11263,6 +11263,7 @@
 
                     const noteDate = document.getElementById('ledger-note-date');
                     if (noteDate) {
+                        delete noteDate.dataset.isoValue; // [關鍵] 清除舊的 ISO 緩存
                         noteDate.type = 'date';
                         noteDate.value = todayStr;
                         if (typeof formatCompactDate === 'function') formatCompactDate(noteDate);
@@ -11270,6 +11271,7 @@
 
                     const finDate = document.getElementById('ledger-date');
                     if (finDate) {
+                        delete finDate.dataset.isoValue; // [關鍵] 清除舊的 ISO 緩存
                         finDate.type = 'date';
                         finDate.value = todayStr;
                         if (typeof formatCompactDate === 'function') formatCompactDate(finDate);
@@ -12269,13 +12271,15 @@
 
             const finDate = document.getElementById('ledger-date');
             if (finDate) {
-                finDate.type = 'date'; // 強制切回 date 以便正確接收值
+                delete finDate.dataset.isoValue; // [關鍵] 清除舊的 ISO 緩存
+                finDate.type = 'date';
                 finDate.value = todayStr;
                 if (typeof formatCompactDate === 'function') formatCompactDate(finDate);
             }
 
             const noteDate = document.getElementById('ledger-note-date');
             if (noteDate) {
+                delete noteDate.dataset.isoValue; // [關鍵] 清除舊的 ISO 緩存
                 noteDate.type = 'date';
                 noteDate.value = todayStr;
                 if (typeof formatCompactDate === 'function') formatCompactDate(noteDate);
