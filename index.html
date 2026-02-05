@@ -12258,6 +12258,31 @@
             document.getElementById('ledger-amount').value = '';
             document.getElementById('ledger-note-content').value = '';
 
+            // [新增] 重置日期為今天
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            const finDate = document.getElementById('ledger-date');
+            if (finDate) {
+                finDate.type = 'date'; // 強制切回 date 以便正確接收值
+                finDate.value = todayStr;
+                if (typeof formatCompactDate === 'function') formatCompactDate(finDate);
+            }
+
+            const noteDate = document.getElementById('ledger-note-date');
+            if (noteDate) {
+                noteDate.type = 'date';
+                noteDate.value = todayStr;
+                if (typeof formatCompactDate === 'function') formatCompactDate(noteDate);
+            }
+
+            // [新增] 重置付款方式
+            const payMethod = document.getElementById('ledger-payment-method');
+            if (payMethod) payMethod.value = 'cash';
+
             // [新增] 清空圖片
             window.currentNoteImages = [];
             renderImagePreviews();
